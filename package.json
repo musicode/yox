@@ -1,22 +1,29 @@
 {
-    "name": "cola",
-    "version": "0.0.1",
-    "description": "edp project",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "edp": {
-        "wwwroot": "/",
-        "depDir": "dep",
-        "srcDir": "src",
-        "loaderAutoConfig": "js,htm,html,tpl,vm,phtml",
-        "loaderUrl": "http://s1.bdstatic.com/r/www/cache/ecom/esl/1-8-2/esl.js",
-        "dependencies": {}
-    },
-    "dependencies": {},
-    "author": "",
-    "repository": "empty",
-    "license": "BSD",
-    "readme": "README"
+  "name": "cola",
+  "version": "0.0.1",
+  "description": "edp project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "edp": {
+    "wwwroot": "/",
+    "depDir": "dep",
+    "srcDir": "src",
+    "loaderAutoConfig": "js,htm,html,tpl,vm,phtml",
+    "loaderUrl": "http://s1.bdstatic.com/r/www/cache/ecom/esl/1-8-2/esl.js",
+    "dependencies": {}
+  },
+  "dependencies": {
+    "babel-core": "^6.14.0",
+    "babel-plugin-external-helpers": "^6.8.0",
+    "babel-plugin-transform-es2015-modules-amd": "^6.8.0",
+    "babel-plugin-transform-es2015-modules-umd": "^6.12.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-stage-1": "^6.13.0"
+  },
+  "author": "",
+  "repository": "empty",
+  "license": "BSD",
+  "readme": "README"
 }

@@ -1,15 +1,19 @@
 const toString = Object.prototype.toString
 
+function is(arg, type) {
+  return toString.call(arg).toLowerCase() === `[object ${type}]`
+}
+
 export function isFunction (arg) {
   return typeof arg === 'function'
 }
 
 export function isArray(arg) {
-  return Array.isArray(arg)
+  return is(arg, 'array')
 }
 
 export function isObject(arg) {
-  return arg && toString.call(arg) === '[object Object]'
+  return arg && is(arg, 'object')
 }
 
 export function isDefined(arg) {
@@ -17,5 +21,5 @@ export function isDefined(arg) {
 }
 
 export function isString(arg) {
-  return toString.call(arg) === '[object String]'
+  return is(arg, 'string')
 }

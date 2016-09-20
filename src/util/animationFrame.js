@@ -69,5 +69,10 @@ if (cancelAnimationFrame == null) {
   cancelAnimationFrame = noop
 }
 
-export requestAnimationFrame
-export cancelAnimationFrame
+export function requestAnimation(callback) {
+  return requestAnimationFrame.call(win, callback)
+}
+
+export function cancelAnimation(id) {
+  cancelAnimationFrame(id)
+}
