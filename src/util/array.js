@@ -7,6 +7,14 @@ let {
   slice,
 } = Array.prototype
 
+export function each(array, callback) {
+  for (let i = 0, len = array.length; i < len; i++) {
+    if (callback(array[i], i) === false) {
+      break
+    }
+  }
+}
+
 export function toArray(array) {
   if (array == null || !('length' in array)) {
     return []
@@ -14,7 +22,7 @@ export function toArray(array) {
   return isArray(array) ? array : slice.call(array)
 }
 
-export function inArray(array, item) {
+export function hasItem(array, item) {
   return array.indexOf(item) >= 0
 }
 

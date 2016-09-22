@@ -23,3 +23,7 @@ export function isDefined(arg) {
 export function isString(arg) {
   return is(arg, 'string')
 }
+
+export function isNumeric(arg) {
+  return !isNaN(parseFloat(arg)) && isFinite(arg)
+}
