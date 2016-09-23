@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+    - 4
+install:
+|
+    npm install -g npm@latest
+    npm --version
+    npm install --registry http://registry.npmjs.org
+script:
+    - npm run test-ci
+
+cache:
+    bundler: true
+    directories:
+    - node_modules # NPM packages
