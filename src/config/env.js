@@ -4,7 +4,6 @@
  */
 
 import {
-  isDefined,
   isFunction,
 } from '../function/is'
 
@@ -25,7 +24,7 @@ export const isDebug = true
  *
  * @type {boolean}
  */
-export const inBrowser = isDefined(window) && isDefined(document)
+export const inBrowser = typeof window !== 'undefined' && typeof document !== 'undefined'
 
 /**
  * 浏览器环境下的 window 对象
@@ -61,7 +60,7 @@ export const noop = () => {}
  * @inner
  * @param {boolean}
  */
-const hasConsole = isDefined(console) && isFunction(console.log)
+const hasConsole = typeof console !== 'undefined' && isFunction(console.log)
 
 /**
  * 打印消息日志
