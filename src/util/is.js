@@ -1,3 +1,4 @@
+
 const toString = Object.prototype.toString
 
 function is(arg, type) {
@@ -13,15 +14,20 @@ export function isArray(arg) {
 }
 
 export function isObject(arg) {
-  return arg && is(arg, 'object')
-}
-
-export function isDefined(arg) {
-  return typeof arg !== 'undefined'
+  if (!arg) {
+    return false
+  }
+  // new String() 算 object
+  // 因此这里不能用 is 函数
+  return typeof arg === 'object'
 }
 
 export function isString(arg) {
   return is(arg, 'string')
+}
+
+export function isNumber(arg) {
+  return is(arg, 'number')
 }
 
 export function isNumeric(arg) {

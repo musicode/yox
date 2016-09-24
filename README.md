@@ -8,3 +8,5 @@
 
 * Date.now()
 * Object.keys()
+* Array.prototype.forEach
+* Array.prototype.indexOf

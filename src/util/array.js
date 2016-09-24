@@ -16,7 +16,10 @@ export function each(array, callback) {
 }
 
 export function toArray(array) {
-  if (array == null || !('length' in array)) {
+  try {
+    'length' in array
+  }
+  catch (e) {
     return []
   }
   return isArray(array) ? array : slice.call(array)

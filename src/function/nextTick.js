@@ -1,10 +1,6 @@
-import {
-  isFunction,
-} from './is'
-
 let nextTick
 
-if (isFunction(MutationObserver)) {
+if (typeof MutationObserver === 'function') {
   nextTick = fn => {
     let observer = new MutationObserver(fn)
     let textNode = document.createTextNode('')
@@ -14,7 +10,7 @@ if (isFunction(MutationObserver)) {
     textNode.data = ' '
   }
 }
-else if (isFunction(setImmediate)) {
+else if (typeof setImmediate === 'function') {
   nextTick = fn => setImmediate(fn)
 }
 else {
