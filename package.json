@@ -19,5 +19,8 @@
   "author": "",
   "repository": "empty",
   "license": "BSD",
-  "readme": "README.md"
+  "readme": "README.md",
+  "devDependencies": {
+    "babel-preset-stage-0": "^6.5.0"
+  }
 }

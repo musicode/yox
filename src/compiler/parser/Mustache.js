@@ -15,6 +15,8 @@ import {
 const openingTagPattern = /\{\{\s*/
 // 结束标签
 const closingTagPattern = /\s*\}\}/
+// 不转义的开始符号
+const unescapeOpeningSymbolPattern = /\{\s*/
 // 不转义的结束符号
 const unescapeClosingSymbolPattern = /\s*\}/
 
@@ -52,7 +54,9 @@ export default class Mustache {
     let value
     let token
     let tagFirstChar
-    let temp
+    let tempLine
+    let tempColumn
+    let tempValue
 
     let scanner = new Scanner(template)
 
@@ -85,7 +89,7 @@ export default class Mustache {
           // tokens 待 push 的索引
           let pushIndex = tokens.length
           if (isWhitespace(char)) {
-            whitespaces.push(nextIndex)
+            whitespaces.push(pushIndex)
           }
           else {
             hasNonWhitespace = true
@@ -95,7 +99,7 @@ export default class Mustache {
 
           // 这里会出现连续的 text token
           // 最后需要整理一下
-          tokens[nextIndex] = {
+          tokens[pushIndex] = {
             type: TEXT,
             value: char,
             line,
@@ -112,10 +116,9 @@ export default class Mustache {
       // 查找开始标签
       value = scanner.nextAfter(openingTagPattern)
       // 记录这里的位置会比较好
-      token = {
-        line,
-        column,
-      }
+      tempLine = line
+      tempColumn = column
+
       // 更新 column，因为上一步已经记录过，所以这里可以放心更新
       column += value.length
 
@@ -124,9 +127,10 @@ export default class Mustache {
         hasTag = true
 
         tagFirstChar = scanner.currentChar()
-        switch (tagFirstChar) (
+        switch (tagFirstChar) {
           case '{':
             type = UNESCAPE
+            value = scanner.nextAfter(unescapeOpeningSymbolPattern)
             value = scanner.nextBefore(unescapeClosingSymbolPattern)
             column += value.length + scanner.nextAfter(unescapeClosingSymbolPattern).length
             break
@@ -142,7 +146,7 @@ export default class Mustache {
           default:
             type = REF
             break
-        )
+        }
 
         if (value == null) {
           value = scanner.nextBefore(closingTagPattern)
@@ -150,17 +154,22 @@ export default class Mustache {
         }
 
         // 到这里应该位于结束标签之前
-        temp = scanner.nextAfter(closingTagPattern)
-        column += temp.length
+        tempValue = scanner.nextAfter(closingTagPattern)
+        column += tempValue.length
 
-        if (!temp) {
+        if (!tempValue) {
           throw new Error(
             print('Tag is not closed at line: %s, col: %s.', tag.line, tag.column)
           )
         }
 
-        token.type = type
-        token.value = value
+        token = {
+          type,
+          value,
+          line: tempLine,
+          column: tempColumn,
+        }
+
         tokens.push(token)
 
         switch (type) {
@@ -188,6 +197,9 @@ export default class Mustache {
       )
     }
 
+    return this.treerify(
+      this.clean(tokens)
+    )
 
   }
 

@@ -1,20 +1,4 @@
 
-/**
- * 收集网页中所有图片的例子:
- *
- * let scanner = new Scanner(document.body.innerHTML)
- * let imagePattern = /<img[^>]*?>/
- * let images = []
- * while (scanner.hasNext()) {
- *   scanner.nextBefore(imagePattern)
- *   let match = scanner.nextAfter(imagePattern)
- *   if (match) {
- *     images.push(match)
- *   }
- * }
- * console.log(images)
- */
-
 export default class Scanner {
 
   constructor(str) {
@@ -79,6 +63,10 @@ export default class Scanner {
       this.tail = ''
       return tail
     }
+  }
+
+  currentChar() {
+    return this.tail[0]
   }
 
 }
