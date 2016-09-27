@@ -15,4 +15,9 @@ export default class Parser {
 
 
   }
+
+  compile() {
+    extractFragments(this.element)
+
+  }
 }

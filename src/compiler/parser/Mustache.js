@@ -11,14 +11,41 @@ import {
   lastItem,
 } from '../../util/array'
 
-// 开始标签
-const openingTagPattern = /\{\{\s*/
-// 结束标签
-const closingTagPattern = /\s*\}\}/
+// 开始定界符
+const openingDelimiterPattern = /\{\{\s*/
+// 结束定界符
+const closingDelimiterPattern = /\s*\}\}/
+
 // 不转义的开始符号
 const unescapeOpeningSymbolPattern = /\{\s*/
 // 不转义的结束符号
 const unescapeClosingSymbolPattern = /\s*\}/
+
+const sectionSymbolPattern = /#\s*/
+const partialSymbolPattern = />\s*/
+const endSymbolPattern = /\/\s*/
+
+// 空白分隔符
+const whitespacePattern = /\s+/
+
+// {{ #if xxx }}
+const openingIfSymbolPattern = /\s*if\s*/
+// {{ else }}
+const elseSymbolPattern = /\s*else\s*/
+// {{ else if xxx }}
+const elseIfSymbolPattern = /\s*else if\s*/
+// {{ /if }}
+const closingIfSymbolPattern = /\s*\/if\s*/
+
+// {{ #each xxx }}
+const openingEachSymbolPattern = /\s*each\s*/
+// {{ /each }}
+const closingEachSymbolPattern = /\s*\/each\s*/
+
+// {{ #partial xxx }}
+const openingPartialSymbolPattern = /\s*partial\s*/
+// {{ /partial }}
+const closingPartialSymbolPattern = /\s*\/partial\s*/
 
 const REF = 'ref'
 const TEXT = 'text'
@@ -32,10 +59,7 @@ export default class Mustache {
 
   parse(template, partials) {
 
-    // 最终返回的 tokens
     let tokens = []
-
-    // section 栈
     let sections = []
 
     // 当前行
@@ -43,25 +67,27 @@ export default class Mustache {
     // 当前列
     let column = 0
     // 当前行是否有标签
-    let hasTag
+    let hasDelimiter
     // 当前行是否有非空白符
     let hasNonWhitespace
     // 当前行的空白符
     let whitespaces = []
 
-    // 当前正在处理的文本
+    // 当前 token
+    let token
     let type
     let value
-    let token
-    let tagFirstChar
-    let tempLine
-    let tempColumn
-    let tempValue
+
+    // 临时存储一些变量
+    let temp
+
+    let openingItems
+    let closingItems
 
     let scanner = new Scanner(template)
 
-    let newLine = () => {
-      if (hasTag && !hasNonWhitespace) {
+    let nextLine = () => {
+      if (hasDelimiter && !hasNonWhitespace) {
         let i = whitespaces.length - 2
         while (i >= 0) {
           tokens[whitespaces[i--]] = null
@@ -70,7 +96,7 @@ export default class Mustache {
 
       whitespaces.length = 0
 
-      hasTag =
+      hasDelimiter =
       hasNonWhitespace = false
 
       line++
@@ -78,10 +104,10 @@ export default class Mustache {
     }
 
     while (scanner.hasNext()) {
-      // 找开始标签
-      value = scanner.nextBefore(openingTagPattern)
+      // 找开始定界符
+      value = scanner.nextBefore(openingDelimiterPattern)
 
-      // 开始标签之前的文本
+      // 开始定界符之前的文本
       if (value) {
         // 字符遍历
         for (let i = 0, len = value.length; i < len; i++) {
@@ -107,41 +133,38 @@ export default class Mustache {
           }
 
           if (isBreakLine(char)) {
-            newLine()
+            nextLine()
           }
 
         }
       }
 
-      // 查找开始标签
-      value = scanner.nextAfter(openingTagPattern)
-      // 记录这里的位置会比较好
-      tempLine = line
-      tempColumn = column
-
-      // 更新 column，因为上一步已经记录过，所以这里可以放心更新
+      // 查找开始定界符
+      value = scanner.nextAfter(openingDelimiterPattern)
       column += value.length
 
       if (value) {
         value = null
-        hasTag = true
+        hasDelimiter = true
 
-        tagFirstChar = scanner.currentChar()
-        switch (tagFirstChar) {
+        switch (scanner.currentChar()) {
           case '{':
             type = UNESCAPE
-            value = scanner.nextAfter(unescapeOpeningSymbolPattern)
+            column += scanner.nextAfter(unescapeOpeningSymbolPattern).length
             value = scanner.nextBefore(unescapeClosingSymbolPattern)
             column += value.length + scanner.nextAfter(unescapeClosingSymbolPattern).length
             break
           case '>':
             type = PARTIAL
+            column += scanner.nextAfter(partialSymbolPattern).length
             break
           case '#':
             type = OPENING_SECTION
+            column += scanner.nextAfter(sectionSymbolPattern).length
             break
           case '/':
             type = CLOSING_SECTION
+            column += scanner.nextAfter(endSymbolPattern).length
             break
           default:
             type = REF
@@ -149,25 +172,25 @@ export default class Mustache {
         }
 
         if (value == null) {
-          value = scanner.nextBefore(closingTagPattern)
+          value = scanner.nextBefore(closingDelimiterPattern)
           column += value.length
         }
 
-        // 到这里应该位于结束标签之前
-        tempValue = scanner.nextAfter(closingTagPattern)
-        column += tempValue.length
+        // 到这里应该位于结束定界符之前
+        temp = scanner.nextAfter(closingDelimiterPattern)
+        column += temp.length
 
-        if (!tempValue) {
+        if (!temp) {
           throw new Error(
-            print('Tag is not closed at line: %s, col: %s.', tag.line, tag.column)
+            print('Tag is not closed at line: %s, col: %s.', line, column)
           )
         }
 
         token = {
           type,
           value,
-          line: tempLine,
-          column: tempColumn,
+          line,
+          column,
         }
 
         tokens.push(token)
@@ -177,10 +200,18 @@ export default class Mustache {
             sections.push(token)
             break
           case CLOSING_SECTION:
-            let popedToken = sections.pop()
-            // [TODO] 判断开始结束标签名称是否相同
-            if (popedToken.value === token.value) {
-
+            openingItems = sections.pop().value.split(whitespacePattern)
+            closingItems = token.value.split(whitespacePattern)
+            // 结束定界符必须长度为 1
+            if (closingItems.length !== 1) {
+              throw new Error(
+                print('Syntax error at line: %s, column: %s.', line, column)
+              )
+            }
+            if (openingItems[0] !== closingItems[0]) {
+              throw new Error(
+                print('Tag is not closed at line: %s, column: %s.', line, column)
+              )
             }
             break
           case REF:
