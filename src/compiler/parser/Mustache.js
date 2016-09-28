@@ -128,8 +128,6 @@ export default class Mustache {
           tokens[pushIndex] = {
             type: TEXT,
             value: char,
-            line,
-            column,
           }
 
           if (isBreakLine(char)) {
@@ -189,8 +187,6 @@ export default class Mustache {
         token = {
           type,
           value,
-          line,
-          column,
         }
 
         tokens.push(token)
@@ -274,7 +270,7 @@ export default class Mustache {
           type: SECTION,
         }
         current.push(token)
-        current = token.children = []
+        current = token.nodes = []
         stack.push(current)
       }
       else if (token.type === CLOSING_SECTION) {
@@ -286,5 +282,25 @@ export default class Mustache {
       }
     })
     return tree
+  }
+
+  /**
+   * 转成 html
+   *
+   * @param {Object} data
+   * @param {?Object} partials
+   * @return {Object}
+   */
+  toHTML(data, partials) {
+
+  }
+
+  /**
+   * 转成抽象语法树
+   *
+   * @return {Object}
+   */
+  toAst() {
+
   }
 }
