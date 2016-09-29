@@ -77,6 +77,9 @@ describe('util/object', () => {
     object.set(test, 'user.name', 'haha')
     expect(object.get(test, 'user.name')).toBe('haha')
 
+    object.set(test, 'a.b', 'haha', false)
+    expect(object.get(test, 'a.b')).toBe(undefined)
+
     object.set(test, 'a.b', 'haha', true)
     expect(object.get(test, 'a.b')).toBe('haha')
 
