@@ -47,7 +47,7 @@ describe('util/object', () => {
     expect(object.has(test2, 'toString')).toBe(false)
   })
 
-  it('find', () => {
+  it('get', () => {
     let test = {
       user: {
         name: 'musicode',
@@ -57,10 +57,28 @@ describe('util/object', () => {
         }
       }
     }
-    expect(object.find(test, 'user')).toBe(test.user)
-    expect(object.find(test, 'user.name')).toBe(test.user.name)
-    expect(object.find(test, 'user.haha')).toBe(test.user.haha)
-    expect(object.find(test, 'other.name')).toBe(undefined)
-    expect(object.find(test, 'user.extra.married')).toBe(test.user.extra.married)
+    expect(object.get(test, 'user')).toBe(test.user)
+    expect(object.get(test, 'user.name')).toBe(test.user.name)
+    expect(object.get(test, 'user.haha')).toBe(test.user.haha)
+    expect(object.get(test, 'other.name')).toBe(undefined)
+    expect(object.get(test, 'user.extra.married')).toBe(test.user.extra.married)
+  })
+
+  it('set', () => {
+    let test = {
+      user: {
+        name: 'musicode',
+        age: 1,
+        extra: {
+          married: false
+        }
+      }
+    }
+    object.set(test, 'user.name', 'haha')
+    expect(object.get(test, 'user.name')).toBe('haha')
+
+    object.set(test, 'a.b', 'haha', true)
+    expect(object.get(test, 'a.b')).toBe('haha')
+
   })
 })

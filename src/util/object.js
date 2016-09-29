@@ -14,7 +14,7 @@ export function has(object, name) {
   return object.hasOwnProperty(name)
 }
 
-export function find(object, keypath) {
+export function get(object, keypath) {
   // object 的 key 可能是 'a.b.c' 这样的
   // 如 data['a.b.c'] = 1 是一个合法赋值
   if (has(object, keypath)) {
@@ -31,5 +31,30 @@ export function find(object, keypath) {
         return object[list[i]]
       }
     }
+  }
+}
+
+export function set(object, keypath, value, autoFill = true) {
+  if (keypath.indexOf('.') > 0) {
+    let list = keypath.split('.')
+    let prop = list.pop()
+    for (let i = 0, len = list.length; i < len; i++) {
+      if (object[list[i]]) {
+        object = object[list[i]]
+      }
+      else if (autoFill) {
+        object = object[list[i]] = {}
+      }
+      else {
+        object = null
+        break
+      }
+    }
+    if (object) {
+      object[prop] = value
+    }
+  }
+  else {
+    object[keypath] = value
   }
 }

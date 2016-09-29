@@ -1,7 +1,8 @@
 
 import {
   has,
-  find,
+  get,
+  set,
 } from '../../util/object'
 
 export default class Context {
@@ -18,6 +19,21 @@ export default class Context {
     return new Context(data, this)
   }
 
+  set(keypath, value) {
+    let { data } = this
+    if (keypath.indexOf('.') > 0) {
+      let terms = keypath.split('.')
+      let prop = terms.pop()
+      let context = find(data, terms.join('.'))
+      if (context != null) {
+        context[prop] = value
+      }
+    }
+    else {
+      data[keypath] = value
+    }
+  }
+
   lookup(keypath) {
 
     let context = this
@@ -28,7 +44,7 @@ export default class Context {
 
     let value
     while (context) {
-      value = find(context.data, keypath)
+      value = get(context.data, keypath)
       if (typeof value !== 'undefined') {
         cache[keypath] = value
         break
