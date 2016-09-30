@@ -92,10 +92,19 @@ export function attr(element, name, value) {
       ''
     )
   }
-  element.setAttribute(name, value)
+
   if (isBoolean(value)) {
     element[name] = value
   }
+  else {
+    value = toString(value, null)
+    if (value == null) {
+      throw new Error(
+        'attr() value must be a string or a number.'
+      )
+    }
+  }
+  element.setAttribute(name, value)
 }
 
 /**
