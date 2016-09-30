@@ -14,7 +14,7 @@ import {
   each as eachObject
 } from './object'
 
-export default class Event {
+export class Event {
 
   constructor(event) {
     if (event.type) {
