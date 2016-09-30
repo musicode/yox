@@ -5,14 +5,24 @@ import {
 } from './is'
 
 import {
-  each,
+  each as eachArray,
   removeItem,
 } from './array'
 
+import {
+  each as eachObject
+} from './object'
+
 export default class Event {
 
-  constructor(type) {
-    this.type = type
+  constructor(event) {
+    if (event.type) {
+      this.type = event.type
+      this.original = event
+    }
+    else {
+      this.type = event
+    }
     this.isDefaultPrevented = false
     this.isPropagationStoped = false
   }
@@ -53,9 +63,24 @@ export class Emitter {
   }
 
   off(type, listener) {
-    let list = this.listeners[type]
-    if (isArray(list)) {
-      removeItem(list, listener)
+    let { listeners } = this
+    if (type == null) {
+      eachObject(listeners, function (list, type) {
+        if (isArray(listeners[type])) {
+          listeners[type].length = 0
+        }
+      })
+    }
+    else {
+      let list = listeners[type]
+      if (isArray(list)) {
+        if (listener == null) {
+          list.length = 0
+        }
+        else {
+          removeItem(list, listener)
+        }
+      }
     }
   }
 
@@ -67,7 +92,7 @@ export class Emitter {
 
     let list = this.listeners[type]
     if (isArray(list)) {
-      each(list, function (listener) {
+      eachArray(list, function (listener) {
         let result = listener.call(null, event)
         if (result === false) {
           event.preventDefault()
@@ -79,6 +104,21 @@ export class Emitter {
         }
       })
     }
+
+  }
+
+  has(type, listener) {
+
+    let list = this.listeners[type]
+    if (listener == null) {
+      return isArray(list) && list.length > 0
+    }
+
+    if (isArray(list)) {
+      return list.indexOf(listener) >= 0
+    }
+
+    return false
 
   }
 }
