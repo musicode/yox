@@ -36,21 +36,22 @@ export function get(object, keypath) {
 
 export function set(object, keypath, value, autoFill = true) {
   if (keypath.indexOf('.') > 0) {
+    let originalObject = object
     let list = keypath.split('.')
     let prop = list.pop()
-    for (let i = 0, len = list.length; i < len; i++) {
-      if (object[list[i]]) {
-        object = object[list[i]]
+    arrayEach(list, function (item, index) {
+      if (object[item]) {
+        object = object[item]
       }
       else if (autoFill) {
-        object = object[list[i]] = {}
+        object = object[item] = {}
       }
       else {
         object = null
-        break
+        return false
       }
-    }
-    if (object) {
+    })
+    if (object && object !== originalObject) {
       object[prop] = value
     }
   }

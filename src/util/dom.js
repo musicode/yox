@@ -12,7 +12,7 @@ import {
 } from '../util/array'
 
 
-let addEventListener = doc.addEventListener
+let nativeAddEventListener = doc.addEventListener
  ? function (element, type, listener) {
    element.addEventListener(type, listener, false)
  }
@@ -20,7 +20,7 @@ let addEventListener = doc.addEventListener
    element.attachEvent(`on$(type)`, listener)
  }
 
-let removeEventListener = doc.removeEventListener
+let nativeRemoveEventListener = doc.removeEventListener
  ? function (element, type, listener) {
    element.removeEventListener(type, listener, false)
  }
@@ -28,7 +28,7 @@ let removeEventListener = doc.removeEventListener
    element.detachEvent(`on$(type)`, listener)
  }
 
-export function on(element, type, listener) {
+export function addEventListener(element, type, listener) {
   let $emitter = element.$emitter || (element.$emitter = new Emitter())
   if (!$emitter.has(type)) {
     let nativeListener = function (e) {
@@ -36,12 +36,12 @@ export function on(element, type, listener) {
       $emitter.fire(event)
     }
     $emitter[type] = nativeListener
-    addEventListener(element, type, nativeListener)
+    nativeAddEventListener(element, type, nativeListener)
   }
   $emitter.on(type, listener)
 }
 
-export function off(element, type, listener) {
+export function removeEventListener(element, type, listener) {
   let { $emitter } = element
   if (!$emitter) {
     return
@@ -50,8 +50,8 @@ export function off(element, type, listener) {
   $emitter.off(type, listener)
   each(types, function (type) {
     if ($emitter[type] && !$emitter.has(type)) {
-      removeEventListener(element, type, fn)
-      $emitter[type] = null
+      nativeRemoveEventListener(element, type, $emitter[type])
+      delete $emitter[type]
     }
   })
 }

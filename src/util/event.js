@@ -1,7 +1,8 @@
 
 import {
-  isString,
   isArray,
+  isString,
+  isFunction,
 } from './is'
 
 import {
@@ -56,11 +57,14 @@ export class Emitter {
 
   once(type, listener) {
     let me = this
-    me.on(type, function () {
-      let result = listener.apply(this, arguments)
+    // 为了避免 has(type, listener)
+    // 这里不改写 listener
+    // 而是在 listener 上面加一个属性
+    listener.$once = function () {
       me.off(type, listener)
-      return result
-    })
+      delete listener.$once
+    }
+    me.on(type, listener)
   }
 
   off(type, listener) {
@@ -95,12 +99,16 @@ export class Emitter {
     if (isArray(list)) {
       eachArray(list, function (listener) {
         let result = listener.call(null, event)
+        let { $once } = listener
+        if (isFunction($once)) {
+          $once()
+        }
         if (result === false) {
           event.preventDefault()
           event.stopPropagation()
           return false
         }
-        if (event.isPropagationStoped()) {
+        if (event.isPropagationStoped) {
           return false
         }
       })
