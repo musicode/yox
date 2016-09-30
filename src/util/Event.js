@@ -6,6 +6,7 @@ import {
 
 import {
   each as eachArray,
+  hasItem,
   removeItem,
 } from './array'
 
@@ -114,11 +115,9 @@ export class Emitter {
       return isArray(list) && list.length > 0
     }
 
-    if (isArray(list)) {
-      return list.indexOf(listener) >= 0
-    }
-
-    return false
+    return isArray(list)
+      ? hasItem(list, listener)
+      : false
 
   }
 }
