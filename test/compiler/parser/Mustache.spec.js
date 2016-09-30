@@ -13,8 +13,8 @@ let html = `
   <div>list</div>
 {{/partial}}
 `
-describe('compiler/parser/Mustache', () => {
-  it('Mustache', () => {
+describe('compiler/parser/Mustache', function () {
+  it('Mustache', function () {
     let parser = new Mustache()
     let ast = parser.parse(html)
     console.log(JSON.stringify(ast, null, '    '))

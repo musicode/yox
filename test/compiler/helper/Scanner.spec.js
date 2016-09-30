@@ -1,8 +1,8 @@
 
 import Scanner from '../../../src/compiler/helper/Scanner'
 
-describe('compiler/helper/Scanner', () => {
-  it('Scanner', () => {
+describe('compiler/helper/Scanner', function () {
+  it('Scanner', function () {
     let scanner = new Scanner(`
       1
       <img>

@@ -224,9 +224,11 @@ export default class Mustache {
       )
     }
 
-    return this.treerify(
+    let tree = this.treerify(
       this.clean(tokens)
     )
+
+    return tree
 
   }
 
@@ -282,25 +284,5 @@ export default class Mustache {
       }
     })
     return tree
-  }
-
-  /**
-   * 转成 html
-   *
-   * @param {Object} data
-   * @param {?Object} partials
-   * @return {Object}
-   */
-  toHTML(data, partials) {
-
-  }
-
-  /**
-   * 转成抽象语法树
-   *
-   * @return {Object}
-   */
-  toAst() {
-
   }
 }
