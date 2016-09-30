@@ -30,6 +30,10 @@ export function isNumber(arg) {
   return is(arg, 'number')
 }
 
+export function isBoolean(arg) {
+  return is(arg, 'boolean')
+}
+
 export function isNumeric(arg) {
   return !isNaN(parseFloat(arg)) && isFinite(arg)
 }

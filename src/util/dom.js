@@ -3,15 +3,22 @@ import {
   doc,
 } from '../config/env'
 
-import Event, {
+import {
+  Event,
   Emitter,
-} from '../util/Event'
+} from '../util/event'
+
+import {
+  isBoolean,
+} from '../util/is'
 
 import {
   each,
 } from '../util/array'
 
+import toString from '../function/toString'
 
+// 先处理底层的事件函数
 let nativeAddEventListener = doc.addEventListener
  ? function (element, type, listener) {
    element.addEventListener(type, listener, false)
@@ -28,7 +35,14 @@ let nativeRemoveEventListener = doc.removeEventListener
    element.detachEvent(`on$(type)`, listener)
  }
 
-export function addEventListener(element, type, listener) {
+/**
+ * 绑定事件
+ *
+ * @param {HTMLElement} element
+ * @param {string} type
+ * @param {Function} listener
+ */
+export function on(element, type, listener) {
   let $emitter = element.$emitter || (element.$emitter = new Emitter())
   if (!$emitter.has(type)) {
     let nativeListener = function (e) {
@@ -41,7 +55,14 @@ export function addEventListener(element, type, listener) {
   $emitter.on(type, listener)
 }
 
-export function removeEventListener(element, type, listener) {
+/**
+ * 解绑事件
+ *
+ * @param {HTMLElement} element
+ * @param {string} type
+ * @param {Function} listener
+ */
+export function off(element, type, listener) {
   let { $emitter } = element
   if (!$emitter) {
     return
@@ -54,4 +75,71 @@ export function removeEventListener(element, type, listener) {
       delete $emitter[type]
     }
   })
+}
+
+/**
+ * 属性的 getter/setter
+ *
+ * @param {HTMLElement} element
+ * @param {string} name
+ * @param {?(string|number\boolean)} value
+ * @return {?string}
+ */
+export function attr(element, name, value) {
+  if (value == null) {
+    return toString(
+      element.getAttribute(name),
+      ''
+    )
+  }
+  element.setAttribute(name, value)
+  if (isBoolean(value)) {
+    element[name] = value
+  }
+}
+
+/**
+ * 删除节点
+ *
+ * @param {HTMLNode} node
+ */
+export function removeNode(node) {
+  let { parentNode } = node
+  if (parentNode) {
+    parentNode.removeChild(node)
+  }
+}
+
+/**
+ * 替换节点
+ *
+ * @param {HTMLNode} newNode
+ * @param {HTMLNode} oldNode
+ */
+export function replaceNode(newNode, oldNode) {
+  let { parentNode } = node
+  if (parentNode) {
+    parentNode.replaceChild(newNode, oldNode)
+  }
+}
+
+/**
+ * 创建元素节点
+ *
+ * @param {string} tag
+ * @return {HTMLElementNode}
+ */
+export function createElementNode(tag) {
+  return doc.createElement(tag)
+}
+
+
+/**
+ * 创建文本节点
+ *
+ * @param {string} content
+ * @return {HTMLTextNode}
+ */
+export function createTextNode(content) {
+  return doc.createTextNode(content)
 }
