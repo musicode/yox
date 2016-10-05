@@ -152,3 +152,13 @@ export function createElementNode(tag) {
 export function createTextNode(content) {
   return doc.createTextNode(content)
 }
+
+/**
+ * 创建注释节点
+ *
+ * @param {string} content
+ * @return {HTMLCommentNode}
+ */
+export function createCommentNode(content) {
+  return doc.createComment(content)
+}

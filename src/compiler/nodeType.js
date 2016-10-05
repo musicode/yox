@@ -35,50 +35,57 @@ export const EACH = 4
 export const PARTIAL = 5
 
 /**
+ * import 节点
+ *
+ * @type {number}
+ */
+export const IMPORT = 6
+
+/**
  * 变量 节点
  *
  * @type {number}
  */
-export const VARIABLE = 6
+export const VARIABLE = 7
 
 /**
  * 表达式 节点
  *
  * @type {number}
  */
-export const EXPRESSION = 7
+export const EXPRESSION = 8
 
 /**
  * 指令 节点
  *
  * @type {number}
  */
-export const DIRECTIVE = 8
+export const DIRECTIVE = 9
 
 /**
  * 元素 节点
  *
  * @type {number}
  */
-export const ELEMENT = 9
+export const ELEMENT = 10
 
 /**
  * 属性 节点
  *
  * @type {number}
  */
-export const ATTRIBUTE = 10
+export const ATTRIBUTE = 11
 
 /**
  * 文本 节点
  *
  * @type {number}
  */
-export const TEXT = 11
+export const TEXT = 12
 
 /**
  * 注释 节点
  *
  * @type {number}
  */
-export const COMMENT = 12
+export const COMMENT = 13

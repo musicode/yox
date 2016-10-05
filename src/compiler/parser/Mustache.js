@@ -47,7 +47,7 @@ const openingPartialSymbolPattern = /\s*partial\s*/
 // {{ /partial }}
 const closingPartialSymbolPattern = /\s*\/partial\s*/
 
-const REF = 'ref'
+const VARIABLE = 'variable'
 const TEXT = 'text'
 const UNESCAPE = 'unescape'
 const PARTIAL = 'partial'
@@ -165,7 +165,7 @@ export default class Mustache {
             column += scanner.nextAfter(endSymbolPattern).length
             break
           default:
-            type = REF
+            type = VARIABLE
             break
         }
 
@@ -210,7 +210,7 @@ export default class Mustache {
               )
             }
             break
-          case REF:
+          case VARIABLE:
             hasNonWhitespace = true
             break
         }
@@ -272,7 +272,7 @@ export default class Mustache {
           type: SECTION,
         }
         current.push(token)
-        current = token.nodes = []
+        current = token.children = []
         stack.push(current)
       }
       else if (token.type === CLOSING_SECTION) {
@@ -285,4 +285,5 @@ export default class Mustache {
     })
     return tree
   }
+
 }
