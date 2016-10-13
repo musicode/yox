@@ -8,7 +8,9 @@ import {
  *
  * @param {string} content
  */
-export default class Text(content) {
-  this.type = TEXT
-  this.content = content
+export default class Text {
+  constructor(content) {
+    this.type = TEXT
+    this.content = content
+  }
 }

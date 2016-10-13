@@ -18,7 +18,7 @@ import {
 
 import toString from '../function/toString'
 
-// 先处理底层的事件函数
+// 处理底层的事件函数
 let nativeAddEventListener = doc.addEventListener
  ? function (element, type, listener) {
    element.addEventListener(type, listener, false)
@@ -100,7 +100,7 @@ export function attr(element, name, value) {
     value = toString(value, null)
     if (value == null) {
       throw new Error(
-        'attr() value must be a string or a number.'
+        'attr(element, name, value) value must be a string or a number.'
       )
     }
   }

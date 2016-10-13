@@ -82,10 +82,3 @@ export const ATTRIBUTE = 11
  * @type {number}
  */
 export const TEXT = 12
-
-/**
- * 注释 节点
- *
- * @type {number}
- */
-export const COMMENT = 13

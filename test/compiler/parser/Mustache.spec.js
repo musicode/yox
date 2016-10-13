@@ -12,6 +12,7 @@ let html = `
 {{#partial listView}}
   <div>list</div>
 {{/partial}}
+{{>listView}}
 `
 describe('compiler/parser/Mustache', function () {
   it('Mustache', function () {

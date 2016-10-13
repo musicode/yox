@@ -8,7 +8,9 @@ import {
  *
  * @param {string} name
  */
-export default class Import(name) {
-  this.type = IMPORT
-  this.name = name
+export default class Import {
+  constructor(name) {
+    this.type = IMPORT
+    this.name = name
+  }
 }

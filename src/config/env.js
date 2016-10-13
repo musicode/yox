@@ -52,7 +52,7 @@ export const venders = [ 'o', 'ms', 'moz', 'webkit' ]
  *
  * @return {Function}
  */
-export const noop = () => {}
+export const noop = function () {}
 
 /**
  * 是否有原生的日志特性，没有需要单独实现

@@ -1,8 +1,23 @@
 
-export default let defaultOptions = {
-  // 自定义 else if 的写法
-  // 有些人喜欢写 elif 或 elseif，请随意...
-  elseif: 'else if',
+export default let Cola = {
+
+  // 自定义语法
+
+  IF: '#if',
+  ELSE: 'else',
+  ELSE_IF: 'else if',
+  END_IF: '/if'
+
+  EACH: '#each',
+  END_EACH: '/each',
+
+  PARTIAL: '#partial',
+  END_PARTIAL: '/partial',
+
+  IMPORT: '>'
+
+  DIRECTIVE_PREFIX: '@',
+
 
 
 }

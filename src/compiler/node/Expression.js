@@ -8,7 +8,9 @@ import {
  *
  * @param {string} literal
  */
-export default class Expression(literal) {
-  this.type = EXPRESSION
-  this.literal = literal
+export default class Expression {
+  constructor(literal) {
+    this.type = EXPRESSION
+    this.literal = literal
+  }
 }

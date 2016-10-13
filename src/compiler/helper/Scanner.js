@@ -2,6 +2,10 @@
 export default class Scanner {
 
   constructor(str) {
+    this.reset(str)
+  }
+
+  reset(str) {
     this.pos = 0
     this.tail = str
   }
@@ -31,8 +35,7 @@ export default class Scanner {
       return ''
     }
     let result = matches[0]
-    this.pos += result.length
-    this.tail = tail.substr(result.length)
+    this.forward(result.length)
     return result
   }
 
@@ -54,18 +57,21 @@ export default class Scanner {
         return ''
       }
       let result = tail.substr(0, index)
-      this.pos += index
-      this.tail = tail.substr(index)
+      this.forward(index)
       return result
     }
     else {
-      this.pos += tail.length
-      this.tail = ''
+      this.forward(tail.length)
       return tail
     }
   }
 
-  currentChar() {
+  forward(offset) {
+    this.pos += offset
+    this.tail = this.tail.substr(offset)
+  }
+
+  current() {
     return this.tail[0]
   }
 
