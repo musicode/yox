@@ -3,3 +3,4 @@ tool
 dep
 edp-*
 node_modules
+.*
