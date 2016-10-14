@@ -6,8 +6,6 @@
  *
  */
 
-import Cola from '../../Cola'
-
 import Scanner from '../helper/Scanner'
 import print from '../../function/print'
 import getLocationByIndex from '../../function/getLocationByIndex'
@@ -31,17 +29,13 @@ import {
 } from '../../config/env'
 
 import {
-  isWhitespace,
-  isBreakLine,
-} from '../../util/char'
+  isFunction,
+} from '../../util/is'
 
 import {
+  each,
   lastItem,
 } from '../../util/array'
-
-import {
-  parse as parsePattern,
-} from '../../util/pattern'
 
 // 切分分为两个维度
 // 一个是 element，一个是 delimiter
@@ -54,51 +48,24 @@ const elementEndPattern = /(?:\/)?>/
 
 const attributePattern = /[-:@a-z0-9]+(?:=(["'])[^\1]+\1)?/i
 
-const selfClosingTags = [ 'input', 'img', 'br' ]
+const selfClosingTagPattern = /input|img|br/i
 
 const componentPattern = /[-A-Z]/
 
 export default class Mustache {
 
-  constructor() {
-
-    this.ifPattern = parsePattern(Cola.IF)
-    this.elsePattern = parsePattern(Cola.ELSE)
-    this.elseIfPattern = parsePattern(Cola.ELSE_IF)
-    this.endIfPattern = parsePattern(Cola.END_IF)
-
-    this.eachPattern = parsePattern(Cola.EACH)
-    this.endEachPattern = parsePattern(Cola.END_EACH)
-
-    this.importPattern = parsePattern(Cola.IMPORT)
-    this.partialPattern = parsePattern(Cola.PARTIAL)
-    this.endPartialPattern = parsePattern(Cola.END_PARTIAL)
-
-  }
-
   parse(template, partials) {
 
     let rootNode
     let currentNode
-
-    let {
-      ifPattern,
-      elsePattern,
-      elseIfPattern,
-      endIfPattern,
-      eachPattern,
-      endEachPattern,
-      importPattern,
-      partialPattern,
-      endPartialPattern,
-    } = this
+    let newNode
 
     let elementScanner = new Scanner(template)
     let helperScanner = new Scanner()
 
     let content
-    let openingTag
-    let closingTag
+    let expression
+    let tagName
     let isComponent
     let isSelfClosingTag
     let hasAttributeScanned
@@ -110,22 +77,60 @@ export default class Mustache {
 
     let throwError = function (msg) {
       if (errorPos != null) {
+        msg += '，位置 line %d, col %d。'
         let { line, col } = getLocationByIndex(template, errorPos)
         return warn(msg, line, col)
       }
       else {
+        msg += '。'
         return warn(msg)
       }
     }
 
+    let nodeList = [
+      If, ElseIf, Else, Each, Partial, Import, Expression, Variable,
+    ]
+
+    // 这个函数涉及分隔符和普通模板的深度解析
+    // 是最核心的函数
     let parseContent = function (content) {
       helperScanner.reset(content)
+
       while (helperScanner.hasNext()) {
+
+        // 分隔符之前的内容
         content = helperScanner.nextBefore(openingDelimiterPattern)
-        currentNode.addChild(
-          new Text(currentNode, content)
-        )
+        if (hasAttributeScanned) {
+          new Text(currentNode, { content })
+        }
+        else {
+          new Attribute(currentNode, { content })
+        }
         helperScanner.nextAfter(openingDelimiterPattern)
+
+        // 分隔符之间的内容
+        content = helperScanner.nextBefore(closingDelimiterPattern)
+        if (content.charAt(0) === '/') {
+          blockStacks.pop()
+          currentNode = lastItem(blockStacks)
+        }
+        else {
+          each(nodeList, function (Node) {
+            if (isFunction(Node.match)) {
+              let match = Node.match(content)
+              if (match) {
+                newNode = new Node(currentNode, match)
+                if (newNode.children) {
+                  blockStacks.push(currentNode)
+                  currentNode = newNode
+                }
+              }
+            }
+          })
+        }
+
+        helperScanner.nextAfter(closingDelimiterPattern)
+
       }
     }
 
@@ -149,27 +154,27 @@ export default class Mustache {
       // 结束标签
       if (elementScanner.charAt(1) === '/') {
         content = elementScanner.nextAfter(elementPattern)
-        closingTag = content.substr(2)
-
+        tagName = content.substr(2)
+console.log('tag end: ', tagName)
         if (elementScanner.charAt(0) !== '>') {
-          return throwError('closing tag has error at line %d, col %d.')
+          return throwError('结束标签缺少 >')
         }
-        else if (closingTag !== openingTag) {
-          return throwError('closingTag can not match openingTag at line %d, col %d.')
+        else if (tagName !== elementStacks.pop().name) {
+          return throwError('开始标签和结束标签匹配失败')
         }
 
         elementScanner.forward(1)
-        elementStacks.pop()
+        currentNode = lastItem(elementStacks)
       }
       // 开始标签
       else {
         content = elementScanner.nextAfter(elementPattern)
-        openingTag = content.substr(1)
+        tagName = content.substr(1)
+console.log('tag start: ', tagName)
+        isComponent = componentPattern.test(tagName)
+        isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(tagName)
 
-        isComponent = componentPattern.test(openingTag)
-        isSelfClosingTag = isComponent ? true : selfClosingTags.indexOf(openingTag) >= 0
-
-        currentNode = new Element(currentNode, openingTag)
+        currentNode = new Element(currentNode, { name: tagName })
         if (!rootNode) {
           rootNode = currentNode
         }
@@ -187,17 +192,17 @@ export default class Mustache {
 
         content = elementScanner.nextAfter(elementEndPattern)
         if (!content) {
-          return throwError('Element is not complete rightly.')
+          return throwError('标签缺少 >')
         }
       }
     }
 
     if (elementStacks.length) {
-      return throwError('标签没有正确的结束.')
+      return throwError('标签没有正确的结束')
     }
 
     if (blockStacks.length) {
-      return throwError('块级语法没有正确的结束.')
+      return throwError('块级语法没有正确的结束')
     }
 
     return rootNode

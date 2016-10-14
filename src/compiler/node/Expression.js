@@ -3,14 +3,17 @@ import {
   EXPRESSION,
 } from '../nodeType'
 
+import Node from './Node'
+
 /**
  * 表达式节点
  *
- * @param {string} literal
+ * @param {string} expr
  */
-export default class Expression {
-  constructor(literal) {
+export default class Expression extends Node {
+  constructor(parent, { expr }) {
+    super(parent)
     this.type = EXPRESSION
-    this.literal = literal
+    this.expr = expr
   }
 }

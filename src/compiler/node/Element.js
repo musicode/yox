@@ -12,7 +12,7 @@ import Node from './Node'
  */
 export default class Element extends Node {
 
-  constructor(parent, name) {
+  constructor(parent, { name }) {
     super(parent)
     this.type = ELEMENT
     this.name = name

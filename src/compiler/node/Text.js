@@ -11,8 +11,8 @@ import Node from './Node'
  * @param {string} content
  */
 export default class Text extends Node {
-  constructor(parent, content) {
-    super(parent)
+  constructor(parent, { content }) {
+    super(parent, false)
     this.type = TEXT
     this.content = content
   }

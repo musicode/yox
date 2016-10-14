@@ -7,12 +7,14 @@
  */
 export default class Node {
 
-  constructor(parent) {
+  constructor(parent, hasChildren = true) {
     if (parent) {
       parent.addChild(this)
     }
-    this.parent = parent
-    this.children = []
+    //this.parent = parent
+    if (hasChildren) {
+      this.children = []
+    }
   }
 
   addChild(node) {
