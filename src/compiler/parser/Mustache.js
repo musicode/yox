@@ -79,13 +79,17 @@ export default class Mustache {
     let nodeStacks = []
 
     let pushStack = function (node) {
-      nodeStacks.push(currentNode)
+      if (currentNode) {
+        console.log('push', node)
+        nodeStacks.push(currentNode)
+      }
       currentNode = node
     }
 
     let popStack = function () {
       let node = nodeStacks.pop()
       currentNode = lastItem(nodeStacks)
+      console.log('pop', node)
       return node
     }
 
@@ -184,7 +188,7 @@ console.log('tag end: ', tagName)
         if (elementScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
-        else if (tagName !== popStack().name) {
+        else if (tagName !== (popStack() || rootNode).name) {
           return throwError('开始标签和结束标签匹配失败')
         }
 
@@ -199,10 +203,10 @@ console.log('tag start: ', tagName)
         isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(tagName)
 
         newNode = new Element(currentNode, { name: tagName })
-        if (!currentNode) {
-          rootNode = currentNode = newNode
+        if (!rootNode) {
+          rootNode = newNode
         }
-        else {
+        if (currentNode) {
           currentNode.addChild(newNode)
         }
 
@@ -223,7 +227,7 @@ console.log('tag start: ', tagName)
         }
       }
     }
-
+console.log(nodeStacks)
     if (nodeStacks.length) {
       return throwError('节点没有正确的结束')
     }
