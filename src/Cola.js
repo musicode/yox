@@ -1,12 +1,12 @@
 
-export default let Cola = {
+export default {
 
   // 自定义语法
 
   IF: '#if',
   ELSE: 'else',
   ELSE_IF: 'else if',
-  END_IF: '/if'
+  END_IF: '/if',
 
   EACH: '#each',
   END_EACH: '/each',
@@ -14,7 +14,7 @@ export default let Cola = {
   PARTIAL: '#partial',
   END_PARTIAL: '/partial',
 
-  IMPORT: '>'
+  IMPORT: '>',
 
   DIRECTIVE_PREFIX: '@',
 

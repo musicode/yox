@@ -10,6 +10,7 @@ import Cola from '../../Cola'
 
 import Scanner from '../helper/Scanner'
 import print from '../../function/print'
+import getLocationByIndex from '../../function/getLocationByIndex'
 
 import Attribute from '../node/Attribute'
 import Directive from '../node/Directive'
@@ -25,6 +26,11 @@ import Text from '../node/Text'
 import Variable from '../node/Variable'
 
 import {
+  log,
+  warn,
+} from '../../config/env'
+
+import {
   isWhitespace,
   isBreakLine,
 } from '../../util/char'
@@ -37,19 +43,24 @@ import {
   parse as parsePattern,
 } from '../../util/pattern'
 
-// 开始定界符
+// 切分分为两个维度
+// 一个是 element，一个是 delimiter
+
 const openingDelimiterPattern = /\{\{\s*/
-// 结束定界符
 const closingDelimiterPattern = /\s*\}\}/
 
-const openingElementPattern = /<[a-z]\w*/
-const closingElementPattern = /<\/[a-z]\w*/
+const elementPattern = /<(?:\/)?[a-z]\w*/i
+const elementEndPattern = /(?:\/)?>/
+
+const attributePattern = /[-:@a-z0-9]+(?:=(["'])[^\1]+\1)?/i
+
+const selfClosingTags = [ 'input', 'img', 'br' ]
+
+const componentPattern = /[-A-Z]/
 
 export default class Mustache {
 
   constructor() {
-
-    super()
 
     this.ifPattern = parsePattern(Cola.IF)
     this.elsePattern = parsePattern(Cola.ELSE)
@@ -67,23 +78,145 @@ export default class Mustache {
 
   parse(template, partials) {
 
-    let ast = []
+    let rootNode
+    let currentNode
+
+    let {
+      ifPattern,
+      elsePattern,
+      elseIfPattern,
+      endIfPattern,
+      eachPattern,
+      endEachPattern,
+      importPattern,
+      partialPattern,
+      endPartialPattern,
+    } = this
+
+    let elementScanner = new Scanner(template)
+    let helperScanner = new Scanner()
+
+    let content
+    let openingTag
+    let closingTag
+    let isComponent
+    let isSelfClosingTag
+    let hasAttributeScanned
+
+    let errorPos
 
     let elementStacks = []
     let blockStacks = []
 
-    let line = 0
-    let column
-    let content
-    let temp
-
-    let scanner = new Scanner(template)
-
-    while (scanner.hasNext()) {
-
+    let throwError = function (msg) {
+      if (errorPos != null) {
+        let { line, col } = getLocationByIndex(template, errorPos)
+        return warn(msg, line, col)
+      }
+      else {
+        return warn(msg)
+      }
     }
 
-    return ast
+    let parseContent = function (content) {
+      helperScanner.reset(content)
+      while (helperScanner.hasNext()) {
+        content = helperScanner.nextBefore(openingDelimiterPattern)
+        currentNode.addChild(
+          new Text(currentNode, content)
+        )
+        helperScanner.nextAfter(openingDelimiterPattern)
+      }
+    }
+
+    while (elementScanner.hasNext()) {
+      content = elementScanner.nextBefore(elementPattern)
+      if (content.trim()) {
+        if (!currentNode) {
+          return throwError('Component template must have a single root element.')
+        }
+        // 处理标签之间的内容
+        parseContent(content)
+      }
+
+      // 接下来如果不是标签，那就是结束了
+      if (elementScanner.charAt(0) !== '<') {
+        break
+      }
+
+      errorPos = elementScanner.pos
+
+      // 结束标签
+      if (elementScanner.charAt(1) === '/') {
+        content = elementScanner.nextAfter(elementPattern)
+        closingTag = content.substr(2)
+
+        if (elementScanner.charAt(0) !== '>') {
+          return throwError('closing tag has error at line %d, col %d.')
+        }
+        else if (closingTag !== openingTag) {
+          return throwError('closingTag can not match openingTag at line %d, col %d.')
+        }
+
+        elementScanner.forward(1)
+        elementStacks.pop()
+      }
+      // 开始标签
+      else {
+        content = elementScanner.nextAfter(elementPattern)
+        openingTag = content.substr(1)
+
+        isComponent = componentPattern.test(openingTag)
+        isSelfClosingTag = isComponent ? true : selfClosingTags.indexOf(openingTag) >= 0
+
+        currentNode = new Element(currentNode, openingTag)
+        if (!rootNode) {
+          rootNode = currentNode
+        }
+
+        if (!isSelfClosingTag) {
+          elementStacks.push(currentNode)
+        }
+
+        content = elementScanner.nextBefore(elementEndPattern)
+        if (content) {
+          hasAttributeScanned = false
+          parseContent(content)
+          hasAttributeScanned = true
+        }
+
+        content = elementScanner.nextAfter(elementEndPattern)
+        if (!content) {
+          return throwError('Element is not complete rightly.')
+        }
+      }
+    }
+
+    if (elementStacks.length) {
+      return throwError('标签没有正确的结束.')
+    }
+
+    if (blockStacks.length) {
+      return throwError('块级语法没有正确的结束.')
+    }
+
+    return rootNode
+
+  }
+
+  parseIf() {
+
+  }
+
+  parseEach() {
+
+  }
+
+  parsePartial() {
+
+  }
+
+  parseElement() {
 
   }
 

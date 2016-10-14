@@ -1,7 +1,7 @@
 let nextTick
 
 if (typeof MutationObserver === 'function') {
-  nextTick = fn => {
+  nextTick = function (fn) {
     let observer = new MutationObserver(fn)
     let textNode = document.createTextNode('')
     observer.observe(textNode, {
@@ -11,10 +11,14 @@ if (typeof MutationObserver === 'function') {
   }
 }
 else if (typeof setImmediate === 'function') {
-  nextTick = fn => setImmediate(fn)
+  nextTick = function (fn) {
+    setImmediate(fn)
+  }
 }
 else {
-  nextTick = fn => setTimeout(fn)
+  nextTick = function (fn) {
+    setTimeout(fn)
+  }
 }
 
 export default nextTick

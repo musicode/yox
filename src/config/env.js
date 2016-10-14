@@ -5,7 +5,7 @@
 
 import {
   isFunction,
-} from '../function/is'
+} from '../util/is'
 
 import {
   print,
@@ -69,7 +69,9 @@ const hasConsole = typeof console !== 'undefined' && isFunction(console.log)
  * @param {?*} ...args
  */
 export const log = isDebug && hasConsole
-  ? (tpl, ...args) => console.log(print(tpl, ...args))
+  ? function (tpl, ...args) {
+    console.log(print(tpl, ...args))
+  }
   : noop
 
 /**
@@ -79,5 +81,7 @@ export const log = isDebug && hasConsole
  * @param {?*} ...args
  */
 export const warn = isDebug && hasConsole
-  ? (tpl, ...args) => console.warn(print(tpl, ...args))
+  ? function (tpl, ...args) {
+    console.warn(tpl)
+  }
   : noop

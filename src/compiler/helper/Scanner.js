@@ -71,8 +71,8 @@ export default class Scanner {
     this.tail = this.tail.substr(offset)
   }
 
-  current() {
-    return this.tail[0]
+  charAt(index) {
+    return this.tail[index]
   }
 
 }
