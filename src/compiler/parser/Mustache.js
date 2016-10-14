@@ -24,6 +24,10 @@ import Text from '../node/Text'
 import Variable from '../node/Variable'
 
 import {
+  ELEMENT,
+} from '../nodeType'
+
+import {
   log,
   warn,
 } from '../../config/env'
@@ -68,12 +72,22 @@ export default class Mustache {
     let tagName
     let isComponent
     let isSelfClosingTag
-    let hasAttributeScanned
+    let isAttributeReading
 
     let errorPos
 
-    let elementStacks = []
-    let blockStacks = []
+    let nodeStacks = []
+
+    let pushStack = function (node) {
+      nodeStacks.push(currentNode)
+      currentNode = node
+    }
+
+    let popStack = function () {
+      let node = nodeStacks.pop()
+      currentNode = lastItem(nodeStacks)
+      return node
+    }
 
     let throwError = function (msg) {
       if (errorPos != null) {
@@ -88,7 +102,7 @@ export default class Mustache {
     }
 
     let nodeList = [
-      If, ElseIf, Else, Each, Partial, Import, Expression, Variable,
+      If, ElseIf, Else, Each, Partial, Expression, Import, Variable,
     ]
 
     // 这个函数涉及分隔符和普通模板的深度解析
@@ -98,21 +112,31 @@ export default class Mustache {
 
       while (helperScanner.hasNext()) {
 
+
+
         // 分隔符之前的内容
         content = helperScanner.nextBefore(openingDelimiterPattern)
-        if (hasAttributeScanned) {
-          new Text(currentNode, { content })
+        if (currentNode.type === ELEMENT && isAttributeReading) {
+          newNode = new Attribute(currentNode, { name: content })
+          currentNode.addAttr(newNode)
+          pushStack(newNode)
         }
         else {
-          new Attribute(currentNode, { content })
+          newNode = new Text(currentNode, { content })
+          currentNode.addChild(newNode)
         }
+
         helperScanner.nextAfter(openingDelimiterPattern)
+
+
+
+
 
         // 分隔符之间的内容
         content = helperScanner.nextBefore(closingDelimiterPattern)
+        console.log('===>',content)
         if (content.charAt(0) === '/') {
-          blockStacks.pop()
-          currentNode = lastItem(blockStacks)
+          popStack()
         }
         else {
           each(nodeList, function (Node) {
@@ -120,16 +144,17 @@ export default class Mustache {
               let match = Node.match(content)
               if (match) {
                 newNode = new Node(currentNode, match)
+                currentNode.addChild(newNode)
                 if (newNode.children) {
-                  blockStacks.push(currentNode)
-                  currentNode = newNode
+                  pushStack(newNode)
                 }
               }
             }
           })
         }
-
         helperScanner.nextAfter(closingDelimiterPattern)
+
+
 
       }
     }
@@ -159,12 +184,11 @@ console.log('tag end: ', tagName)
         if (elementScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
-        else if (tagName !== elementStacks.pop().name) {
+        else if (tagName !== popStack().name) {
           return throwError('开始标签和结束标签匹配失败')
         }
 
         elementScanner.forward(1)
-        currentNode = lastItem(elementStacks)
       }
       // 开始标签
       else {
@@ -174,20 +198,23 @@ console.log('tag start: ', tagName)
         isComponent = componentPattern.test(tagName)
         isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(tagName)
 
-        currentNode = new Element(currentNode, { name: tagName })
-        if (!rootNode) {
-          rootNode = currentNode
+        newNode = new Element(currentNode, { name: tagName })
+        if (!currentNode) {
+          rootNode = currentNode = newNode
+        }
+        else {
+          currentNode.addChild(newNode)
         }
 
         if (!isSelfClosingTag) {
-          elementStacks.push(currentNode)
+          pushStack(newNode)
         }
 
         content = elementScanner.nextBefore(elementEndPattern)
         if (content) {
-          hasAttributeScanned = false
+          isAttributeReading = true
           parseContent(content)
-          hasAttributeScanned = true
+          isAttributeReading = false
         }
 
         content = elementScanner.nextAfter(elementEndPattern)
@@ -197,12 +224,8 @@ console.log('tag start: ', tagName)
       }
     }
 
-    if (elementStacks.length) {
-      return throwError('标签没有正确的结束')
-    }
-
-    if (blockStacks.length) {
-      return throwError('块级语法没有正确的结束')
+    if (nodeStacks.length) {
+      return throwError('节点没有正确的结束')
     }
 
     return rootNode

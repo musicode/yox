@@ -8,9 +8,6 @@
 export default class Node {
 
   constructor(parent, hasChildren = true) {
-    if (parent) {
-      parent.addChild(this)
-    }
     //this.parent = parent
     if (hasChildren) {
       this.children = []

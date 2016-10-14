@@ -17,8 +17,7 @@ let html = `
 
 html = `
 <div class="{{#if hidden}}hidden{{/if}}">
-  <h1>{{title}}</h1>
-  <div>{{{body}}}</div>
+
 </div>
 `
 
