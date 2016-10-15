@@ -50,7 +50,7 @@ const closingDelimiterPattern = /\s*\}\}/
 const elementPattern = /<(?:\/)?[a-z]\w*/i
 const elementEndPattern = /(?:\/)?>/
 
-const attributePattern = /[-:@a-z0-9]+(?:=(["'])[^\1]+\1)?/i
+const attributePattern = /([-:@a-z0-9]+)(?:=(["']))?/i
 
 const selfClosingTagPattern = /input|img|br/i
 
@@ -72,8 +72,9 @@ export default class Mustache {
     let tagName
     let isComponent
     let isSelfClosingTag
-    let isAttributeReading
+    let isAttributeParsing
 
+    let match
     let errorPos
 
     let nodeStacks = []
@@ -93,6 +94,23 @@ export default class Mustache {
       return node
     }
 
+    let addChild = function (node, autoPushStack = true) {
+      if (currentNode) {
+        if (currentNode.type === ELEMENT && isAttributeParsing) {
+          currentNode.addAttr(node)
+        }
+        else {
+          currentNode.addChild(node)
+        }
+        if (autoPushStack && node.children) {
+          pushStack(node)
+        }
+      }
+      else {
+        rootNode = currentNode = node
+      }
+    }
+
     let throwError = function (msg) {
       if (errorPos != null) {
         msg += '，位置 line %d, col %d。'
@@ -105,6 +123,11 @@ export default class Mustache {
       }
     }
 
+    // 元素属性上可能出现的节点类型
+    let attributeNodes = [
+      Attribute, If, ElseIf, Else, Each, Expression, Variable, Text,
+    ]
+
     let nodeList = [
       If, ElseIf, Else, Each, Partial, Expression, Import, Variable,
     ]
@@ -116,18 +139,42 @@ export default class Mustache {
 
       while (helperScanner.hasNext()) {
 
-
+        // 如果是解析 attribute，随便举几个例子：
+        //
+        // name="value"
+        // name="{{#if xxx}}value{{/if}}"
+        // name="{{value1}} {{value2}}"
+        // {{#if xxx}}name="value"{{/if}}
+        //
+        // 情况是比较多的，解析的流程应该和模板一样，先用 {{ 进行切分，
+        // 如果是 if，就往 currentNode addAttr 一个 if 节点
+        // 如果是 name，就往 currentNode
+        //  一个 attribute 节点
 
         // 分隔符之前的内容
         content = helperScanner.nextBefore(openingDelimiterPattern)
-        if (currentNode.type === ELEMENT && isAttributeReading) {
-          newNode = new Attribute(currentNode, { name: content })
-          currentNode.addAttr(newNode)
-          pushStack(newNode)
+
+        // 可能是 文本 或 属性
+        // 如果是文本，直接 addChild
+        // 如果是属性，需要先解析出 name 和 value（可选）
+        if (isAttributeParsing) {
+          match = content.match(attributePattern)
+          // 匹配到属性名称
+          if (match) {
+            addChild(
+              new Attribute(currentNode, { name: match[1] })
+            )
+          }
+          else {
+            addChild(
+              new Text(currentNode, content)
+            )
+          }
         }
         else {
-          newNode = new Text(currentNode, { content })
-          currentNode.addChild(newNode)
+          addChild(
+            new Text(currentNode, content)
+          )
         }
 
         helperScanner.nextAfter(openingDelimiterPattern)
@@ -138,23 +185,11 @@ export default class Mustache {
 
         // 分隔符之间的内容
         content = helperScanner.nextBefore(closingDelimiterPattern)
-        console.log('===>',content)
         if (content.charAt(0) === '/') {
           popStack()
         }
         else {
-          each(nodeList, function (Node) {
-            if (isFunction(Node.match)) {
-              let match = Node.match(content)
-              if (match) {
-                newNode = new Node(currentNode, match)
-                currentNode.addChild(newNode)
-                if (newNode.children) {
-                  pushStack(newNode)
-                }
-              }
-            }
-          })
+
         }
         helperScanner.nextAfter(closingDelimiterPattern)
 
@@ -165,15 +200,17 @@ export default class Mustache {
 
     while (elementScanner.hasNext()) {
       content = elementScanner.nextBefore(elementPattern)
+
       if (content.trim()) {
         if (!currentNode) {
-          return throwError('Component template must have a single root element.')
+          return throwError('组件必须有且只有一个根元素')
         }
         // 处理标签之间的内容
         parseContent(content)
       }
 
-      // 接下来如果不是标签，那就是结束了
+      // 接下来必须是 < 开头（标签）
+      // 如果不是标签，那就该结束了
       if (elementScanner.charAt(0) !== '<') {
         break
       }
@@ -184,7 +221,11 @@ export default class Mustache {
       if (elementScanner.charAt(1) === '/') {
         content = elementScanner.nextAfter(elementPattern)
         tagName = content.substr(2)
+
+console.log('')
 console.log('tag end: ', tagName)
+console.log('')
+
         if (elementScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
@@ -198,27 +239,24 @@ console.log('tag end: ', tagName)
       else {
         content = elementScanner.nextAfter(elementPattern)
         tagName = content.substr(1)
+
+console.log('')
 console.log('tag start: ', tagName)
+console.log('')
+
         isComponent = componentPattern.test(tagName)
         isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(tagName)
 
         newNode = new Element(currentNode, { name: tagName })
-        if (!rootNode) {
-          rootNode = newNode
-        }
-        if (currentNode) {
-          currentNode.addChild(newNode)
-        }
+        addChild(newNode, !isSelfClosingTag)
 
-        if (!isSelfClosingTag) {
-          pushStack(newNode)
-        }
-
+        // 截取 <tagName 和 > 之间的内容
+        // 用于提取 attribute
         content = elementScanner.nextBefore(elementEndPattern)
         if (content) {
-          isAttributeReading = true
+          isAttributeParsing = true
           parseContent(content)
-          isAttributeReading = false
+          isAttributeParsing = false
         }
 
         content = elementScanner.nextAfter(elementEndPattern)
@@ -227,36 +265,14 @@ console.log('tag start: ', tagName)
         }
       }
     }
+console.log('')
 console.log(nodeStacks)
+console.log('')
     if (nodeStacks.length) {
       return throwError('节点没有正确的结束')
     }
 
     return rootNode
-
-  }
-
-  parseIf() {
-
-  }
-
-  parseEach() {
-
-  }
-
-  parsePartial() {
-
-  }
-
-  parseElement() {
-
-  }
-
-  nextBefore(scanner) {
-    scanner.nextBefore(openingDelimiterPattern)
-  }
-
-  next() {
 
   }
 
