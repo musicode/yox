@@ -17,11 +17,7 @@ let html = `
 
 html = `
 <div class="{{#if hidden}}aaa{{else if xxx}}bb {{name}} bb {{{ age }} {{else}}a cccc d{{/if}}">
-    {{#if list.length > 0}}
-        {{#each list:i}}
-            hi, {{name}}-{{i}}
-        {{/each}}
-    {{/if}}
+
 </div>
 `
 
@@ -29,7 +25,9 @@ html = `
 describe('compiler/parser/Mustache', function () {
   it('Mustache', function () {
     let parser = new Mustache()
+    console.time('parse')
     let ast = parser.parse(html)
+    console.timeEnd('parse')
     console.log(JSON.stringify(ast, null, 4))
   })
 })

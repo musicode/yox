@@ -53,7 +53,7 @@ const elementEndPattern = /(?:\/)?>/
 const selfClosingTagPattern = /input|img|br/i
 
 const attributeSuffixPattern = /^([^"']*)["']/
-const attributePrefixPattern = /([-:@a-z0-9]+)(?:=["'])?/i
+const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^\2]+)\2)?)?/i
 
 const componentPattern = /[-A-Z]/
 const variablePattern = /[_a-z]\w*/i
@@ -94,6 +94,7 @@ const parsers = [
       if (name) {
         return new Partial(currentNode, { name })
       }
+      throw new Error('模板片段缺少名称')
     }
   },
   {
@@ -105,6 +106,7 @@ const parsers = [
       if (expr) {
         return new If(currentNode, { expr })
       }
+      throw new Error('if 缺少条件')
     }
   },
   {
@@ -112,8 +114,7 @@ const parsers = [
       return source.startsWith(Cola.ELSE)
     },
     create: function (source, currentNode, popStack) {
-      popStack()
-      return new Else(currentNode)
+      return new Else(popStack())
     }
   },
   {
@@ -121,11 +122,11 @@ const parsers = [
       return source.startsWith(Cola.ELSE_IF)
     },
     create: function (source, currentNode, popStack) {
-      popStack()
       let code = source.substr(Cola.ELSE_IF.length)
       if (code) {
-        return new ElseIf(currentNode, { expr: code.trim() })
+        return new ElseIf(popStack(), { expr: code.trim() })
       }
+      throw new Error('else if 缺少条件')
     }
   },
   {
@@ -134,7 +135,7 @@ const parsers = [
     },
     create: function (source, currentNode) {
       let safe = false
-      if (source.startsWith('{')) {
+      if (source.startsWith('{') || source.startsWith('&')) {
         safe = true
         source = source.substr(1)
       }
@@ -156,10 +157,12 @@ export default class Mustache {
 
     let content
     let expression
-    let tagName
+    let name
     let isComponent
     let isSelfClosingTag
-    let isAttributeParsing
+
+    let isAttributesParsing
+    let isAttributeValueParsing
 
     let match
     let errorPos
@@ -171,15 +174,32 @@ export default class Mustache {
         nodeStacks.push(currentNode)
       }
       currentNode = node
+      if (currentNode.type === ATTRIBUTE) {
+        isAttributeValueParsing = true
+      }
+      console.log('')
+      console.log('')
+      console.log('push ----------->', node)
+      console.log('')
+      console.log('')
     }
 
     let popStack = function () {
-      return currentNode = nodeStacks.pop()
+      currentNode = nodeStacks.pop()
+      if (currentNode && currentNode.type === ATTRIBUTE) {
+        isAttributeValueParsing = false
+      }
+      console.log('')
+      console.log('')
+      console.log('pop ----------->', currentNode)
+      console.log('')
+      console.log('')
+      return currentNode
     }
 
     let addChild = function (node, autoPushStack = true) {
       if (currentNode) {
-        if (currentNode.type === ELEMENT && isAttributeParsing) {
+        if (currentNode.type === ELEMENT && isAttributesParsing) {
           currentNode.addAttr(node)
         }
         else {
@@ -223,15 +243,15 @@ console.log('')
 console.log('')
 console.log('遍历纯文本 => ', '[' + content + ']', currentNode.type)
 console.log('')
-        newNode = null
 
-        // 可能是 文本 或 属性
-        // 如果是文本，直接 addChild
-        // 如果是属性，需要先解析出 name 和 value（可选）
-        if (isAttributeParsing) {
-          switch (currentNode.type) {
+        if (content) {
 
-            case ATTRIBUTE:
+          // 可能是 文本 或 属性
+          // 如果是文本，直接 addChild
+          // 如果是属性，需要先解析出 name 和 value（可选）
+          if (isAttributesParsing) {
+
+            if (currentNode.type === ATTRIBUTE) {
               // 上一个属性的结束
               match = content.match(attributeSuffixPattern)
               if (match) {
@@ -243,26 +263,30 @@ console.log('')
                 content = content.replace(attributeSuffixPattern, '')
                 popStack()
               }
-              break
+            }
 
-            case ELEMENT:
+            if (!isAttributeValueParsing) {
               // 下一个属性的开始
-              match = content.match(attributePrefixPattern)
-              if (match) {
-                newNode = new Attribute(currentNode, { name: match[1] })
+              while (match = attributePattern.exec(content)) {
+                content = content.substr(match[0].length)
+                addChild(
+                  new Attribute(currentNode, { name: match[1] })
+                )
+                if (match[3] != null) {
+                  addChild(
+                    new Text(currentNode, { content: match[3] })
+                  )
+                  popStack()
+                }
               }
-              break
-
+            }
+          }
+          else {
+            addChild(
+              new Text(currentNode, { content })
+            )
           }
         }
-
-        if (content && !newNode) {
-          newNode = new Text(currentNode, { content })
-        }
-        if (newNode) {
-          addChild(newNode)
-        }
-
 
         // 分隔符之间的内容
         content = helperScanner.nextBefore(closingDelimiterPattern)
@@ -316,43 +340,44 @@ console.log('')
       // 结束标签
       if (elementScanner.charAt(1) === '/') {
         content = elementScanner.nextAfter(elementPattern)
-        tagName = content.substr(2)
+        name = content.substr(2)
 
 console.log('')
-console.log('tag end: ', tagName)
+console.log('tag end: ', name)
 console.log('')
 
         if (elementScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
-        else if (tagName !== (popStack() || rootNode).name) {
+        else if (name !== currentNode.name) {
           return throwError('开始标签和结束标签匹配失败')
         }
 
+        popStack()
         elementScanner.forward(1)
       }
       // 开始标签
       else {
         content = elementScanner.nextAfter(elementPattern)
-        tagName = content.substr(1)
+        name = content.substr(1)
 
 console.log('')
-console.log('tag start: ', tagName)
+console.log('tag start: ', name)
 console.log('')
 
-        isComponent = componentPattern.test(tagName)
-        isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(tagName)
+        isComponent = componentPattern.test(name)
+        isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(name)
 
-        newNode = new Element(currentNode, { name: tagName })
+        newNode = new Element(currentNode, { name })
         addChild(newNode, !isSelfClosingTag)
 
-        // 截取 <tagName 和 > 之间的内容
+        // 截取 <name 和 > 之间的内容
         // 用于提取 attribute
         content = elementScanner.nextBefore(elementEndPattern)
         if (content) {
-          isAttributeParsing = true
+          isAttributesParsing = true
           parseContent(content)
-          isAttributeParsing = false
+          isAttributesParsing = false
         }
 
         content = elementScanner.nextAfter(elementEndPattern)
@@ -361,9 +386,7 @@ console.log('')
         }
       }
     }
-console.log('')
-console.log(nodeStacks)
-console.log('')
+
     if (nodeStacks.length) {
       return throwError('节点没有正确的结束')
     }
