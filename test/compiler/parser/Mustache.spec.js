@@ -16,7 +16,7 @@ let html = `
 `
 
 html = `
-<div class="{{#if hidden}}hidden{{/if}}">
+<div class="{{#if hidden}}aaa{{else if xxx}}bb{{name}}bb{{else}}a cccc d{{/if}}">
 
 </div>
 `

@@ -1,11 +1,7 @@
 
 import {
-  IF as ifType,
+  IF,
 } from '../nodeType'
-
-import {
-  IF as ifPattern,
-} from '../pattern'
 
 import Node from './Node'
 
@@ -18,16 +14,8 @@ export default class If extends Node {
 
   constructor(parent, { expr }) {
     super(parent)
-    this.type = ifType
+    this.type = IF
     this.expr = expr
-  }
-
-  static match(source) {
-    if (ifPattern.test(source)) {
-      return {
-        expr: source.replace(ifPattern, '').trim()
-      }
-    }
   }
 
 }

@@ -25,7 +25,10 @@ import Variable from '../node/Variable'
 
 import {
   ELEMENT,
+  ATTRIBUTE,
 } from '../nodeType'
+
+import * as pattern from '../pattern'
 
 import {
   log,
@@ -41,20 +44,64 @@ import {
   lastItem,
 } from '../../util/array'
 
-// 切分分为两个维度
-// 一个是 element，一个是 delimiter
-
 const openingDelimiterPattern = /\{\{\s*/
 const closingDelimiterPattern = /\s*\}\}/
 
 const elementPattern = /<(?:\/)?[a-z]\w*/i
 const elementEndPattern = /(?:\/)?>/
 
-const attributePattern = /([-:@a-z0-9]+)(?:=(["']))?/i
-
 const selfClosingTagPattern = /input|img|br/i
 
+const attributeSuffixPattern = /^([^"']*)["']/
+const attributePrefixPattern = /([-:@a-z0-9]+)(?:=["'])?/i
+
 const componentPattern = /[-A-Z]/
+const variablePattern = /[_a-z]\w*/i
+
+const parsers = [
+  {
+    test: function (source) {
+       return pattern.IF.test(source)
+    },
+    create: function (source, currentNode) {
+      let code = source.replace(pattern.IF, '')
+      if (code) {
+        return new If(currentNode, { expr: code.trim() })
+      }
+    }
+  },
+  {
+    test: function (source) {
+      return pattern.ELSE_IF.test(source)
+    },
+    create: function (source, currentNode, popStack) {
+      let code = source.replace(pattern.ELSE_IF, '')
+      if (code) {
+        popStack()
+        return {
+          expr: code.trim(),
+        }
+      }
+    }
+  },
+  {
+    test: function (source) {
+      return pattern.ELSE.test(source)
+    },
+    create: function (source, currentNode, popStack) {
+      popStack()
+      return new Else(currentNode)
+    }
+  },
+  {
+    test: function (source) {
+      return variablePattern.test(source)
+    },
+    create: function (source, currentNode) {
+      return new Variable(currentNode, { expr: source })
+    }
+  }
+]
 
 export default class Mustache {
 
@@ -81,17 +128,13 @@ export default class Mustache {
 
     let pushStack = function (node) {
       if (currentNode) {
-        console.log('push', node)
         nodeStacks.push(currentNode)
       }
       currentNode = node
     }
 
     let popStack = function () {
-      let node = nodeStacks.pop()
-      currentNode = lastItem(nodeStacks)
-      console.log('pop', node)
-      return node
+      return currentNode = nodeStacks.pop()
     }
 
     let addChild = function (node, autoPushStack = true) {
@@ -135,65 +178,83 @@ export default class Mustache {
     // 这个函数涉及分隔符和普通模板的深度解析
     // 是最核心的函数
     let parseContent = function (content) {
+      console.log('')
+      console.log('content => ', content)
+      console.log('')
       helperScanner.reset(content)
 
       while (helperScanner.hasNext()) {
 
-        // 如果是解析 attribute，随便举几个例子：
-        //
-        // name="value"
-        // name="{{#if xxx}}value{{/if}}"
-        // name="{{value1}} {{value2}}"
-        // {{#if xxx}}name="value"{{/if}}
-        //
-        // 情况是比较多的，解析的流程应该和模板一样，先用 {{ 进行切分，
-        // 如果是 if，就往 currentNode addAttr 一个 if 节点
-        // 如果是 name，就往 currentNode
-        //  一个 attribute 节点
-
         // 分隔符之前的内容
         content = helperScanner.nextBefore(openingDelimiterPattern)
+        console.log('')
+        console.log('遍历纯文本 => ', '-' + content + '-', currentNode.type)
+        console.log('')
+        newNode = null
 
         // 可能是 文本 或 属性
         // 如果是文本，直接 addChild
         // 如果是属性，需要先解析出 name 和 value（可选）
         if (isAttributeParsing) {
-          match = content.match(attributePattern)
-          // 匹配到属性名称
-          if (match) {
-            addChild(
-              new Attribute(currentNode, { name: match[1] })
-            )
-          }
-          else {
-            addChild(
-              new Text(currentNode, content)
-            )
+          switch (currentNode.type) {
+
+            case ATTRIBUTE:
+              // 上一个属性的结束
+              match = content.match(attributeSuffixPattern)
+              if (match) {
+                if (match[1]) {
+                  addChild(
+                    new Text(currentNode, { content: match[1] })
+                  )
+                }
+                content = content.replace(attributeSuffixPattern, '')
+                popStack()
+              }
+              break
+
+            case ELEMENT:
+              // 下一个属性的开始
+              match = content.match(attributePrefixPattern)
+              if (match) {
+                newNode = new Attribute(currentNode, { name: match[1] })
+              }
+              break
+
           }
         }
-        else {
-          addChild(
-            new Text(currentNode, content)
-          )
+
+        if (content && !newNode) {
+          newNode = new Text(currentNode, { content })
+        }
+        if (newNode) {
+          addChild(newNode)
         }
 
         helperScanner.nextAfter(openingDelimiterPattern)
 
-
-
-
-
         // 分隔符之间的内容
         content = helperScanner.nextBefore(closingDelimiterPattern)
-        if (content.charAt(0) === '/') {
-          popStack()
-        }
-        else {
 
+        console.log('')
+        console.log('遍历命令 => ', '-' + content + '-', currentNode.type)
+        console.log('')
+        if (content) {
+          if (content.charAt(0) === '/') {
+            popStack()
+          }
+          else {
+            each(parsers, function (parser) {
+              if (parser.test(content)) {
+                newNode = parser.create(content, currentNode, popStack)
+                if (newNode) {
+                  addChild(newNode)
+                }
+                return false
+              }
+            })
+          }
         }
         helperScanner.nextAfter(closingDelimiterPattern)
-
-
 
       }
     }
