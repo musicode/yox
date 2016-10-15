@@ -9,6 +9,9 @@
 * Date.now()
 * Object.keys()
 * String.prototype.trim
+* String.prototype.startsWith
+* String.prototype.endsWith
+* String.prototype.trim
 * Array.prototype.forEach
 * Array.prototype.indexOf
 

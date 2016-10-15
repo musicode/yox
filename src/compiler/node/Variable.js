@@ -13,7 +13,7 @@ import Node from './Node'
  */
 export default class Variable extends Node {
   constructor(parent, { expr, safe }) {
-    super(parent)
+    super(parent, false)
     this.type = VARIABLE
     this.expr = expr
     this.safe = safe

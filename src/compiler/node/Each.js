@@ -1,11 +1,7 @@
 
 import {
-  EACH as eachType,
+  EACH,
 } from '../nodeType'
-
-import {
-  EACH as eachPattern,
-} from '../pattern'
 
 import Node from './Node'
 
@@ -20,19 +16,9 @@ export default class Each extends Node {
 
   constructor(parent, { name, index }) {
     super(parent)
-    this.type = eachType
+    this.type = EACH
     this.name = name
     this.index = index
-  }
-
-  static match(source) {
-    if (eachPattern.test(source)) {
-      let terms = source.replace(eachPattern, '').split(':')
-      return {
-        name: terms[0].trim(),
-        index: terms[1] ? terms[1].trim() : null,
-      }
-    }
   }
 
 }

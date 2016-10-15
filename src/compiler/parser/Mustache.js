@@ -75,12 +75,10 @@ const parsers = [
       return pattern.ELSE_IF.test(source)
     },
     create: function (source, currentNode, popStack) {
+      popStack()
       let code = source.replace(pattern.ELSE_IF, '')
       if (code) {
-        popStack()
-        return {
-          expr: code.trim(),
-        }
+        return new ElseIf(currentNode, { expr: code.trim() })
       }
     }
   },
@@ -98,7 +96,12 @@ const parsers = [
       return variablePattern.test(source)
     },
     create: function (source, currentNode) {
-      return new Variable(currentNode, { expr: source })
+      let safe = false
+      if (source.startsWith('{')) {
+        safe = true
+        source = source.substr(1)
+      }
+      return new Variable(currentNode, { expr: source.trim(), safe, })
     }
   }
 ]
@@ -166,30 +169,23 @@ export default class Mustache {
       }
     }
 
-    // 元素属性上可能出现的节点类型
-    let attributeNodes = [
-      Attribute, If, ElseIf, Else, Each, Expression, Variable, Text,
-    ]
-
-    let nodeList = [
-      If, ElseIf, Else, Each, Partial, Expression, Import, Variable,
-    ]
-
     // 这个函数涉及分隔符和普通模板的深度解析
     // 是最核心的函数
     let parseContent = function (content) {
-      console.log('')
-      console.log('content => ', content)
-      console.log('')
+console.log('')
+console.log('content => ', content)
+console.log('')
       helperScanner.reset(content)
 
       while (helperScanner.hasNext()) {
 
         // 分隔符之前的内容
         content = helperScanner.nextBefore(openingDelimiterPattern)
-        console.log('')
-        console.log('遍历纯文本 => ', '-' + content + '-', currentNode.type)
-        console.log('')
+        helperScanner.nextAfter(openingDelimiterPattern)
+
+console.log('')
+console.log('遍历纯文本 => ', '[' + content + ']', currentNode.type)
+console.log('')
         newNode = null
 
         // 可能是 文本 或 属性
@@ -230,23 +226,27 @@ export default class Mustache {
           addChild(newNode)
         }
 
-        helperScanner.nextAfter(openingDelimiterPattern)
 
         // 分隔符之间的内容
         content = helperScanner.nextBefore(closingDelimiterPattern)
+        helperScanner.nextAfter(closingDelimiterPattern)
 
-        console.log('')
-        console.log('遍历命令 => ', '-' + content + '-', currentNode.type)
-        console.log('')
+console.log('')
+console.log('遍历命令 => ', '[' + content + ']', currentNode.type)
+console.log('')
         if (content) {
           if (content.charAt(0) === '/') {
             popStack()
           }
           else {
+            if (content.charAt(0) === '{') {
+              helperScanner.forward(1)
+            }
             each(parsers, function (parser) {
               if (parser.test(content)) {
                 newNode = parser.create(content, currentNode, popStack)
                 if (newNode) {
+                  console.log(newNode)
                   addChild(newNode)
                 }
                 return false
@@ -254,7 +254,6 @@ export default class Mustache {
             })
           }
         }
-        helperScanner.nextAfter(closingDelimiterPattern)
 
       }
     }
