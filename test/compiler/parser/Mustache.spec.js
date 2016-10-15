@@ -17,9 +17,11 @@ let html = `
 
 html = `
 <div class="{{#if hidden}}aaa{{else if xxx}}bb {{name}} bb {{{ age }} {{else}}a cccc d{{/if}}">
-    {{#each list:i}}
-        hi, {{name}}
-    {{/each}}
+    {{#if list.length > 0}}
+        {{#each list:i}}
+            hi, {{name}}-{{i}}
+        {{/each}}
+    {{/if}}
 </div>
 `
 

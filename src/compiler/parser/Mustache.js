@@ -6,6 +6,8 @@
  *
  */
 
+import Cola from '../../Cola'
+
 import Scanner from '../helper/Scanner'
 import print from '../../function/print'
 import getLocationByIndex from '../../function/getLocationByIndex'
@@ -27,8 +29,6 @@ import {
   ELEMENT,
   ATTRIBUTE,
 } from '../nodeType'
-
-import * as pattern from '../pattern'
 
 import {
   log,
@@ -61,10 +61,10 @@ const variablePattern = /[_a-z]\w*/i
 const parsers = [
   {
     test: function (source) {
-      return pattern.EACH.test(source)
+      return source.startsWith(Cola.EACH)
     },
     create: function (source, currentNode) {
-      let terms = source.replace(pattern.EACH, '').trim().split(':')
+      let terms = source.substr(Cola.EACH.length).trim().split(':')
       let options = {
         name: terms[0].trim()
       }
@@ -76,10 +76,10 @@ const parsers = [
   },
   {
     test: function (source) {
-       return pattern.IMPORT.test(source)
+       return source.startsWith(Cola.IMPORT)
     },
     create: function (source, currentNode) {
-      let name = source.replace(pattern.IMPORT, '').trim()
+      let name = source.substr(Cola.IMPORT.length).trim()
       if (name) {
         return new Import(currentNode, { name })
       }
@@ -87,10 +87,10 @@ const parsers = [
   },
   {
     test: function (source) {
-       return pattern.PARTIAL.test(source)
+       return source.startsWith(Cola.PARTIAL)
     },
     create: function (source, currentNode) {
-      let name = source.replace(pattern.PARTIAL, '').trim()
+      let name = source.substr(Cola.PARTIAL.length).trim()
       if (name) {
         return new Partial(currentNode, { name })
       }
@@ -98,18 +98,18 @@ const parsers = [
   },
   {
     test: function (source) {
-       return pattern.IF.test(source)
+       return source.startsWith(Cola.IF)
     },
     create: function (source, currentNode) {
-      let code = source.replace(pattern.IF, '')
-      if (code) {
-        return new If(currentNode, { expr: code.trim() })
+      let expr = source.substr(Cola.IF.length).trim()
+      if (expr) {
+        return new If(currentNode, { expr })
       }
     }
   },
   {
     test: function (source) {
-      return pattern.ELSE.test(source)
+      return source.startsWith(Cola.ELSE)
     },
     create: function (source, currentNode, popStack) {
       popStack()
@@ -118,11 +118,11 @@ const parsers = [
   },
   {
     test: function (source) {
-      return pattern.ELSE_IF.test(source)
+      return source.startsWith(Cola.ELSE_IF)
     },
     create: function (source, currentNode, popStack) {
       popStack()
-      let code = source.replace(pattern.ELSE_IF, '')
+      let code = source.substr(Cola.ELSE_IF.length)
       if (code) {
         return new ElseIf(currentNode, { expr: code.trim() })
       }
