@@ -61,6 +61,43 @@ const variablePattern = /[_a-z]\w*/i
 const parsers = [
   {
     test: function (source) {
+      return pattern.EACH.test(source)
+    },
+    create: function (source, currentNode) {
+      let terms = source.replace(pattern.EACH, '').trim().split(':')
+      let options = {
+        name: terms[0].trim()
+      }
+      if (terms[1]) {
+        options.index = terms[1].trim()
+      }
+      return new Each(currentNode, options)
+    }
+  },
+  {
+    test: function (source) {
+       return pattern.IMPORT.test(source)
+    },
+    create: function (source, currentNode) {
+      let name = source.replace(pattern.IMPORT, '').trim()
+      if (name) {
+        return new Import(currentNode, { name })
+      }
+    }
+  },
+  {
+    test: function (source) {
+       return pattern.PARTIAL.test(source)
+    },
+    create: function (source, currentNode) {
+      let name = source.replace(pattern.PARTIAL, '').trim()
+      if (name) {
+        return new Partial(currentNode, { name })
+      }
+    }
+  },
+  {
+    test: function (source) {
        return pattern.IF.test(source)
     },
     create: function (source, currentNode) {
@@ -68,6 +105,15 @@ const parsers = [
       if (code) {
         return new If(currentNode, { expr: code.trim() })
       }
+    }
+  },
+  {
+    test: function (source) {
+      return pattern.ELSE.test(source)
+    },
+    create: function (source, currentNode, popStack) {
+      popStack()
+      return new Else(currentNode)
     }
   },
   {
@@ -80,15 +126,6 @@ const parsers = [
       if (code) {
         return new ElseIf(currentNode, { expr: code.trim() })
       }
-    }
-  },
-  {
-    test: function (source) {
-      return pattern.ELSE.test(source)
-    },
-    create: function (source, currentNode, popStack) {
-      popStack()
-      return new Else(currentNode)
     }
   },
   {
@@ -239,14 +276,13 @@ console.log('')
             popStack()
           }
           else {
-            if (content.charAt(0) === '{') {
+            if (content.charAt(0) === '{' && helperScanner.charAt(0) === '}') {
               helperScanner.forward(1)
             }
             each(parsers, function (parser) {
               if (parser.test(content)) {
                 newNode = parser.create(content, currentNode, popStack)
                 if (newNode) {
-                  console.log(newNode)
                   addChild(newNode)
                 }
                 return false
