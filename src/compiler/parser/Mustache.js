@@ -7,6 +7,7 @@
  */
 
 // [TODO] 两个 Block 之间如果有 \n 等空白符，应该删掉该节点（最后再改）
+// [TODO] 支持多个根节点，毕竟有可能出现 element partial \n 同级的情况
 
 import Cola from '../../Cola'
 
@@ -150,7 +151,7 @@ export default class Mustache {
 
   parse(template, partials) {
 
-    let rootNode
+    let result = []
     let currentNode
     let newNode
 
@@ -172,6 +173,7 @@ export default class Mustache {
     let nodeStacks = []
 
     let pushStack = function (node) {
+      console.log('-----------push', currentNode)
       if (currentNode) {
         nodeStacks.push(currentNode)
       }
@@ -179,7 +181,6 @@ export default class Mustache {
         isAttributeValueParsing = true
       }
       currentNode = node
-      console.log('-----------push', node)
     }
 
     let popStack = function () {
@@ -187,7 +188,7 @@ export default class Mustache {
         isAttributeValueParsing = false
       }
       currentNode = nodeStacks.pop()
-      console.log('----------pop')
+      console.log('----------pop', currentNode, 1)
       return currentNode
     }
 
@@ -199,12 +200,13 @@ export default class Mustache {
         else {
           currentNode.addChild(node)
         }
-        if (autoPushStack && node.children) {
-          pushStack(node)
-        }
       }
       else {
-        rootNode = currentNode = node
+        result.push(node)
+      }
+      console.log('currentNode', currentNode)
+      if (autoPushStack && node.children) {
+        pushStack(node)
       }
     }
 
@@ -235,7 +237,7 @@ console.log('')
         helperScanner.nextAfter(openingDelimiterPattern)
 
 console.log('')
-console.log('遍历纯文本 => ', '[' + content + ']', currentNode.type)
+console.log('遍历纯文本 => ', '[' + content + ']')
 console.log('')
 
         if (content) {
@@ -297,7 +299,7 @@ console.log('')
         helperScanner.nextAfter(closingDelimiterPattern)
 
 console.log('')
-console.log('遍历命令 => ', '[' + content + ']', currentNode.type)
+console.log('遍历命令 => ', '[' + content + ']')
 console.log('')
         if (content) {
           if (content.charAt(0) === '/') {
@@ -326,9 +328,6 @@ console.log('')
       content = elementScanner.nextBefore(elementPattern)
 
       if (content.trim()) {
-        if (!currentNode) {
-          return throwError('组件必须有且只有一个根元素')
-        }
         // 处理标签之间的内容
         parseContent(content)
       }
@@ -372,8 +371,10 @@ console.log('')
         isComponent = componentPattern.test(name)
         isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(name)
 
-        newNode = new Element(currentNode, { name })
-        addChild(newNode, !isSelfClosingTag)
+        addChild(
+          new Element(currentNode, { name }),
+          !isSelfClosingTag
+        )
 
         // 截取 <name 和 > 之间的内容
         // 用于提取 attribute
@@ -395,7 +396,7 @@ console.log('')
       return throwError('节点没有正确的结束')
     }
 
-    return rootNode
+    return result
 
   }
 
