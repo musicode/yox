@@ -7,18 +7,18 @@
 export const IF = 1
 
 /**
- * else 节点
- *
- * @type {number}
- */
-export const ELSE = 2
-
-/**
  * else if 节点
  *
  * @type {number}
  */
-export const ELSE_IF = 3
+export const ELSE_IF = 2
+
+/**
+ * else 节点
+ *
+ * @type {number}
+ */
+export const ELSE = 3
 
 /**
  * each 节点

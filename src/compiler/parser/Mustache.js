@@ -6,6 +6,8 @@
  *
  */
 
+// [TODO] 两个 Block 之间如果有 \n 等空白符，应该删掉该节点（最后再改）
+
 import Cola from '../../Cola'
 
 import Scanner from '../helper/Scanner'
@@ -53,10 +55,10 @@ const elementEndPattern = /(?:\/)?>/
 const selfClosingTagPattern = /input|img|br/i
 
 const attributeSuffixPattern = /^([^"']*)["']/
-const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^\2]+)\2)?)?/i
+const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+)['"])?)?/i
 
 const componentPattern = /[-A-Z]/
-const variablePattern = /[_a-z]\w*/i
+const variablePattern = /[._a-z]\w*/i
 
 const parsers = [
   {
@@ -111,14 +113,6 @@ const parsers = [
   },
   {
     test: function (source) {
-      return source.startsWith(Cola.ELSE)
-    },
-    create: function (source, currentNode, popStack) {
-      return new Else(popStack())
-    }
-  },
-  {
-    test: function (source) {
       return source.startsWith(Cola.ELSE_IF)
     },
     create: function (source, currentNode, popStack) {
@@ -127,6 +121,14 @@ const parsers = [
         return new ElseIf(popStack(), { expr: code.trim() })
       }
       throw new Error('else if 缺少条件')
+    }
+  },
+  {
+    test: function (source) {
+      return source.startsWith(Cola.ELSE)
+    },
+    create: function (source, currentNode, popStack) {
+      return new Else(popStack())
     }
   },
   {
@@ -173,27 +175,19 @@ export default class Mustache {
       if (currentNode) {
         nodeStacks.push(currentNode)
       }
-      currentNode = node
-      if (currentNode.type === ATTRIBUTE) {
+      if (node.type === ATTRIBUTE) {
         isAttributeValueParsing = true
       }
-      console.log('')
-      console.log('')
-      console.log('push ----------->', node)
-      console.log('')
-      console.log('')
+      currentNode = node
+      console.log('-----------push', node)
     }
 
     let popStack = function () {
-      currentNode = nodeStacks.pop()
       if (currentNode && currentNode.type === ATTRIBUTE) {
         isAttributeValueParsing = false
       }
-      console.log('')
-      console.log('')
-      console.log('pop ----------->', currentNode)
-      console.log('')
-      console.log('')
+      currentNode = nodeStacks.pop()
+      console.log('----------pop')
       return currentNode
     }
 
@@ -268,20 +262,30 @@ console.log('')
             if (!isAttributeValueParsing) {
               // 下一个属性的开始
               while (match = attributePattern.exec(content)) {
-                content = content.substr(match[0].length)
+                console.log(content, match)
+                content = content.substr(match.index + match[0].length)
+                console.log(`[${content}]`)
                 addChild(
                   new Attribute(currentNode, { name: match[1] })
                 )
-                if (match[3] != null) {
-                  addChild(
-                    new Text(currentNode, { content: match[3] })
-                  )
+                if (match[2]) {
+                  if (match[3] != null) {
+                    addChild(
+                      new Text(currentNode, { content: match[3] })
+                    )
+                    popStack()
+                  }
+                }
+                // 如 checked、disabled
+                else {
                   popStack()
                 }
               }
+              content = ''
             }
           }
-          else {
+
+          if (content) {
             addChild(
               new Text(currentNode, { content })
             )
@@ -343,7 +347,7 @@ console.log('')
         name = content.substr(2)
 
 console.log('')
-console.log('tag end: ', name)
+console.log('tag end: ', name, currentNode)
 console.log('')
 
         if (elementScanner.charAt(0) !== '>') {
