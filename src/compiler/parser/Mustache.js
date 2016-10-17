@@ -7,7 +7,6 @@
  */
 
 // [TODO] 两个 Block 之间如果有 \n 等空白符，应该删掉该节点（最后再改）
-// [TODO] 支持多个根节点，毕竟有可能出现 element partial \n 同级的情况
 
 import Cola from '../../Cola'
 
