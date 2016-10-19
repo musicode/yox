@@ -31,10 +31,13 @@ let html = `
 // `
 
 html = `
+{{#each list:i}}
+  haha
+{{/each}}
 <span></span>
-{{#partial sayhi}}
-    haha
-{{/partial}}
+{{#if a > 1}}
+  haha
+{{/if}}
 `
 
 describe('compiler/parser/Mustache', function () {

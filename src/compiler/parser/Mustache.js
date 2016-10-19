@@ -28,6 +28,7 @@ import Text from '../node/Text'
 import Variable from '../node/Variable'
 
 import {
+  TEXT,
   ELEMENT,
   ATTRIBUTE,
 } from '../nodeType'
@@ -150,8 +151,10 @@ export default class Mustache {
 
   parse(template, partials) {
 
-    let result = []
-    let currentNode
+    // 根元素
+    let root = new Element(null, { name: 'root' })
+
+    let currentNode = root
     let newNode
 
     let elementScanner = new Scanner(template)
@@ -169,13 +172,12 @@ export default class Mustache {
     let match
     let errorPos
 
-    let nodeStacks = []
+    let lastNode
+    let nodeStack = []
 
     let pushStack = function (node) {
       console.log('-----------push', currentNode)
-      if (currentNode) {
-        nodeStacks.push(currentNode)
-      }
+      nodeStack.push(currentNode)
       if (node.type === ATTRIBUTE) {
         isAttributeValueParsing = true
       }
@@ -183,27 +185,41 @@ export default class Mustache {
     }
 
     let popStack = function () {
-      if (currentNode && currentNode.type === ATTRIBUTE) {
+      if (currentNode.type === ATTRIBUTE) {
         isAttributeValueParsing = false
       }
-      currentNode = nodeStacks.pop()
+      currentNode = nodeStack.pop()
       console.log('----------pop', currentNode, 1)
       return currentNode
     }
 
+    let isBreakLine = function (content) {
+      return content.indexOf('\n') >= 0 && !content.trim()
+    }
+
     let addChild = function (node, autoPushStack = true) {
-      if (currentNode) {
-        if (currentNode.type === ELEMENT && isAttributesParsing) {
-          currentNode.addAttr(node)
+
+      lastNode = lastItem(currentNode.children)
+      if (lastNode) {
+        if (node.type === TEXT) {
+          if (isBreakLine(node.content)) {
+            return
+          }
         }
-        else {
-          currentNode.addChild(node)
+        else if (lastNode.type === TEXT) {
+          if (isBreakLine(lastNode.content)) {
+            currentNode.children.pop()
+          }
         }
+      }
+
+      if (currentNode.type === ELEMENT && isAttributesParsing) {
+        currentNode.addAttr(node)
       }
       else {
-        result.push(node)
+        currentNode.addChild(node)
       }
-      console.log('currentNode', currentNode)
+
       if (autoPushStack && node.children) {
         pushStack(node)
       }
@@ -391,11 +407,11 @@ console.log('')
       }
     }
 
-    if (nodeStacks.length) {
+    if (nodeStack.length) {
       return throwError('节点没有正确的结束')
     }
 
-    return result
+    return root
 
   }
 
