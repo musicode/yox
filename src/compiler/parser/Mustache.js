@@ -47,6 +47,8 @@ import {
   lastItem,
 } from '../../util/array'
 
+import jsep from '../../util/jsep'
+
 const openingDelimiterPattern = /\{\{\s*/
 const closingDelimiterPattern = /\s*\}\}/
 
@@ -60,6 +62,9 @@ const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+)['"])?)?/i
 
 const componentPattern = /[-A-Z]/
 const variablePattern = /[._a-z]\w*/i
+
+const brealinePrefixPattern = /^[ \t]*\n/
+const brealineSuffixPattern = /\n[ \t]*$/
 
 const parsers = [
   {
@@ -107,7 +112,7 @@ const parsers = [
     create: function (source, currentNode) {
       let expr = source.substr(Cola.IF.length).trim()
       if (expr) {
-        return new If(currentNode, { expr })
+        return new If(currentNode, { expr: jsep(expr) })
       }
       throw new Error('if 缺少条件')
     }
@@ -117,9 +122,9 @@ const parsers = [
       return source.startsWith(Cola.ELSE_IF)
     },
     create: function (source, currentNode, popStack) {
-      let code = source.substr(Cola.ELSE_IF.length)
-      if (code) {
-        return new ElseIf(popStack(), { expr: code.trim() })
+      let expr = source.substr(Cola.ELSE_IF.length)
+      if (expr) {
+        return new ElseIf(popStack(), { expr: jsep(expr) })
       }
       throw new Error('else if 缺少条件')
     }
@@ -138,16 +143,38 @@ const parsers = [
     },
     create: function (source, currentNode) {
       let safe = false
-      if (source.startsWith('{') || source.startsWith('&')) {
+      if (source.startsWith('{')) {
         safe = true
         source = source.substr(1)
       }
-      return new Variable(currentNode, { expr: source.trim(), safe, })
+      return new Variable(currentNode, { expr: jsep(source), safe, })
     }
   }
 ]
 
 export default class Mustache {
+
+  build(ast, data) {
+
+    let traverse = function (node) {
+      if (node.type === ELEMENT) {
+        each(node.attrs, traverse)
+      }
+      if (node.children) {
+        each(node.children, traverse)
+      }
+
+      // 原子只分为两种，一种是字面量，一种是变量
+      // 变量可以通过 object.get(keypath) 取值
+      if (node.expr) {
+
+
+      }
+
+    }
+
+    return { }
+  }
 
   parse(template, partials) {
 
@@ -155,15 +182,14 @@ export default class Mustache {
     let root = new Element(null, { name: 'root' })
 
     let currentNode = root
-    let newNode
+    let lastNode
 
-    let elementScanner = new Scanner(template)
+    let mainScanner = new Scanner(template)
     let helperScanner = new Scanner()
 
     let content
     let expression
     let name
-    let isComponent
     let isSelfClosingTag
 
     let isAttributesParsing
@@ -172,11 +198,9 @@ export default class Mustache {
     let match
     let errorPos
 
-    let lastNode
     let nodeStack = []
 
     let pushStack = function (node) {
-      console.log('-----------push', currentNode)
       nodeStack.push(currentNode)
       if (node.type === ATTRIBUTE) {
         isAttributeValueParsing = true
@@ -189,12 +213,16 @@ export default class Mustache {
         isAttributeValueParsing = false
       }
       currentNode = nodeStack.pop()
-      console.log('----------pop', currentNode, 1)
       return currentNode
     }
 
     let isBreakLine = function (content) {
       return content.indexOf('\n') >= 0 && !content.trim()
+    }
+    let trimBreakline = function (content) {
+      return content
+      .replace(brealinePrefixPattern, '')
+      .replace(brealineSuffixPattern, '')
     }
 
     let addChild = function (node, autoPushStack = true) {
@@ -211,6 +239,9 @@ export default class Mustache {
             currentNode.children.pop()
           }
         }
+      }
+      if (node.type === TEXT) {
+        node.content = trimBreakline(node.content)
       }
 
       if (currentNode.type === ELEMENT && isAttributesParsing) {
@@ -240,9 +271,7 @@ export default class Mustache {
     // 这个函数涉及分隔符和普通模板的深度解析
     // 是最核心的函数
     let parseContent = function (content) {
-console.log('')
-console.log('content => ', content)
-console.log('')
+
       helperScanner.reset(content)
 
       while (helperScanner.hasNext()) {
@@ -251,15 +280,9 @@ console.log('')
         content = helperScanner.nextBefore(openingDelimiterPattern)
         helperScanner.nextAfter(openingDelimiterPattern)
 
-console.log('')
-console.log('遍历纯文本 => ', '[' + content + ']')
-console.log('')
-
         if (content) {
 
           // 可能是 文本 或 属性
-          // 如果是文本，直接 addChild
-          // 如果是属性，需要先解析出 name 和 value（可选）
           if (isAttributesParsing) {
 
             if (currentNode.type === ATTRIBUTE) {
@@ -313,9 +336,6 @@ console.log('')
         content = helperScanner.nextBefore(closingDelimiterPattern)
         helperScanner.nextAfter(closingDelimiterPattern)
 
-console.log('')
-console.log('遍历命令 => ', '[' + content + ']')
-console.log('')
         if (content) {
           if (content.charAt(0) === '/') {
             popStack()
@@ -326,10 +346,9 @@ console.log('')
             }
             each(parsers, function (parser) {
               if (parser.test(content)) {
-                newNode = parser.create(content, currentNode, popStack)
-                if (newNode) {
-                  addChild(newNode)
-                }
+                addChild(
+                  parser.create(content, currentNode, popStack)
+                )
                 return false
               }
             })
@@ -339,8 +358,8 @@ console.log('')
       }
     }
 
-    while (elementScanner.hasNext()) {
-      content = elementScanner.nextBefore(elementPattern)
+    while (mainScanner.hasNext()) {
+      content = mainScanner.nextBefore(elementPattern)
 
       if (content.trim()) {
         // 处理标签之间的内容
@@ -349,22 +368,22 @@ console.log('')
 
       // 接下来必须是 < 开头（标签）
       // 如果不是标签，那就该结束了
-      if (elementScanner.charAt(0) !== '<') {
+      if (mainScanner.charAt(0) !== '<') {
         break
       }
 
-      errorPos = elementScanner.pos
+      errorPos = mainScanner.pos
 
       // 结束标签
-      if (elementScanner.charAt(1) === '/') {
-        content = elementScanner.nextAfter(elementPattern)
+      if (mainScanner.charAt(1) === '/') {
+        content = mainScanner.nextAfter(elementPattern)
         name = content.substr(2)
 
 console.log('')
 console.log('tag end: ', name, currentNode)
 console.log('')
 
-        if (elementScanner.charAt(0) !== '>') {
+        if (mainScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
         else if (name !== currentNode.name) {
@@ -372,19 +391,18 @@ console.log('')
         }
 
         popStack()
-        elementScanner.forward(1)
+        mainScanner.forward(1)
       }
       // 开始标签
       else {
-        content = elementScanner.nextAfter(elementPattern)
+        content = mainScanner.nextAfter(elementPattern)
         name = content.substr(1)
 
 console.log('')
 console.log('tag start: ', name)
 console.log('')
 
-        isComponent = componentPattern.test(name)
-        isSelfClosingTag = isComponent ? true : selfClosingTagPattern.test(name)
+        isSelfClosingTag = componentPattern.test(name) ? true : selfClosingTagPattern.test(name)
 
         addChild(
           new Element(currentNode, { name }),
@@ -393,14 +411,14 @@ console.log('')
 
         // 截取 <name 和 > 之间的内容
         // 用于提取 attribute
-        content = elementScanner.nextBefore(elementEndPattern)
+        content = mainScanner.nextBefore(elementEndPattern)
         if (content) {
           isAttributesParsing = true
           parseContent(content)
           isAttributesParsing = false
         }
 
-        content = elementScanner.nextAfter(elementEndPattern)
+        content = mainScanner.nextAfter(elementEndPattern)
         if (!content) {
           return throwError('标签缺少 >')
         }

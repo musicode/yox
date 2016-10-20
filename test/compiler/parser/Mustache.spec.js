@@ -31,11 +31,9 @@ let html = `
 // `
 
 html = `
-{{#each list:i}}
-  haha
-{{/each}}
-<span></span>
-{{#if a > 1}}
+{{#if a.b.c > 1}}
+  xxx
+{{elseif a % 2 !== 0}}
   haha
 {{/if}}
 `
@@ -45,7 +43,10 @@ describe('compiler/parser/Mustache', function () {
     let parser = new Mustache()
     console.time('parse')
     let ast = parser.parse(html)
+    let vd = parser.build(ast, { a: 10 })
+
     console.timeEnd('parse')
+
     console.log(JSON.stringify(ast, null, 4))
   })
 })
