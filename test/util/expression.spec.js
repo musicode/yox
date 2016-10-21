@@ -1,14 +1,16 @@
 
 import {
   parse,
+  compile,
   traverse,
 } from '../../src/util/expression'
 
 describe('util/expression', () => {
   it('parse', () => {
 
-    let fn = parse('a + b')
-console.log(JSON.stringify(fn, null, 4))
+    let ast = parse('a + b')
+    let fn = compile(ast)
+console.log(JSON.stringify(ast, null, 4))
     return
     expect(fn(1, 2)).toBe(3)
 

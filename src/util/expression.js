@@ -3,6 +3,10 @@ import {
   each as arrayEach,
 } from './array'
 
+import {
+  isFunction,
+} from './is'
+
 /**
  * 仅支持一句表达式，即不支持 `a + b, b + c`
  * 因此表达式不应出现 , ;
@@ -10,13 +14,14 @@ import {
 
 // 节点类型
 export const LITERAL = 1
-export const IDENTIFIER = 2
-export const THIS = 3
-export const UNARY = 4
-export const BINARY = 5
-export const CONDITIONAL = 6
-export const ARRAY = 7
-export const CALL = 8
+export const ARRAY = 2
+export const IDENTIFIER = 3
+export const THIS = 4
+export const MEMBER = 5
+export const UNARY = 6
+export const BINARY = 7
+export const CONDITIONAL = 8
+export const CALL = 9
 
 // 分隔符
 const COMMA  = 44 // ,
@@ -32,6 +37,7 @@ const QUMARK = 63 // ?
 const COLON  = 58 // :
 
 const TRUE = true
+const FALSE = false
 
 /**
  * 倒排对象的 key
@@ -89,7 +95,7 @@ const sortedBinaryOperatorList = sortKeys(binaryOperatorMap)
 // 从解析器的角度来说，a 和 true 是一样的 token
 const keywords = {
   'true': TRUE,
-  'false': false,
+  'false': FALSE,
   'null': null,
   'undefined': undefined,
 }
@@ -155,7 +161,7 @@ function matchBestToken(content, sortedTokens) {
   arrayEach(sortedTokens, function (token) {
     if (content.startsWith(token)) {
       result = token
-      return false
+      return FALSE
     }
   })
   return result
@@ -534,7 +540,37 @@ export function compile(ast) {
  * 遍历抽象语法树
  *
  * @param {Object} ast
+ * @param {Function?} enter
+ * @param {Function?} leave
  */
-export function traverse(ast) {
+export function traverse(ast, enter, leave) {
+
+  // enter 返回 false 可阻止继续遍历
+  if (isFunction(enter) && enter(ast) === FALSE) {
+    return
+  }
+
+  switch (ast.type) {
+
+    case BINARY:
+      traverse(ast.left, enter, leave)
+      traverse(ast.right, enter, leave)
+      break
+
+    case UNARY:
+      traverse(ast.argument, enter, leave)
+      break
+
+    case ARRAY:
+      arrayEach(ast.elements, function (element) {
+        traverse(element, enter, leave)
+      })
+      break
+
+  }
+
+  if (isFunction(leave)) {
+    leave(ast)
+  }
 
 }
