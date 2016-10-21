@@ -166,6 +166,12 @@ export default class Mustache {
 
       // 原子只分为两种，一种是字面量，一种是变量
       // 变量可以通过 object.get(keypath) 取值
+      // 变量有以下形式：
+      // 1. a.b.c
+      // 2. a['b']['c']
+      // 3. a[b][c]
+      // 4. a.0.0 数组取值
+      //
       if (node.expr) {
 
 
@@ -187,9 +193,8 @@ export default class Mustache {
     let mainScanner = new Scanner(template)
     let helperScanner = new Scanner()
 
-    let content
-    let expression
     let name
+    let content
     let isSelfClosingTag
 
     let isAttributesParsing

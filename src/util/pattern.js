@@ -1,5 +1,5 @@
 
-export function excape(str) {
+export function escape(str) {
   return str.replace(/[-^$+?*.|\/\\(){}\[\]]/g, '\\$&')
 }
 
