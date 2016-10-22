@@ -8,12 +8,9 @@ import {
 describe('util/expression', () => {
   it('parse', () => {
 
-    let ast = parse('a + b')
-    let fn = compile(ast)
-console.log(JSON.stringify(ast, null, 4))
-    return
-    expect(fn(1, 2)).toBe(3)
-
+    let fn = compile('a[b].c[0](d)')
+    expect(fn({b: [1]})).toBe(1)
+return
     fn = parse('a > 1')
     expect(fn(2)).toBe(true)
     expect(fn(1)).toBe(false)

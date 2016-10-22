@@ -168,6 +168,35 @@ function matchBestToken(content, sortedTokens) {
 }
 
 /**
+ * 懒得说各种细节错误，表达式都输出了看不出原因我也没办法
+ *
+ * @inner
+ * @param {string} expression
+ * @return {Error}
+ */
+function throwError(expression) {
+  return new Error('Expression parse error: [${expression}]')
+}
+
+/**
+ * 创建一个三目运算
+ *
+ * @inner
+ * @param {Object} test
+ * @param {Object} consequent
+ * @param {Object} alternate
+ * @return {Object}
+ */
+function createConditional(test, consequent, alternate) {
+  return {
+    type: CONDITIONAL,
+    test,
+    consequent,
+    alternate,
+  }
+}
+
+/**
  * 创建一个二元表达式
  *
  * @inner
@@ -214,6 +243,14 @@ function createThis() {
   }
 }
 
+function createMember(object, property) {
+  return {
+    type: MEMBER,
+    object,
+    property,
+  }
+}
+
 function createArray(elements) {
   return {
     type: ARRAY,
@@ -221,15 +258,12 @@ function createArray(elements) {
   }
 }
 
-/**
- * 懒得说各种细节错误，表达式都输出了看不出原因我也没办法
- *
- * @inner
- * @param {string} expression
- * @return {Error}
- */
-function throwError(expression) {
-  return new Error('Expression parse error: [${expression}]')
+function createCall(callee, args) {
+  return {
+    type: CALL,
+    'arguments': args,
+    callee,
+  }
 }
 
 /**
@@ -286,15 +320,15 @@ export function parse(content) {
     }
   }
 
-  function skipString(quoteCode) {
+  function skipString(delimiter) {
     let closed
     while (index < length) {
-      if (testCharCode(quoteCode)) {
+      if (testCharCode(delimiter)) {
         closed = TRUE
-      }
-      index++
-      if (closed) {
         break
+      }
+      else {
+        index++
       }
     }
     if (!closed) {
@@ -303,6 +337,8 @@ export function parse(content) {
   }
 
   function skipIdentifier() {
+    // 第一个字符一定是经过 isIdentifierStart 判断的
+    // 因此循环至少要执行一次
     do {
       index++
     }
@@ -318,14 +354,7 @@ export function parse(content) {
       skipNumber()
     }
 
-    charCode = getCharCode()
-    if (charCode === PERIOD
-      || isIdentifierStart(charCode)
-    ) {
-      throw throwError()
-    }
-
-    value = content.substr(start, index)
+    value = content.substring(start, index)
     return createLiteral(parseFloat(value), value)
 
   }
@@ -335,8 +364,9 @@ export function parse(content) {
     let start = index
     skipString(delimiter)
 
-    value = content.substr(start, index)
-    return createLiteral(value, `${delimiter}${value}${delimiter}`)
+    value = content.substring(start, index - 1)
+    let quote = delimiter === SQUOTE ? "'" : '"'
+    return createLiteral(value, `${quote}${value}${quote}`)
 
   }
 
@@ -345,7 +375,7 @@ export function parse(content) {
     let start = index
     skipIdentifier()
 
-    value = content.substr(start, index)
+    value = content.substring(start, index)
     if (keywords[value]) {
       return createLiteral(keywords[value], value)
     }
@@ -380,6 +410,39 @@ export function parse(content) {
 
   }
 
+  function parseVariable() {
+
+    let node = parseIdentifier()
+
+    while (index < length) {
+      // a(x)
+      if (testCharCode(OPAREN)) {
+        node = createCall(node, parseTuple(CPAREN))
+        break
+      }
+      else {
+        // a.x
+        if (testCharCode(PERIOD)) {
+          node = createMember(node, parseIdentifier())
+        }
+        // a[x]
+        else if (testCharCode(OBRACK)) {
+          node = createMember(node, parseExpression())
+          skipWhitespace()
+          if (!testCharCode(CBRACK)) {
+            return throwError()
+          }
+        }
+        else {
+          break
+        }
+      }
+    }
+
+    return node
+
+  }
+
   function parseGroup() {
     value = parseExpression()
     skipWhitespace()
@@ -409,15 +472,12 @@ export function parse(content) {
       return parseNumber()
     }
     else if (isIdentifierStart(charCode)) {
-      return parseIdentifier()
+      return parseVariable()
     }
     else {
-      let operator = parseUnaryOperator()
-      if (operator) {
-        value = parseToken()
-        if (value) {
-          return createUnary(operator, value)
-        }
+      value = parseUnaryOperator()
+      if (value) {
+        return parseUnary(value)
       }
     }
     return throwError()
@@ -442,6 +502,14 @@ export function parse(content) {
         prec: binaryOperatorMap[value],
       }
     }
+  }
+
+  function parseUnary(operator) {
+    value = parseToken()
+    if (!value) {
+      return throwError()
+    }
+    return createUnary(operator, value)
   }
 
   function parseBinary() {
@@ -499,19 +567,15 @@ export function parse(content) {
     // test ? consequent : alternate
 
     let test = parseBinary()
-    skipWhitespace()
 
+    skipWhitespace()
     if (testCharCode(QUMARK)) {
       let consequent = parseBinary()
+
       skipWhitespace()
       if (testCharCode(COLON)) {
         let alternate = parseBinary()
-        return {
-          type: CONDITIONAL,
-          test,
-          consequent,
-          alternate,
-        }
+        return createConditional(test, consequent, alternate)
       }
       else {
         return throwError()
@@ -529,10 +593,38 @@ export function parse(content) {
 /**
  * 创建一个可执行的函数来运行该代码
  *
- * @param {Object} ast
+ * @param {string} content
  * @return {Function}
  */
-export function compile(ast) {
+export function compile(content) {
+
+  let ast = parse(content)
+  let args = [ ]
+
+  traverse(ast, {
+    enter: function (node) {
+      if (node.type === MEMBER) {
+        while (node) {
+          if (node.type === IDENTIFIER) {
+            args.push(node.name)
+            break
+          }
+          else {
+            node = node.object
+          }
+        }
+        return FALSE
+      }
+      else if (node.type === IDENTIFIER) {
+        args.push(node.name)
+      }
+    }
+  })
+console.log('')
+console.log(JSON.stringify(ast, null, 4))
+console.log(args)
+
+  return new Function(args.join(', '), `return ${content}`)
 
 }
 
@@ -540,37 +632,60 @@ export function compile(ast) {
  * 遍历抽象语法树
  *
  * @param {Object} ast
- * @param {Function?} enter
- * @param {Function?} leave
+ * @param {Function?} options.enter
+ * @param {Function?} options.leave
  */
-export function traverse(ast, enter, leave) {
+export function traverse(ast, options = {}) {
 
   // enter 返回 false 可阻止继续遍历
-  if (isFunction(enter) && enter(ast) === FALSE) {
+  if (isFunction(options.enter) && options.enter(ast) === FALSE) {
     return
   }
 
   switch (ast.type) {
 
+    case CONDITIONAL:
+      traverse(ast.test, options)
+      traverse(ast.consequent, options)
+      traverse(ast.alternate, options)
+      break
+
     case BINARY:
-      traverse(ast.left, enter, leave)
-      traverse(ast.right, enter, leave)
+      traverse(ast.left, options)
+      traverse(ast.right, options)
       break
 
     case UNARY:
-      traverse(ast.argument, enter, leave)
+      traverse(ast.argument, options)
+      break
+
+    case MEMBER:
+      traverse(ast.object, options)
+      traverse(ast.property, options)
+      break
+
+    case MEMBER:
+      traverse(ast.object, options)
+      traverse(ast.property, options)
+      break
+
+    case CALL:
+      traverse(ast.callee, options)
+      arrayEach(ast.arguments, function (arg) {
+        traverse(arg, options)
+      })
       break
 
     case ARRAY:
       arrayEach(ast.elements, function (element) {
-        traverse(element, enter, leave)
+        traverse(element, options)
       })
       break
 
   }
 
-  if (isFunction(leave)) {
-    leave(ast)
+  if (isFunction(options.leave)) {
+    options.leave(ast)
   }
 
 }
