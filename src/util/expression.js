@@ -9,7 +9,6 @@ import {
 
 /**
  * 仅支持一句表达式，即不支持 `a + b, b + c`
- * 因此表达式不应出现 , ;
  */
 
 // 节点类型
@@ -54,11 +53,12 @@ function sortKeys(obj) {
   )
 }
 
+// 用于判断是否是一元操作符
 const unaryOperatorMap = {
+  '+': TRUE,
   '-': TRUE,
   '!': TRUE,
   '~': TRUE,
-  '+': TRUE
 }
 
 const sortedUnaryOperatorList = sortKeys(unaryOperatorMap)
@@ -104,48 +104,48 @@ const keywords = {
  * 是否是数字
  *
  * @inner
- * @param {string} char
+ * @param {string} charCode
  * @return {boolean}
  */
-function isNumber(char) {
-  return char >= 48 && char <= 57 // 0...9
+function isNumber(charCode) {
+  return charCode >= 48 && charCode <= 57 // 0...9
 }
 
-/*
+/**
  * 是否是空白符
  *
  * @inner
- * @param {string} char
+ * @param {string} charCode
  * @return {boolean}
  */
-function isWhitespace(char) {
-  return char === 32  // space
-    || char === 9     // tab
+function isWhitespace(charCode) {
+  return charCode === 32  // space
+    || charCode === 9     // tab
 }
 
 /**
  * 变量开始字符必须是 字母、下划线、$
  *
  * @inner
- * @param {string} char
+ * @param {string} charCode
  * @return {boolean}
  */
-function isIdentifierStart(char) {
-  return char === 36 // $
-    || char === 95   // _
-    || (char >= 97 && char <= 122) // a...z
-    || (char >= 65 && char <= 90)  // A...Z
+function isIdentifierStart(charCode) {
+  return charCode === 36 // $
+    || charCode === 95   // _
+    || (charCode >= 97 && charCode <= 122) // a...z
+    || (charCode >= 65 && charCode <= 90)  // A...Z
 }
 
 /**
  * 变量剩余的字符必须是 字母、下划线、$、数字
  *
  * @inner
- * @param {string} char
+ * @param {string} charCode
  * @return {boolean}
  */
-function isIdentifierPart(char) {
-  return isIdentifierStart(char) || isNumber(char)
+function isIdentifierPart(charCode) {
+  return isIdentifierStart(charCode) || isNumber(charCode)
 }
 
 /**
@@ -175,7 +175,7 @@ function matchBestToken(content, sortedTokens) {
  * @return {Error}
  */
 function throwError(expression) {
-  return new Error('Expression parse error: [${expression}]')
+  return new Error(`Expression parse error: [${expression}]`)
 }
 
 /**
@@ -200,9 +200,9 @@ function createConditional(test, consequent, alternate) {
  * 创建一个二元表达式
  *
  * @inner
+ * @param {Object} right
  * @param {string} operator
- * @param {string} left
- * @param {string} right
+ * @param {Object} left
  * @return {Object}
  */
 function createBinary(right, operator, left) {
@@ -214,6 +214,14 @@ function createBinary(right, operator, left) {
   }
 }
 
+/**
+ * 创建一个一元表达式
+ *
+ * @inner
+ * @param {string} operator
+ * @param {Object} argument
+ * @return {Object}
+ */
 function createUnary(operator, argument) {
   return {
     type: UNARY,
@@ -222,11 +230,10 @@ function createUnary(operator, argument) {
   }
 }
 
-function createLiteral(value, raw) {
+function createLiteral(value) {
   return {
     type: LITERAL,
     value,
-    raw,
   }
 }
 
@@ -267,25 +274,10 @@ function createCall(callee, args) {
 }
 
 /**
- * 解析表达式
- *
- * 解析结果是一个 function，传入数据即可求值
- * 因此本模块实际要做的是找出最外层的依赖，举个例子
- *
- * ```javascript
- * age > 18 ? '成年' : '未成年'
- * ```
- *
- * 这里只需要找到 age 即可，然后把它封装为下面的函数
- *
- * ```javascript
- * function (age) {
- *     return age > 18 ? '成年' : '未成年'
- * }
- * ```
+ * 表达式解析成抽象语法树
  *
  * @param {string} content 表达式字符串
- * @return {Funtion}
+ * @return {Object}
  */
 export function parse(content) {
 
@@ -297,15 +289,8 @@ export function parse(content) {
   function getChar() {
     return content.charAt(index)
   }
-  function getCharCode() {
-    return content.charCodeAt(index)
-  }
-
-  function testCharCode(charCode) {
-    if (getCharCode() === charCode) {
-      index++
-      return TRUE
-    }
+  function getCharCode(i) {
+    return content.charCodeAt(i != null ? i : index)
   }
 
   function skipWhitespace() {
@@ -320,15 +305,14 @@ export function parse(content) {
     }
   }
 
-  function skipString(delimiter) {
-    let closed
+  function skipString() {
+    let closed, quote = getCharCode()
+    index++
     while (index < length) {
-      if (testCharCode(delimiter)) {
+      index++
+      if (getCharCode(index - 1) === quote) {
         closed = TRUE
         break
-      }
-      else {
-        index++
       }
     }
     if (!closed) {
@@ -350,23 +334,28 @@ export function parse(content) {
     let start = index
 
     skipNumber()
-    if (testCharCode(PERIOD)) {
+    if (getCharCode() === PERIOD) {
+      index++
       skipNumber()
     }
 
-    value = content.substring(start, index)
-    return createLiteral(parseFloat(value), value)
+    return createLiteral(
+      parseFloat(
+        content.substring(start, index)
+      )
+    )
 
   }
 
-  function parseString(delimiter) {
+  function parseString() {
 
     let start = index
-    skipString(delimiter)
 
-    value = content.substring(start, index - 1)
-    let quote = delimiter === SQUOTE ? "'" : '"'
-    return createLiteral(value, `${quote}${value}${quote}`)
+    skipString()
+
+    return createLiteral(
+      content.substring(start + 1, index - 1)
+    )
 
   }
 
@@ -377,16 +366,13 @@ export function parse(content) {
 
     value = content.substring(start, index)
     if (keywords[value]) {
-      return createLiteral(keywords[value], value)
+      return createLiteral(keywords[value])
     }
     else if (value === 'this') {
       return createThis()
     }
-    else if (value) {
-      return createIdentifier(value)
-    }
 
-    return throwError()
+    return value ? createIdentifier(value) : throwError()
 
   }
 
@@ -395,11 +381,15 @@ export function parse(content) {
     let args = [], closed
 
     while (index < length) {
-      skipWhitespace()
-      if (testCharCode(delimiter)) {
+      charCode = getCharCode()
+      if (charCode === delimiter) {
+        index++
         closed = TRUE
       }
-      else if (!testCharCode(COMMA)) {
+      else if (charCode === COMMA) {
+        index++
+      }
+      else {
         args.push(
           parseExpression()
         )
@@ -410,28 +400,37 @@ export function parse(content) {
 
   }
 
+  function parseOperator(sortedOperatorList) {
+    skipWhitespace()
+    value = matchBestToken(content.substr(index), sortedOperatorList)
+    if (value) {
+      index += value.length
+      return value
+    }
+  }
+
   function parseVariable() {
 
-    let node = parseIdentifier()
+    value = parseIdentifier()
 
     while (index < length) {
       // a(x)
-      if (testCharCode(OPAREN)) {
-        node = createCall(node, parseTuple(CPAREN))
+      charCode = getCharCode()
+      if (charCode === OPAREN) {
+        index++
+        value = createCall(value, parseTuple(CPAREN))
         break
       }
       else {
         // a.x
-        if (testCharCode(PERIOD)) {
-          node = createMember(node, parseIdentifier())
+        if (charCode === PERIOD) {
+          index++
+          value = createMember(value, createLiteral(parseIdentifier().name))
         }
         // a[x]
-        else if (testCharCode(OBRACK)) {
-          node = createMember(node, parseExpression())
-          skipWhitespace()
-          if (!testCharCode(CBRACK)) {
-            return throwError()
-          }
+        else if (charCode === OBRACK) {
+          index++
+          value = createMember(value, parseSubexpression(CBRACK))
         }
         else {
           break
@@ -439,69 +438,37 @@ export function parse(content) {
       }
     }
 
-    return node
+    return value
 
-  }
-
-  function parseGroup() {
-    value = parseExpression()
-    skipWhitespace()
-    return testCharCode(CPAREN) ? value : throwError()
   }
 
   function parseToken() {
     skipWhitespace()
 
-    if (testCharCode(SQUOTE)) {
-      return parseString(SQUOTE)
-    }
-    else if (testCharCode(DQUOTE)) {
-      return parseString(DQUOTE)
-    }
-    else if (testCharCode(OBRACK)) {
-      return createArray(
-        parseTuple(CBRACK)
-      )
-    }
-    else if (testCharCode(OPAREN)) {
-      return parseGroup()
-    }
-
     charCode = getCharCode()
-    if (isNumber(charCode) || charCode === PERIOD) {
+    // 'xx' 或 "xx"
+    if (charCode === SQUOTE || charCode === DQUOTE) {
+      return parseString()
+    }
+    // 1.1 或 .1
+    else if (isNumber(charCode) || charCode === PERIOD) {
       return parseNumber()
+    }
+    // [xx, xx]
+    else if (charCode === OBRACK) {
+      index++
+      return createArray(parseTuple(CBRACK))
+    }
+    // (xx, xx)
+    else if (charCode === OPAREN) {
+      index++
+      return parseSubexpression(CPAREN)
     }
     else if (isIdentifierStart(charCode)) {
       return parseVariable()
     }
-    else {
-      value = parseUnaryOperator()
-      if (value) {
-        return parseUnary(value)
-      }
-    }
-    return throwError()
-  }
-
-  function parseUnaryOperator() {
-    skipWhitespace()
-    value = matchBestToken(content.substr(index), sortedUnaryOperatorList)
-    if (value) {
-      index += value.length
-      return value
-    }
-  }
-
-  function parseBinaryOperator() {
-    skipWhitespace()
-    value = matchBestToken(content.substr(index), sortedBinaryOperatorList)
-    if (value) {
-      index += value.length
-      return {
-        value,
-        prec: binaryOperatorMap[value],
-      }
-    }
+    value = parseOperator(sortedUnaryOperatorList)
+    return value ? parseUnary(value) : throwError()
   }
 
   function parseUnary(operator) {
@@ -515,21 +482,22 @@ export function parse(content) {
   function parseBinary() {
 
     let left = parseToken()
-    let operator = parseBinaryOperator()
+    let operator = parseOperator(sortedBinaryOperatorList)
     if (!operator) {
       return left
     }
 
     let right = parseToken()
-    let stack = [left, operator, right]
+    let stack = [left, operator, binaryOperatorMap[operator], right]
 
-    while (operator = parseBinaryOperator()) {
+    while (operator = parseOperator(sortedBinaryOperatorList)) {
+
       // 处理左边
-      if (stack.length > 2 && operator.prec < stack[stack.length - 2].prec) {
+      if (stack.length > 3 && binaryOperatorMap[operator] < stack[stack.length - 2]) {
         stack.push(
           createBinary(
             stack.pop(),
-            stack.pop().value,
+            (stack.pop(), stack.pop()),
             stack.pop()
           )
         )
@@ -539,7 +507,7 @@ export function parse(content) {
       if (!right) {
         return throwError()
       }
-      stack.push(operator, right)
+      stack.push(operator, binaryOperatorMap[operator], right)
     }
 
     // 处理右边
@@ -551,13 +519,25 @@ export function parse(content) {
     while (stack.length > 1) {
       right = createBinary(
         right,
-        stack.pop().value,
+        (stack.pop(), stack.pop()),
         stack.pop()
       )
     }
 
     return right
 
+  }
+
+  // (xx) 和 [xx] 都可能是子表达式，因此
+  function parseSubexpression(delimiter) {
+    value = parseExpression()
+    if (getCharCode() === delimiter) {
+      index++
+      return value
+    }
+    else {
+      return throwError()
+    }
   }
 
   function parseExpression() {
@@ -569,12 +549,19 @@ export function parse(content) {
     let test = parseBinary()
 
     skipWhitespace()
-    if (testCharCode(QUMARK)) {
+    if (getCharCode() === QUMARK) {
+      index++
+
       let consequent = parseBinary()
 
       skipWhitespace()
-      if (testCharCode(COLON)) {
+      if (getCharCode() === COLON) {
+        index++
+
         let alternate = parseBinary()
+
+        // 保证调用 parseExpression() 之后无需再次调用 skipWhitespace()
+        skipWhitespace()
         return createConditional(test, consequent, alternate)
       }
       else {
@@ -591,40 +578,30 @@ export function parse(content) {
 }
 
 /**
- * 创建一个可执行的函数来运行该代码
+ * 创建一个可执行的函数来运行该代码，为了支持表达式中的 this，调用函数时应用 fn.apply(context, args)
  *
  * @param {string} content
  * @return {Function}
  */
 export function compile(content) {
 
-  let ast = parse(content)
   let args = [ ]
 
-  traverse(ast, {
-    enter: function (node) {
-      if (node.type === MEMBER) {
-        while (node) {
-          if (node.type === IDENTIFIER) {
-            args.push(node.name)
-            break
-          }
-          else {
-            node = node.object
-          }
+  traverse(
+    parse(content),
+    {
+      enter: function (node) {
+        if (node.type === IDENTIFIER) {
+          args.push(node.name)
         }
-        return FALSE
-      }
-      else if (node.type === IDENTIFIER) {
-        args.push(node.name)
       }
     }
-  })
-console.log('')
-console.log(JSON.stringify(ast, null, 4))
-console.log(args)
+  )
 
-  return new Function(args.join(', '), `return ${content}`)
+  let fn = new Function(args.join(', '), `return ${content}`)
+  fn.$arguments = args
+
+  return fn
 
 }
 
