@@ -6,6 +6,6 @@
  * @return {string}
  */
 export function normalize(keypath) {
-  parseAccessor(keypath)
+
 
 }

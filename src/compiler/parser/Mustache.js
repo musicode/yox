@@ -47,7 +47,9 @@ import {
   lastItem,
 } from '../../util/array'
 
-import jsep from '../../util/jsep'
+import {
+  parse,
+} from '../../util/expression'
 
 const openingDelimiterPattern = /\{\{\s*/
 const closingDelimiterPattern = /\s*\}\}/
@@ -112,7 +114,7 @@ const parsers = [
     create: function (source, currentNode) {
       let expr = source.substr(Cola.IF.length).trim()
       if (expr) {
-        return new If(currentNode, { expr: jsep(expr) })
+        return new If(currentNode, { expr: parse(expr) })
       }
       throw new Error('if 缺少条件')
     }
@@ -124,7 +126,7 @@ const parsers = [
     create: function (source, currentNode, popStack) {
       let expr = source.substr(Cola.ELSE_IF.length)
       if (expr) {
-        return new ElseIf(popStack(), { expr: jsep(expr) })
+        return new ElseIf(popStack(), { expr: parse(expr) })
       }
       throw new Error('else if 缺少条件')
     }
@@ -147,7 +149,7 @@ const parsers = [
         safe = true
         source = source.substr(1)
       }
-      return new Variable(currentNode, { expr: jsep(source), safe, })
+      return new Variable(currentNode, { expr: parse(source), safe, })
     }
   }
 ]
@@ -164,14 +166,6 @@ export default class Mustache {
         each(node.children, traverse)
       }
 
-      // 原子只分为两种，一种是字面量，一种是变量
-      // 变量可以通过 object.get(keypath) 取值
-      // 变量有以下形式：
-      // 1. a.b.c
-      // 2. a['b']['c']
-      // 3. a[b][c]
-      // 4. a.0.0 数组取值
-      //
       if (node.expr) {
 
 
@@ -245,8 +239,11 @@ export default class Mustache {
           }
         }
       }
-      if (node.type === TEXT) {
-        node.content = trimBreakline(node.content)
+
+      if (node.type === TEXT
+        && !(node.content = trimBreakline(node.content))
+      ) {
+        return
       }
 
       if (currentNode.type === ELEMENT && isAttributesParsing) {

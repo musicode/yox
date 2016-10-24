@@ -5,6 +5,7 @@ import {
 
 import {
   isFunction,
+  isString,
 } from './is'
 
 /**
@@ -37,6 +38,9 @@ const COLON  = 58 // :
 
 const TRUE = true
 const FALSE = false
+const NULL = null
+
+let cache = { }
 
 /**
  * 倒排对象的 key
@@ -96,7 +100,7 @@ const sortedBinaryOperatorList = sortKeys(binaryOperatorMap)
 const keywords = {
   'true': TRUE,
   'false': FALSE,
-  'null': null,
+  'null': NULL,
   'undefined': undefined,
 }
 
@@ -290,7 +294,7 @@ export function parse(content) {
     return content.charAt(index)
   }
   function getCharCode(i) {
-    return content.charCodeAt(i != null ? i : index)
+    return content.charCodeAt(i != NULL ? i : index)
   }
 
   function skipWhitespace() {
@@ -573,22 +577,38 @@ export function parse(content) {
 
   }
 
-  return parseExpression()
+  if (!cache[content]) {
+    let node = parseExpression()
+    node.raw = content
+    cache[content] = node
+  }
+
+  return cache[content]
 
 }
 
 /**
  * 创建一个可执行的函数来运行该代码，为了支持表达式中的 this，调用函数时应用 fn.apply(context, args)
  *
- * @param {string} content
+ * @param {string|Object} ast
  * @return {Function}
  */
-export function compile(content) {
+export function compile(ast) {
 
   let args = [ ]
 
+  let content
+
+  if (isString(ast)) {
+    content = ast
+    ast = parse(content)
+  }
+  else if (ast) {
+    content = ast.raw
+  }
+
   traverse(
-    parse(content),
+    ast,
     {
       enter: function (node) {
         if (node.type === IDENTIFIER) {

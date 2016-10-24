@@ -33,7 +33,7 @@ let html = `
 html = `
 {{#if a.b.c > 1}}
   xxx
-{{elseif a % 2 !== 0}}
+{{else if a % 2 !== 0}}
   haha
 {{/if}}
 `

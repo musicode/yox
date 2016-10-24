@@ -6,7 +6,7 @@ import {
 } from '../../src/util/expression'
 
 describe('util/expression', () => {
-  it('parse', () => {
+  it('compile', () => {
 
     let fn = compile('a')
     expect(fn(1)).toBe(1)
