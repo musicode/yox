@@ -6,10 +6,9 @@
  *
  */
 
-// [TODO] 两个 Block 之间如果有 \n 等空白符，应该删掉该节点（最后再改）
-
 import Cola from '../../Cola'
 
+import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
 import print from '../../function/print'
 import getLocationByIndex from '../../function/getLocationByIndex'
@@ -25,9 +24,13 @@ import If from '../node/If'
 import Import from '../node/Import'
 import Partial from '../node/Partial'
 import Text from '../node/Text'
-import Variable from '../node/Variable'
 
 import {
+  IF,
+  ELSE_IF,
+  ELSE,
+  EACH,
+  EXPRESSION,
   TEXT,
   ELEMENT,
   ATTRIBUTE,
@@ -39,6 +42,7 @@ import {
 } from '../../config/env'
 
 import {
+  isArray,
   isFunction,
 } from '../../util/is'
 
@@ -49,6 +53,8 @@ import {
 
 import {
   parse,
+  compile,
+  execute,
 } from '../../util/expression'
 
 const openingDelimiterPattern = /\{\{\s*/
@@ -63,7 +69,6 @@ const attributeSuffixPattern = /^([^"']*)["']/
 const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+)['"])?)?/i
 
 const componentPattern = /[-A-Z]/
-const variablePattern = /[._a-z]\w*/i
 
 const brealinePrefixPattern = /^[ \t]*\n/
 const brealineSuffixPattern = /\n[ \t]*$/
@@ -141,7 +146,7 @@ const parsers = [
   },
   {
     test: function (source) {
-      return variablePattern.test(source)
+      return true
     },
     create: function (source, currentNode) {
       let safe = false
@@ -149,39 +154,107 @@ const parsers = [
         safe = true
         source = source.substr(1)
       }
-      return new Variable(currentNode, { expr: parse(source), safe, })
+      return new Expression(currentNode, { expr: parse(source), safe, })
     }
   }
 ]
 
 export default class Mustache {
 
+  /**
+   * 把抽象语法树构建成 Virtual DOM
+   *
+   * @param {Object} ast
+   * @param {Object} data
+   * @return {Object}
+   */
   build(ast, data) {
 
-    let traverse = function (node) {
-      if (node.type === ELEMENT) {
-        each(node.attrs, traverse)
+    // 构建的过程只保留语法树中的 Element Attribute Text，其他的节点需要通过 data 进行过滤或替换
+
+    let rootContext = new Context(data)
+    let rootNode = new Element(null, { name: 'root' })
+
+    let executeExpression = function (expr, context) {
+      return execute(
+        compile(expr),
+        context,
+        function (name) {
+          return context.lookup(name)
+        }
+      )
+    }
+
+    let traverseNodes = function (nodes, context, parentNode) {
+      let conditionMatched
+      each(nodes, function (node, index) {
+        if (node.type === IF || node.type === ELSE_IF || node.type === ELSE) {
+          if (node.type === IF) {
+            conditionMatched = false
+          }
+          if (!conditionMatched) {
+            if (!node.expr || executeExpression(node.expr, context)) {
+              conditionMatched = true
+              traverseNode(node, context, parentNode)
+            }
+          }
+          else {
+            return
+          }
+        }
+        else {
+          traverseNode(node, context, parentNode)
+        }
+      })
+    }
+
+    let traverseNode = function (node, context, parentNode) {
+
+      let { type, name, content, expr, attrs, children } = node
+
+      if (type === EACH) {
+        context = context.push(context.lookup(name))
       }
-      if (node.children) {
-        each(node.children, traverse)
+      else if (type === ATTRIBUTE) {
+        node = new Attribute(parentNode, { name })
+        parentNode.addAttr(node)
+        parentNode = node
+      }
+      else if (type === ELEMENT) {
+        node = new Element(parentNode, { name })
+        parentNode.addChild(node)
+        parentNode = node
+        traverseNodes(attrs, context, parentNode)
+      }
+      else if (type === TEXT) {
+        parentNode.addChild(
+          new Text(parentNode, { content })
+        )
+      }
+      else if (type === EXPRESSION) {
+        parentNode.addChild(
+          new Text(parentNode, { content: executeExpression(expr, context) })
+        )
       }
 
-      if (node.expr) {
-
-
+      if (isArray(children)) {
+        traverseNodes(children, context, parentNode)
       }
 
     }
 
-    return { }
+    traverseNodes(ast.children, rootContext, rootNode)
+
+    return rootNode
+
   }
 
-  parse(template, partials) {
+  parse(template) {
 
     // 根元素
-    let root = new Element(null, { name: 'root' })
+    let rootNode = new Element(null, { name: 'root' })
 
-    let currentNode = root
+    let currentNode = rootNode
     let lastNode
 
     let mainScanner = new Scanner(template)
@@ -304,9 +377,7 @@ export default class Mustache {
             if (!isAttributeValueParsing) {
               // 下一个属性的开始
               while (match = attributePattern.exec(content)) {
-                console.log(content, match)
                 content = content.substr(match.index + match[0].length)
-                console.log(`[${content}]`)
                 addChild(
                   new Attribute(currentNode, { name: match[1] })
                 )
@@ -381,10 +452,6 @@ export default class Mustache {
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(2)
 
-console.log('')
-console.log('tag end: ', name, currentNode)
-console.log('')
-
         if (mainScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
@@ -399,10 +466,6 @@ console.log('')
       else {
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(1)
-
-console.log('')
-console.log('tag start: ', name)
-console.log('')
 
         isSelfClosingTag = componentPattern.test(name) ? true : selfClosingTagPattern.test(name)
 
@@ -431,7 +494,7 @@ console.log('')
       return throwError('节点没有正确的结束')
     }
 
-    return root
+    return rootNode
 
   }
 

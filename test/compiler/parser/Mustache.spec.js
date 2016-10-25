@@ -18,6 +18,12 @@ let html = `
 {{/partial}}
 `
 
+html = `
+<div class="{{#if hidden}}xxx{{/if}} 1">
+  <h1>{{title}}</h1>
+</div>
+`
+
 // html = `
 // <div class="{{#if hidden}}aaa{{else if xxx}}bb {{name}} bb {{{ age }} {{else}}a cccc d{{/if}}">
 //     {{#if list.length > 0}}
@@ -30,23 +36,16 @@ let html = `
 // </div>
 // `
 
-html = `
-{{#if a.b.c > 1}}
-  xxx
-{{else if a % 2 !== 0}}
-  haha
-{{/if}}
-`
 
 describe('compiler/parser/Mustache', function () {
   it('Mustache', function () {
     let parser = new Mustache()
     console.time('parse')
     let ast = parser.parse(html)
-    let vd = parser.build(ast, { a: 10 })
+    let vd = parser.build(ast, { hidden: false, title: '123' })
 
     console.timeEnd('parse')
 
-    console.log(JSON.stringify(ast, null, 4))
+    console.log(JSON.stringify(vd, null, 4))
   })
 })

@@ -11,9 +11,10 @@ import Node from './Node'
  * @param {string} expr
  */
 export default class Expression extends Node {
-  constructor(parent, { expr }) {
-    super(parent)
+  constructor(parent, { expr, safe }) {
+    super(parent, false)
     this.type = EXPRESSION
     this.expr = expr
+    this.safe = safe
   }
 }

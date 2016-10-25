@@ -40,7 +40,8 @@ const TRUE = true
 const FALSE = false
 const NULL = null
 
-let cache = { }
+let parseCache = { }
+let compileCache = { }
 
 /**
  * 倒排对象的 key
@@ -577,13 +578,13 @@ export function parse(content) {
 
   }
 
-  if (!cache[content]) {
+  if (!parseCache[content]) {
     let node = parseExpression()
-    node.raw = content
-    cache[content] = node
+    node.$raw = content
+    parseCache[content] = node
   }
 
-  return cache[content]
+  return parseCache[content]
 
 }
 
@@ -595,8 +596,6 @@ export function parse(content) {
  */
 export function compile(ast) {
 
-  let args = [ ]
-
   let content
 
   if (isString(ast)) {
@@ -604,26 +603,37 @@ export function compile(ast) {
     ast = parse(content)
   }
   else if (ast) {
-    content = ast.raw
+    content = ast.$raw
   }
 
-  traverse(
-    ast,
-    {
-      enter: function (node) {
-        if (node.type === IDENTIFIER) {
-          args.push(node.name)
+  if (!compileCache[content]) {
+    let args = [ ]
+
+    traverse(
+      ast,
+      {
+        enter: function (node) {
+          if (node.type === IDENTIFIER) {
+            args.push(node.name)
+          }
         }
       }
-    }
-  )
+    )
 
-  let fn = new Function(args.join(', '), `return ${content}`)
-  fn.$arguments = args
+    let fn = new Function(args.join(', '), `return ${content}`)
+    fn.$arguments = args
+    compileCache[content] = fn
+  }
 
-  return fn
+  return compileCache[content]
 
 }
+
+export function execute(compileResult, context, getArg) {
+  let args = compileResult.$arguments.map(getArg)
+  return compileResult.apply(context, args)
+}
+
 
 /**
  * 遍历抽象语法树

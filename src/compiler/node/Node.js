@@ -18,4 +18,5 @@ export default class Node {
     this.children.push(node)
     return node
   }
+
 }
