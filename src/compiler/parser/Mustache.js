@@ -31,6 +31,8 @@ import {
   ELSE,
   EACH,
   EXPRESSION,
+  IMPORT,
+  PARTIAL,
   TEXT,
   ELEMENT,
   ATTRIBUTE,
@@ -249,7 +251,15 @@ export default class Mustache {
 
   }
 
-  parse(template) {
+  /**
+   * 把模板解析为抽象语法树
+   *
+   * @param {string} template
+   * @param {Function} getPartial 当解析到 IMPORT 节点时，需要获取模板片段
+   * @param {Function} setPartial 当解析到 PARTIAL 节点时，需要注册模板片段
+   * @return {Object}
+   */
+  parse(template, getPartial, setPartial) {
 
     // 根元素
     let rootNode = new Element(null, { name: 'root' })
@@ -316,6 +326,21 @@ export default class Mustache {
       if (node.type === TEXT
         && !(node.content = trimBreakline(node.content))
       ) {
+        return
+      }
+
+      if (node.type === IMPORT) {
+        node = getPartial(node.name)
+        if (node) {
+          each(node.children, addChild)
+          return
+        }
+        else {
+          return throwError(`找不到模板片段：${node.name}`)
+        }
+      }
+      else if (node.type === PARTIAL) {
+        setPartial(node.name, node)
         return
       }
 
