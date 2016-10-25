@@ -48,6 +48,8 @@ class Cola extends Emitter {
     // this.partials = { }
     // 实例方法
     // this.methods = { }
+    // 监控数据变化
+    // this.watchers = { }
 
     Object.assign(this, options)
 
@@ -79,33 +81,12 @@ class Cola extends Emitter {
       }
     )
 
-    let vd = parser.build(vd, this.data)
+    let virtualDOM = parser.render(ast, this.data)
 
     this.fire('compile')
 
 
 
   }
-
-}
-
-export default {
-
-  // 自定义语法
-
-  IF: '#if',
-  ELSE: 'else',
-  ELSE_IF: 'else if',
-
-  EACH: '#each',
-
-  PARTIAL: '#partial',
-
-  IMPORT: '>',
-
-  DIRECTIVE_PREFIX: '@',
-
-
-
 
 }

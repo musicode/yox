@@ -6,7 +6,7 @@
  *
  */
 
-import Cola from '../../Cola'
+import * as syntax from '../../syntax'
 
 import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
@@ -78,10 +78,10 @@ const brealineSuffixPattern = /\n[ \t]*$/
 const parsers = [
   {
     test: function (source) {
-      return source.startsWith(Cola.EACH)
+      return source.startsWith(syntax.EACH)
     },
     create: function (source, currentNode) {
-      let terms = source.substr(Cola.EACH.length).trim().split(':')
+      let terms = source.substr(syntax.EACH.length).trim().split(':')
       let options = {
         name: terms[0].trim()
       }
@@ -93,10 +93,10 @@ const parsers = [
   },
   {
     test: function (source) {
-       return source.startsWith(Cola.IMPORT)
+       return source.startsWith(syntax.IMPORT)
     },
     create: function (source, currentNode) {
-      let name = source.substr(Cola.IMPORT.length).trim()
+      let name = source.substr(syntax.IMPORT.length).trim()
       if (name) {
         return new Import(currentNode, { name })
       }
@@ -104,10 +104,10 @@ const parsers = [
   },
   {
     test: function (source) {
-       return source.startsWith(Cola.PARTIAL)
+       return source.startsWith(syntax.PARTIAL)
     },
     create: function (source, currentNode) {
-      let name = source.substr(Cola.PARTIAL.length).trim()
+      let name = source.substr(syntax.PARTIAL.length).trim()
       if (name) {
         return new Partial(currentNode, { name })
       }
@@ -116,10 +116,10 @@ const parsers = [
   },
   {
     test: function (source) {
-       return source.startsWith(Cola.IF)
+       return source.startsWith(syntax.IF)
     },
     create: function (source, currentNode) {
-      let expr = source.substr(Cola.IF.length).trim()
+      let expr = source.substr(syntax.IF.length).trim()
       if (expr) {
         return new If(currentNode, { expr: parse(expr) })
       }
@@ -128,10 +128,10 @@ const parsers = [
   },
   {
     test: function (source) {
-      return source.startsWith(Cola.ELSE_IF)
+      return source.startsWith(syntax.ELSE_IF)
     },
     create: function (source, currentNode, popStack) {
-      let expr = source.substr(Cola.ELSE_IF.length)
+      let expr = source.substr(syntax.ELSE_IF.length)
       if (expr) {
         return new ElseIf(popStack(), { expr: parse(expr) })
       }
@@ -140,7 +140,7 @@ const parsers = [
   },
   {
     test: function (source) {
-      return source.startsWith(Cola.ELSE)
+      return source.startsWith(syntax.ELSE)
     },
     create: function (source, currentNode, popStack) {
       return new Else(popStack())
@@ -170,7 +170,7 @@ export default class Mustache {
    * @param {Object} data
    * @return {Object}
    */
-  build(ast, data) {
+  render(ast, data) {
 
     // 构建的过程只保留语法树中的 Element Attribute Text，其他的节点需要通过 data 进行过滤或替换
 
@@ -212,10 +212,18 @@ export default class Mustache {
 
     let traverseNode = function (node, context, parentNode) {
 
-      let { type, name, content, expr, attrs, children } = node
+      let { type, name, index, content, expr, attrs, children } = node
 
       if (type === EACH) {
-        context = context.push(context.lookup(name))
+        let array = context.lookup(name)
+        context = context.push(array)
+        each(array, function (item, i) {
+          if (index) {
+            context.set(index, i)
+          }
+          traverseNodes(children, context, parentNode)
+        })
+        return
       }
       else if (type === ATTRIBUTE) {
         node = new Attribute(parentNode, { name })
