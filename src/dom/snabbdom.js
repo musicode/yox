@@ -56,7 +56,7 @@ export function create(node) {
         return node.content
       }
     }
-  })
+  )
 
 }
 
