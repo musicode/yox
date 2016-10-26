@@ -34,7 +34,7 @@ export default class Context {
     }
   }
 
-  lookup(keypath) {
+  get(keypath) {
 
     let context = this
     let { cache } = context

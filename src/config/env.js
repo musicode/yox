@@ -1,7 +1,3 @@
-/**
- * @file 运行环境
- * @author musicode
- */
 
 import {
   isFunction,

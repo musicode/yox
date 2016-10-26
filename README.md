@@ -14,6 +14,7 @@
 * String.prototype.trim
 * Array.prototype.forEach
 * Array.prototype.indexOf
+* Array.prototype.reduce
 
 ## 表达式
 

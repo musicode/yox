@@ -14,7 +14,8 @@
     "babel-plugin-transform-es2015-modules-umd": "^6.12.0",
     "babel-preset-es2015": "^6.14.0",
     "babel-register": "^6.14.0",
-    "jasmine": "^2.5.2"
+    "jasmine": "^2.5.2",
+    "snabbdom": "^0.5.4"
   },
   "author": "",
   "repository": "empty",

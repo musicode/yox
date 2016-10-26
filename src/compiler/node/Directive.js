@@ -6,17 +6,18 @@ import {
 import Node from './Node'
 
 /**
- * 变量节点
+ * 指令节点
  *
- * x-lazy="100"
+ * on-click="submit()"
  *
  * @param {string} name 指令名
- * @param {Array} nodes 字面量
  */
 export default class Directive extends Node {
-  constructor(parent, { name }) {
+
+  constructor(parent, name) {
     super(parent)
     this.type = DIRECTIVE
     this.name = name
   }
+
 }

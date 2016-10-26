@@ -5,11 +5,19 @@ import {
 
 import {
   each as objectEach,
+  set as objectSet,
+  get as objectGet,
 } from './util/object'
 
 import {
   isObject,
 } from './util/is'
+
+import {
+  create,
+  init,
+  update,
+} from './dom/snabbdom'
 
 class Cola extends Emitter {
 
@@ -66,9 +74,9 @@ class Cola extends Emitter {
     }
 
     // 模板解析器
-    let parser = new Mustache()
+    this.parser = new Mustache()
 
-    let ast = parser.parse(
+    this.templateAst = this.parser.parse(
       this.template,
       name => {
         return (this.partials && this.partials[name]) || Cola.partials[name]
@@ -81,11 +89,46 @@ class Cola extends Emitter {
       }
     )
 
-    let virtualDOM = parser.render(ast, this.data)
-
     this.fire('compile')
 
+    this.updateView()
 
+  }
+
+  get(keypath) {
+    return objectGet(this.data, keypath)
+  }
+
+  set(keypath, value) {
+    if (isObject(keypath)) {
+      objectEach(keypath, (keypath, value) => {
+        objectSet(this.data, keypath, value)
+      })
+      this.updateView()
+    }
+    else {
+      objectSet(this.data, keypath, value)
+      this.updateView()
+    }
+  }
+
+  updateModel() {
+
+  }
+
+  updateView() {
+
+    let newNode = create(
+      this.parser.render(this.templateAst, this.data)
+    )
+
+    let eventName = this.currentNode ? 'update' : 'render'
+
+    this.currentNode = this.currentNode
+      ? update(this.currentNode, newNode)
+      : init(this.el, newNode)
+
+    this.fire(eventName)
 
   }
 

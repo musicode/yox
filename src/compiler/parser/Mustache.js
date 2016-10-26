@@ -55,8 +55,6 @@ import {
 
 import {
   parse,
-  compile,
-  execute,
 } from '../../util/expression'
 
 const openingDelimiterPattern = /\{\{\s*/
@@ -82,13 +80,12 @@ const parsers = [
     },
     create: function (source, currentNode) {
       let terms = source.substr(syntax.EACH.length).trim().split(':')
-      let options = {
-        name: terms[0].trim()
-      }
+      let name = terms[0].trim()
+      let index
       if (terms[1]) {
-        options.index = terms[1].trim()
+        index = terms[1].trim()
       }
-      return new Each(currentNode, options)
+      return new Each(currentNode, name, index)
     }
   },
   {
@@ -98,7 +95,7 @@ const parsers = [
     create: function (source, currentNode) {
       let name = source.substr(syntax.IMPORT.length).trim()
       if (name) {
-        return new Import(currentNode, { name })
+        return new Import(currentNode, name)
       }
     }
   },
@@ -109,7 +106,7 @@ const parsers = [
     create: function (source, currentNode) {
       let name = source.substr(syntax.PARTIAL.length).trim()
       if (name) {
-        return new Partial(currentNode, { name })
+        return new Partial(currentNode, name)
       }
       throw new Error('模板片段缺少名称')
     }
@@ -121,7 +118,7 @@ const parsers = [
     create: function (source, currentNode) {
       let expr = source.substr(syntax.IF.length).trim()
       if (expr) {
-        return new If(currentNode, { expr: parse(expr) })
+        return new If(currentNode, parse(expr))
       }
       throw new Error('if 缺少条件')
     }
@@ -133,7 +130,7 @@ const parsers = [
     create: function (source, currentNode, popStack) {
       let expr = source.substr(syntax.ELSE_IF.length)
       if (expr) {
-        return new ElseIf(popStack(), { expr: parse(expr) })
+        return new ElseIf(popStack(), parse(expr))
       }
       throw new Error('else if 缺少条件')
     }
@@ -156,7 +153,7 @@ const parsers = [
         safe = true
         source = source.substr(1)
       }
-      return new Expression(currentNode, { expr: parse(source), safe, })
+      return new Expression(currentNode, parse(source), safe)
     }
   }
 ]
@@ -164,7 +161,7 @@ const parsers = [
 export default class Mustache {
 
   /**
-   * 把抽象语法树构建成 Virtual DOM
+   * 把抽象语法树渲染成 Virtual DOM
    *
    * @param {Object} ast
    * @param {Object} data
@@ -172,90 +169,17 @@ export default class Mustache {
    */
   render(ast, data) {
 
-    // 构建的过程只保留语法树中的 Element Attribute Text，其他的节点需要通过 data 进行过滤或替换
+    // 根元素
+    let rootElement = new Element(null, 'root')
 
-    let rootContext = new Context(data)
-    let rootNode = new Element(null, { name: 'root' })
+    ast.render(rootElement, new Context(data))
 
-    let executeExpression = function (expr, context) {
-      return execute(
-        compile(expr),
-        context,
-        function (name) {
-          return context.lookup(name)
-        }
-      )
+    let { children } = rootElement
+    if (children.length !== 1 || children[0].type !== ELEMENT) {
+      throw new Error('组件有且只能有一个根元素')
     }
 
-    let traverseNodes = function (nodes, context, parentNode) {
-      let conditionMatched
-      each(nodes, function (node, index) {
-        if (node.type === IF || node.type === ELSE_IF || node.type === ELSE) {
-          if (node.type === IF) {
-            conditionMatched = false
-          }
-          if (!conditionMatched) {
-            if (!node.expr || executeExpression(node.expr, context)) {
-              conditionMatched = true
-              traverseNode(node, context, parentNode)
-            }
-          }
-          else {
-            return
-          }
-        }
-        else {
-          traverseNode(node, context, parentNode)
-        }
-      })
-    }
-
-    let traverseNode = function (node, context, parentNode) {
-
-      let { type, name, index, content, expr, attrs, children } = node
-
-      if (type === EACH) {
-        let array = context.lookup(name)
-        context = context.push(array)
-        each(array, function (item, i) {
-          if (index) {
-            context.set(index, i)
-          }
-          traverseNodes(children, context, parentNode)
-        })
-        return
-      }
-      else if (type === ATTRIBUTE) {
-        node = new Attribute(parentNode, { name })
-        parentNode.addAttr(node)
-        parentNode = node
-      }
-      else if (type === ELEMENT) {
-        node = new Element(parentNode, { name })
-        parentNode.addChild(node)
-        parentNode = node
-        traverseNodes(attrs, context, parentNode)
-      }
-      else if (type === TEXT) {
-        parentNode.addChild(
-          new Text(parentNode, { content })
-        )
-      }
-      else if (type === EXPRESSION) {
-        parentNode.addChild(
-          new Text(parentNode, { content: executeExpression(expr, context) })
-        )
-      }
-
-      if (isArray(children)) {
-        traverseNodes(children, context, parentNode)
-      }
-
-    }
-
-    traverseNodes(ast.children, rootContext, rootNode)
-
-    return rootNode
+    return children[0]
 
   }
 
@@ -270,7 +194,7 @@ export default class Mustache {
   parse(template, getPartial, setPartial) {
 
     // 根元素
-    let rootNode = new Element(null, { name: 'root' })
+    let rootNode = new Element(null, 'root')
 
     let currentNode = rootNode
     let lastNode
@@ -399,7 +323,7 @@ export default class Mustache {
               if (match) {
                 if (match[1]) {
                   addChild(
-                    new Text(currentNode, { content: match[1] })
+                    new Text(currentNode, match[1])
                   )
                 }
                 content = content.replace(attributeSuffixPattern, '')
@@ -412,12 +336,12 @@ export default class Mustache {
               while (match = attributePattern.exec(content)) {
                 content = content.substr(match.index + match[0].length)
                 addChild(
-                  new Attribute(currentNode, { name: match[1] })
+                  new Attribute(currentNode, match[1])
                 )
                 if (match[2]) {
                   if (match[3] != null) {
                     addChild(
-                      new Text(currentNode, { content: match[3] })
+                      new Text(currentNode, match[3])
                     )
                     popStack()
                   }
@@ -433,7 +357,7 @@ export default class Mustache {
 
           if (content) {
             addChild(
-              new Text(currentNode, { content })
+              new Text(currentNode, content)
             )
           }
         }
@@ -503,7 +427,7 @@ export default class Mustache {
         isSelfClosingTag = componentPattern.test(name) ? true : selfClosingTagPattern.test(name)
 
         addChild(
-          new Element(currentNode, { name }),
+          new Element(currentNode, name),
           !isSelfClosingTag
         )
 
