@@ -55,8 +55,6 @@ export default class Cola extends Emitter {
 
     super()
 
-    // 生命周期钩子
-    // this.hooks = { }
     // 子组件
     // this.components = { }
     // 过滤器
@@ -69,18 +67,6 @@ export default class Cola extends Emitter {
     // this.watchers = { }
 
     Object.assign(this, options)
-
-    // 把 hooks 里的 handler 注册到事件
-    if (isObject(this.hooks)) {
-      objectEach(
-        this.hooks,
-        (name, handler) => {
-          if (name.startsWith('on')) {
-            this.on(name.substr(2), handler.bind(this))
-          }
-        }
-      )
-    }
 
     if (isString(this.el)) {
       this.el = find(this.el)
@@ -134,11 +120,15 @@ export default class Cola extends Emitter {
       this.parser.render(this.templateAst, this.data)
     )
 
-    let eventName = this.currentNode ? 'update' : 'render'
-
-    this.currentNode = this.currentNode
-      ? update(this.currentNode, newNode)
-      : init(this.el, newNode)
+    let eventName
+    if (this.currentNode) {
+      eventName = 'udpate'
+      this.currentNode = update(this.currentNode, newNode)
+    }
+    else {
+      eventName = 'render'
+      this.currentNode = init(this.el, newNode)
+    }
 
     this.fire(eventName)
 

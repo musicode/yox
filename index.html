@@ -25,8 +25,15 @@
                 data: {
                     name: 'musicode'
                 },
-                template: '<div>{{name}}<input type="text" value="{{name}}"></div>'
+                template: '<div>{{name}}<a href="http://baidu.com">a</a><input type="text" value="{{name}}"></div>',
             });
+
+            setTimeout(
+                function () {
+                    instance.set('name', 'haha');
+                },
+                2000
+            )
         });
     </script>
 </body>

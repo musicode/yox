@@ -215,7 +215,6 @@ export default class Mustache {
 
     let name
     let content
-    let isSelfClosingTag
 
     let isAttributesParsing
     let isAttributeValueParsing
@@ -250,7 +249,7 @@ export default class Mustache {
       .replace(brealineSuffixPattern, '')
     }
 
-    let addChild = function (node, autoPushStack = true) {
+    let addChild = function (node) {
 
       lastNode = lastItem(currentNode.children)
       if (lastNode) {
@@ -294,7 +293,7 @@ export default class Mustache {
         currentNode.addChild(node)
       }
 
-      if (autoPushStack && node.children) {
+      if (node.children) {
         pushStack(node)
       }
     }
@@ -415,11 +414,12 @@ export default class Mustache {
 
       errorPos = mainScanner.pos
 
+
       // 结束标签
       if (mainScanner.charAt(1) === '/') {
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(2)
-
+console.log('tag end', name)
         if (mainScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
@@ -435,11 +435,9 @@ export default class Mustache {
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(1)
 
-        isSelfClosingTag = componentPattern.test(name) ? true : selfClosingTagPattern.test(name)
-
+console.log('tag start', name)
         addChild(
-          new Element(currentNode, name),
-          !isSelfClosingTag
+          new Element(currentNode, name)
         )
 
         // 截取 <name 和 > 之间的内容
@@ -454,6 +452,10 @@ export default class Mustache {
         content = mainScanner.nextAfter(elementEndPattern)
         if (!content) {
           return throwError('标签缺少 >')
+        }
+
+        if (componentPattern.test(name) || selfClosingTagPattern.test(name)) {
+          popStack()
         }
       }
     }

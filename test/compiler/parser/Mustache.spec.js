@@ -19,10 +19,11 @@ let html = `
 `
 
 html = `
-<div class="{{#if hidden}}xxx{{/if}} 1">
-  <h1>{{title}}</h1>
+<div>
+  <input type="text" value="{{name}}">
 </div>
 `
+
 
 // html = `
 // <div class="{{#if hidden}}aaa{{else if xxx}}bb {{name}} bb {{{ age }} {{else}}a cccc d{{/if}}">
