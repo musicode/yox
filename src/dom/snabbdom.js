@@ -47,7 +47,7 @@ export function create(node) {
         return h(
           node.name,
           {
-            props
+            props,
           },
           children
         )

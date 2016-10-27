@@ -25,6 +25,11 @@
                 data: {
                     name: 'musicode'
                 },
+                watchers: {
+                    name: function (newValue, oldValue) {
+                        console.log(newValue, oldValue);
+                    }
+                },
                 template: '<div>{{name}}<a href="http://baidu.com">a</a><input type="text" value="{{name}}"></div>',
             });
 
