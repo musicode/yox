@@ -158,6 +158,8 @@ const parsers = [
   }
 ]
 
+const rootName = 'root'
+
 export default class Mustache {
 
   /**
@@ -169,10 +171,20 @@ export default class Mustache {
    */
   render(ast, data) {
 
-    // 根元素
-    let rootElement = new Element(null, 'root')
+    let rootElement = new Element(null, rootName)
+    let rootContext = new Context(data)
 
-    ast.render(rootElement, new Context(data))
+    if (ast.name === rootName) {
+      each(
+        ast.children,
+        function (child) {
+          child.render(rootElement, rootContext)
+        }
+      )
+    }
+    else {
+      ast.render(rootElement, rootContext)
+    }
 
     let { children } = rootElement
     if (children.length !== 1 || children[0].type !== ELEMENT) {
@@ -193,8 +205,7 @@ export default class Mustache {
    */
   parse(template, getPartial, setPartial) {
 
-    // 根元素
-    let rootNode = new Element(null, 'root')
+    let rootNode = new Element(null, rootName)
 
     let currentNode = rootNode
     let lastNode

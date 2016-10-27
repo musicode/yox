@@ -1,7 +1,9 @@
 
+import Mustache from './compiler/parser/Mustache'
+
 import {
   Emitter,
-} from './util/Emitter'
+} from './util/event'
 
 import {
   each as objectEach,
@@ -10,6 +12,11 @@ import {
 } from './util/object'
 
 import {
+  find,
+} from './util/dom'
+
+import {
+  isString,
   isObject,
 } from './util/is'
 
@@ -19,7 +26,7 @@ import {
   update,
 } from './dom/snabbdom'
 
-class Cola extends Emitter {
+export default class Cola extends Emitter {
 
   /**
    * 全局过滤器
@@ -50,6 +57,8 @@ class Cola extends Emitter {
 
     // 生命周期钩子
     // this.hooks = { }
+    // 子组件
+    // this.components = { }
     // 过滤器
     // this.filters = { }
     // 模板片段
@@ -73,7 +82,10 @@ class Cola extends Emitter {
       )
     }
 
-    // 模板解析器
+    if (isString(this.el)) {
+      this.el = find(this.el)
+    }
+
     this.parser = new Mustache()
 
     this.templateAst = this.parser.parse(

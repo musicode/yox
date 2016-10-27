@@ -78,6 +78,17 @@ export function off(element, type, listener) {
 }
 
 /**
+ * 通过选择器查找元素
+ *
+ * @param {string} selector
+ * @param {?HTMLElement} context
+ * @return {?HTMLElement}
+ */
+export function find(selector, context = doc) {
+  return context.querySelector(selector)
+}
+
+/**
  * 属性的 getter/setter
  *
  * @param {HTMLElement} element

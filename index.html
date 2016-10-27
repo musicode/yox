@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-1-4/esl.js"></script>
+    <script>
+        require.config({
+            baseUrl: './src',
+            packages: [
+                {
+                    name: 'snabbdom',
+                    location: '../node_modules/snabbdom',
+                    main: 'snabbdom'
+                }
+            ]
+        });
+        require(['Cola'], function (Cola) {
+            Cola = Cola.default
+            var instance = new Cola({
+                el: '#app',
+                data: {
+                    name: 'musicode'
+                },
+                template: '<div>{{name}}<input type="text" value="{{name}}"></div>'
+            });
+        });
+    </script>
+</body>
+</html>

@@ -60,7 +60,6 @@ export function create(node) {
 
 }
 
-// 第一次使用 patch 需要一个真实的 dom
 export function init(element, node) {
   return patch(element, node)
 }
