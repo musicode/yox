@@ -30,7 +30,7 @@
                         console.log(newValue, oldValue);
                     }
                 },
-                template: '<div>{{name}}<button @click="submit()">a</button><input type="text" value="{{name}}"></div>',
+                template: '<div>{{name}}<button @click="submit()" disabled style="font-weight: bold">a</button><input type="text" value="{{name}}"></div>',
             });
 
             setTimeout(

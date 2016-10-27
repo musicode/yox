@@ -54,7 +54,8 @@ export function create(node) {
 
         node.attrs.forEach(function (node) {
           let { name, children } = node
-          let value = children[0].content
+          // 如 disabled 这种布尔属性没有 children，默认就是 true
+          let value = children[0] ? children[0].content : true
           if (name === 'style') {
             styles = parseStyle(value)
           }
