@@ -1,13 +1,12 @@
 
 export default {
-  insert: function(oldVnode, vnode) {
-    console.log(oldNode, vnode)
-    // invoked whenever a new virtual node is created
+  attach: function(el) {
+    console.log('attach', el)
   },
-  update: function(oldVnode, vnode) {
-    // invoked whenever a virtual node is updated
+  update: function(el) {
+    console.log('update', el)
   },
-  destroy: function (oldNode, vnode) {
+  detach: function (el) {
 
   }
 }

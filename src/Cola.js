@@ -91,6 +91,8 @@ export default class Cola extends Emitter {
 
     this.updateView()
 
+    this.fire('render')
+
   }
 
   get(keypath) {
@@ -119,20 +121,16 @@ export default class Cola extends Emitter {
     let { el, data, parser, templateAst, currentNode } = this
 
     let newNode = create(
-      parser.render(templateAst, data)
+      parser.render(templateAst, data),
+      this
     )
 
-    let eventName
     if (currentNode) {
-      eventName = 'udpate'
       this.currentNode = update(currentNode, newNode)
     }
     else {
-      eventName = 'render'
       this.currentNode = init(el, newNode)
     }
-
-    this.fire(eventName)
 
   }
 

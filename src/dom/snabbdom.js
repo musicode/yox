@@ -4,14 +4,21 @@ import h from 'snabbdom/h'
 import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
 import attributes from 'snabbdom/modules/attributes'
-import eventlisteners from 'snabbdom/modules/eventlisteners'
 
 // patch 用于初始化 dom 以及更新 dom
-const patch = snabbdom.init([ props, attributes, style, eventlisteners ])
+const patch = snabbdom.init([ props, attributes, style ])
 
 import {
   parse as parseStyle,
 } from './style'
+
+import {
+  each,
+} from '../util/object'
+
+import {
+  isFunction,
+} from '../util/is'
 
 import {
   get as getDirective,
@@ -24,50 +31,53 @@ import {
   ELEMENT,
 } from '../compiler/nodeType'
 
-export function create(node) {
+function readValue(children) {
+  // 如 disabled 这种布尔属性没有 children，默认就是 true
+  return children[0] ? children[0].content : true
+}
 
-  // 生成结果如下：
-  // h('div', [
-  //   h('input', {props: {type: 'radio', name: 'test', value: '0'},
-  //               on: {change: sharedHandler}}),
-  //   h('input', {props: {type: 'radio', name: 'test', value: '1'},
-  //               on: {change: sharedHandler}}),
-  //   h('input', {props: {type: 'radio', name: 'test', value: '2'},
-  //               on: {change: sharedHandler}})
-  // ])
+export function create(node, component) {
 
-  // 遍历的策略是先从叶子节点开始往上收集
+  let counter = 0
 
   return node.traverse(
     function (node) {
+      counter++
       if (node.type === ATTRIBUTE || node.type === DIRECTIVE) {
         return false
       }
     },
     function (node, children) {
+      counter--
       if (node.type === ELEMENT) {
 
         let attrs = { }
-        let hooks
-        let events
+        let directives = { }
         let styles
+
+        let hasDirective = false
+        let isRootElement = !counter
 
         node.attrs.forEach(function (node) {
           let { name, children } = node
-          // 如 disabled 这种布尔属性没有 children，默认就是 true
-          let value = children[0] ? children[0].content : true
           if (name === 'style') {
-            styles = parseStyle(value)
+            styles = parseStyle(readValue(children))
           }
           else {
-            attrs[node.name] = value
+            attrs[node.name] = readValue(children)
           }
         })
 
         node.directives.forEach(function (node) {
-          let directive = getDirective(node.name)
+          let { name, children } = node
+          let directive = getDirective(name)
           if (directive) {
-
+            hasDirective = true
+            directives[name] = {
+              ...directive,
+              name: name,
+              value: readValue(children),
+            }
           }
         })
 
@@ -78,11 +88,41 @@ export function create(node) {
         if (styles) {
           data.style = styles
         }
-        if (hooks) {
-          data.hook = hooks
-        }
-        if (events) {
-          data.on = events
+
+        if (isRootElement || hasDirective) {
+
+          let process = function (vnode, name) {
+            if (isRootElement) {
+              component.fire(name)
+            }
+            if (hasDirective) {
+              each(
+                directives,
+                function (directive) {
+                  if (isFunction(directive[name])) {
+                    directive[name]({
+                      el: vnode.elm,
+                      name: directive.name,
+                      value: directive.value,
+                      component,
+                    })
+                  }
+                }
+              )
+            }
+          }
+
+          data.hook = {
+            insert: function (vnode) {
+              process(vnode, 'attach')
+            },
+            update: function (oldNode, vnode) {
+              process(vnode, 'update')
+            },
+            destroy: function (vnode) {
+              process(vnode, 'detach')
+            }
+          }
         }
 
         return h(node.name, data, children)
