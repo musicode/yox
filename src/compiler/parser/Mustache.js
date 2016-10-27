@@ -345,9 +345,16 @@ export default class Mustache {
               // 下一个属性的开始
               while (match = attributePattern.exec(content)) {
                 content = content.substr(match.index + match[0].length)
-                addChild(
-                  new Attribute(currentNode, match[1])
-                )
+                if (match[1].startsWith(syntax.DIRECTIVE_PREFIX)) {
+                  addChild(
+                    new Directive(currentNode, match[1].substr(syntax.DIRECTIVE_PREFIX.length))
+                  )
+                }
+                else {
+                  addChild(
+                    new Attribute(currentNode, match[1])
+                  )
+                }
                 if (match[2]) {
                   if (match[3] != null) {
                     addChild(
@@ -419,7 +426,7 @@ export default class Mustache {
       if (mainScanner.charAt(1) === '/') {
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(2)
-console.log('tag end', name)
+
         if (mainScanner.charAt(0) !== '>') {
           return throwError('结束标签缺少 >')
         }
@@ -435,7 +442,6 @@ console.log('tag end', name)
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(1)
 
-console.log('tag start', name)
         addChild(
           new Element(currentNode, name)
         )
