@@ -6,12 +6,17 @@ import {
 
 import {
   each,
+  lastItem,
 } from '../../util/array'
 
 import {
   compile,
   execute,
 } from '../../util/expression'
+
+import {
+  TEXT,
+} from '../nodeType'
 
 /**
  * 节点基类
@@ -26,8 +31,15 @@ export default class Node {
   }
 
   addChild(node) {
-    this.children.push(node)
-    return node
+    let { children } = this
+    if (node.type === TEXT) {
+      let lastChild = lastItem(children)
+      if (lastChild && lastChild.type === TEXT) {
+        lastChild.content += node.content
+        return
+      }
+    }
+    children.push(node)
   }
 
   execute(context) {

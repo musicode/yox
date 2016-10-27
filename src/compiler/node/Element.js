@@ -21,15 +21,20 @@ export default class Element extends Node {
     this.type = ELEMENT
     this.name = name
     this.attrs = []
+    this.directives = []
   }
 
   addAttr(node) {
     this.attrs.push(node)
   }
 
+  addDirective(node) {
+    this.directives.push(node)
+  }
+
   render(parent, context) {
 
-    let { name, attrs, children } = this
+    let { name, attrs, directives, children } = this
 
     let node = new Element(parent, name)
     parent.addChild(node)
@@ -39,6 +44,7 @@ export default class Element extends Node {
     }
 
     reduce(attrs, handler)
+    reduce(directives, handler)
     reduce(children, handler)
 
   }

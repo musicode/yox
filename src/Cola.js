@@ -116,18 +116,20 @@ export default class Cola extends Emitter {
 
   updateView() {
 
+    let { el, data, parser, templateAst, currentNode } = this
+
     let newNode = create(
-      this.parser.render(this.templateAst, this.data)
+      parser.render(templateAst, data)
     )
 
     let eventName
-    if (this.currentNode) {
+    if (currentNode) {
       eventName = 'udpate'
-      this.currentNode = update(this.currentNode, newNode)
+      this.currentNode = update(currentNode, newNode)
     }
     else {
       eventName = 'render'
-      this.currentNode = init(this.el, newNode)
+      this.currentNode = init(el, newNode)
     }
 
     this.fire(eventName)

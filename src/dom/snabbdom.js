@@ -1,17 +1,26 @@
 import snabbdom from 'snabbdom'
 
 import h from 'snabbdom/h'
-import klass from 'snabbdom/modules/class'
 import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
+import attributes from 'snabbdom/modules/attributes'
 import eventlisteners from 'snabbdom/modules/eventlisteners'
 
 // patch 用于初始化 dom 以及更新 dom
-const patch = snabbdom.init([ klass, props, style, eventlisteners ])
+const patch = snabbdom.init([ props, attributes, style, eventlisteners ])
+
+import {
+  parse as parseStyle,
+} from './style'
+
+import {
+  get as getDirective,
+} from '../directive'
 
 import {
   TEXT,
   ATTRIBUTE,
+  DIRECTIVE,
   ELEMENT,
 } from '../compiler/nodeType'
 
@@ -31,26 +40,51 @@ export function create(node) {
 
   return node.traverse(
     function (node) {
-      if (node.type === ATTRIBUTE) {
+      if (node.type === ATTRIBUTE || node.type === DIRECTIVE) {
         return false
       }
     },
     function (node, children) {
       if (node.type === ELEMENT) {
 
-        let props = { }
+        let attrs = { }
+        let hooks
+        let events
+        let styles
 
         node.attrs.forEach(function (node) {
-          props[node.name] = node.children[0].content
+          let { name, children } = node
+          let value = children[0].content
+          if (name === 'style') {
+            styles = parseStyle(value)
+          }
+          else {
+            attrs[node.name] = value
+          }
         })
 
-        return h(
-          node.name,
-          {
-            props,
-          },
-          children
-        )
+        node.directives.forEach(function (node) {
+          let directive = getDirective(node.name)
+          if (directive) {
+
+          }
+        })
+
+        let data = {
+          attrs,
+        }
+
+        if (styles) {
+          data.style = styles
+        }
+        if (hooks) {
+          data.hook = hooks
+        }
+        if (events) {
+          data.on = events
+        }
+
+        return h(node.name, data, children)
       }
       else if (node.type === TEXT) {
         return node.content
