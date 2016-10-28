@@ -21,10 +21,6 @@ import {
 } from '../util/is'
 
 import {
-  get as getDirective,
-} from '../directive'
-
-import {
   TEXT,
   ATTRIBUTE,
   DIRECTIVE,
@@ -44,6 +40,8 @@ function readValue(children) {
 export function create(node, component) {
 
   let counter = 0
+
+  let allDirectives = component.directives
 
   let traverse = function (node, enter, leave) {
 
@@ -102,11 +100,11 @@ export function create(node, component) {
           let directive
           if (name.startsWith(DIRECTIVE_EVENT_PREFIX)) {
             name = name.substr(DIRECTIVE_EVENT_PREFIX.length)
-            directive = getDirective('event')
+            directive = allDirectives.event
           }
           else {
             name = name.substr(DIRECTIVE_PREFIX.length)
-            directive = getDirective(name)
+            directive = allDirectives[name]
           }
           if (directive) {
             hasDirective = true
@@ -119,6 +117,24 @@ export function create(node, component) {
           }
         })
 
+
+        each(
+          allDirectives,
+          function (directive, name) {
+            if (!(name in directives)) {
+              // 是否默认开启
+              if (isFunction(directive.defaultOn) && directive.defaultOn(node.name)) {
+                directives[name] = {
+                  ...directive,
+                  name,
+                  value: true,
+                  keypath: node.keypath,
+                }
+              }
+            }
+          }
+        )
+
         let data = {
           attrs,
         }
@@ -128,7 +144,6 @@ export function create(node, component) {
         }
 
         if (isRootElement || hasDirective) {
-
           let process = function (vnode, name) {
             if (isRootElement) {
               component.fire(name)
@@ -144,6 +159,7 @@ export function create(node, component) {
                       value: directive.value,
                       keypath: directive.keypath,
                       component,
+                      directives,
                     })
                   }
                 }

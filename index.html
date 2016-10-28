@@ -34,7 +34,7 @@
                     <button on-click="submit(@event, user.age)" style="font-weight: bold">
                       {{user.age}}
                     </button>
-                    <input type="text" value="{{name}}" on-input="valueChange()">
+                    <input type="text" @model="name">
                   </div>
                 `,
                 watchers: {

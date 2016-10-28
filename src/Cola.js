@@ -17,6 +17,7 @@ import {
 
 import {
   count as objectCount,
+  fill as objectFill,
   each as objectEach,
   set as objectSet,
   get as objectGet,
@@ -41,7 +42,18 @@ import {
   patch,
 } from './dom/snabbdom'
 
-export default class Cola extends Emitter {
+import lazy from './directive/lazy'
+import event from './directive/event'
+import model from './directive/model'
+
+export default class Cola {
+
+  /**
+   * 全局指令
+   *
+   * @type {Object}
+   */
+  static directives = { lazy, event, model }
 
   /**
    * 全局过滤器
@@ -68,41 +80,35 @@ export default class Cola extends Emitter {
    */
   constructor(options) {
 
-    super()
+    this.data = options.data
+    this.el = isString(options.el) ? find(options.el) : options.el
 
-    // 子组件
-    // this.components = { }
-    // 过滤器
-    // this.filters = { }
-    // 指令
-    // this.directives = { }
-    // 模板片段
-    // this.partials = { }
-    // 实例方法
-    // this.methods = { }
-    // 监控数据变化
-    // this.watchers = { }
+    this.components = objectFill({}, options.components)
+    this.directives = objectFill({}, Cola.directives)
+    this.filters = objectFill({}, options.filters)
+    this.methods = objectFill({}, options.methods)
+    this.partials = objectFill({}, options.partials)
 
-    Object.assign(this, options)
-
-    if (isString(this.el)) {
-      this.el = find(this.el)
+    this.$eventEmitter = new Emitter()
+    this.$watchEmitter = new Emitter()
+    if (isObject(options.watchers)) {
+      objectEach(options.watchers, (watcher, keypath) => {
+        this.watch(keypath, watcher)
+      })
     }
 
     this.$parser = new Mustache()
 
     this.$templateAst = this.$parser.parse(
-      this.template,
+      options.template,
       name => {
-        return (this.partials && this.partials[name]) || Cola.partials[name]
+        return this.partials[name] || Cola.partials[name]
       },
       (name, node) => {
-        if (!this.partials) {
-          this.partials = { }
-        }
         this.partials[name] = node
       }
     )
+
 
     this.fire('compile')
 
@@ -125,6 +131,37 @@ export default class Cola extends Emitter {
     }
   }
 
+  on(type, listener) {
+    this.$eventEmitter.on(type, listener)
+  }
+
+  once(type, listener) {
+    this.$eventEmitter.once(type, listener)
+  }
+
+  off(type, listener) {
+    this.$eventEmitter.off(type, listener)
+  }
+
+  fire(type, data) {
+    this.$eventEmitter.fire(type, [data], this)
+  }
+
+  watch(keypath, watcher) {
+    this.$watchEmitter.on(keypath, watcher)
+  }
+
+  watchOnce(keypath, watcher) {
+    this.$watchEmitter.once(keypath, watcher)
+  }
+
+  toggle(keypath) {
+    this.set(
+      keypath,
+      !this.get(keypath)
+    )
+  }
+
   updateModel(data) {
 
     let changes = { }
@@ -139,18 +176,15 @@ export default class Cola extends Emitter {
     })
 
     if (objectCount(changes)) {
-      let watchers = this.watchers || { }
       objectEach(changes, (args, keypath) => {
         getWildcardMatches(keypath).forEach(wildcardKeypath => {
-          if (isFunction(watchers[wildcardKeypath])) {
-            watchers[wildcardKeypath].apply(
-              this,
-              merge(
-                args,
-                getWildcardNames(keypath, wildcardKeypath)
-              )
+          this.$watchEmitter.fire(
+            wildcardKeypath,
+            merge(
+              args,
+              getWildcardNames(keypath, wildcardKeypath)
             )
-          }
+          )
         })
       })
       return true

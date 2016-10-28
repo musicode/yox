@@ -2,6 +2,10 @@
 import toString from '../function/toString'
 
 import {
+  isObject,
+} from './is'
+
+import {
   each as arrayEach,
 } from './array'
 
@@ -18,6 +22,17 @@ export function count(object) {
 
 export function has(object, name) {
   return object.hasOwnProperty(name)
+}
+
+export function fill(object, fillObject) {
+  if (isObject(fillObject)) {
+    each(fillObject, function (value, key) {
+      if (!(key in object)) {
+        object[key] = value
+      }
+    })
+  }
+  return object
 }
 
 export function get(object, keypath) {

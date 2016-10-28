@@ -26,7 +26,7 @@ import {
 } from '../syntax'
 
 function getListenerName(name) {
-  return `__${name}__`
+  return `$${name}`
 }
 
 export default {
