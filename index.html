@@ -23,27 +23,21 @@
             var instance = new Cola({
                 el: '#app',
                 data: {
-                    name: 'musicode'
+                    name: 'musicode',
+                    counter: 0,
                 },
                 watchers: {
                     name: function (newValue, oldValue) {
                         console.log(newValue, oldValue);
                     }
                 },
-                template: '<div>{{name}}<button @click="submit(name, age)" style="font-weight: bold">a</button><input type="text" value="{{name}}"></div>',
+                template: '<div>{{name}}<button @click="submit(event, counter)" style="font-weight: bold">{{counter}}</button><input type="text" value="{{name}}"></div>',
                 methods: {
-                    submit: function () {
-                        console.log('click');
+                    submit: function (event, counter) {
+                        instance.set('counter', counter + 1);
                     }
                 }
             });
-
-            setTimeout(
-                function () {
-                    instance.set('name', 'haha');
-                },
-                2000
-            )
         });
     </script>
 </body>
