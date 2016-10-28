@@ -24,15 +24,17 @@ export function has(object, name) {
   return object.hasOwnProperty(name)
 }
 
-export function fill(object, fillObject) {
-  if (isObject(fillObject)) {
-    each(fillObject, function (value, key) {
-      if (!(key in object)) {
-        object[key] = value
-      }
-    })
+export function extend() {
+  let args = arguments
+  let result = args[0]
+  for (let i = 1, len = args.length; i < len; i++) {
+    if (isObject(args[i])) {
+      each(args[i], function (value, key) {
+        result[key] = value
+      })
+    }
   }
-  return object
+  return result
 }
 
 export function get(object, keypath) {

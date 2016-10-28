@@ -16,8 +16,8 @@ import {
 } from './util/event'
 
 import {
+  extend as objectExtend,
   count as objectCount,
-  fill as objectFill,
   each as objectEach,
   set as objectSet,
   get as objectGet,
@@ -81,13 +81,14 @@ export default class Cola {
   constructor(options) {
 
     this.data = options.data
+    this.components = options.components
+    this.methods = options.methods
+
     this.el = isString(options.el) ? find(options.el) : options.el
 
-    this.components = objectFill({}, options.components)
-    this.directives = objectFill({}, Cola.directives)
-    this.filters = objectFill({}, options.filters)
-    this.methods = objectFill({}, options.methods)
-    this.partials = objectFill({}, options.partials)
+    this.directives = objectExtend({}, Cola.directives, options.directives)
+    this.filters = objectExtend({}, Cola.filters, options.filters)
+    this.partials = objectExtend({}, Cola.partials, options.partials)
 
     this.$eventEmitter = new Emitter()
     this.$watchEmitter = new Emitter()
@@ -97,8 +98,10 @@ export default class Cola {
       })
     }
 
-    this.$parser = new Mustache()
+    this.fire('init')
 
+    // 编译模板
+    this.$parser = new Mustache()
     this.$templateAst = this.$parser.parse(
       options.template,
       name => {
@@ -108,7 +111,6 @@ export default class Cola {
         this.partials[name] = node
       }
     )
-
 
     this.fire('compile')
 
