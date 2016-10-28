@@ -21,7 +21,13 @@ export function reduce(array, callback, initialValue = null) {
 }
 
 export function merge(array1, array2) {
-  return array1.concat(array2)
+  let result = [ ]
+  let push = function (item) {
+    result.push(item)
+  }
+  each(array1, push)
+  each(array2, push)
+  return result
 }
 
 export function toArray(array) {

@@ -7,7 +7,7 @@ import {
   each,
 } from './util/object'
 
-import click from './directive/click'
+import event from './directive/event'
 
 let directives = { }
 
@@ -31,4 +31,4 @@ export function get(name) {
   return directives[name]
 }
 
-add('click', click)
+add('event', event)

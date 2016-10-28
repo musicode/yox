@@ -20,7 +20,7 @@ export class Event {
   constructor(event) {
     if (event.type) {
       this.type = event.type
-      this.original = event
+      this.originalEvent = event
     }
     else {
       this.type = event

@@ -346,9 +346,11 @@ export default class Mustache {
               // 下一个属性的开始
               while (match = attributePattern.exec(content)) {
                 content = content.substr(match.index + match[0].length)
-                if (match[1].startsWith(syntax.DIRECTIVE_PREFIX)) {
+                if (match[1].startsWith(syntax.DIRECTIVE_PREFIX)
+                  || match[1].startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
+                ) {
                   addChild(
-                    new Directive(currentNode, match[1].substr(syntax.DIRECTIVE_PREFIX.length))
+                    new Directive(currentNode, match[1])
                   )
                 }
                 else {

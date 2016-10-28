@@ -28,6 +28,15 @@
                         age: 10,
                     }
                 },
+                template: `
+                  <div>
+                    {{name}}
+                    <button on-click="submit(@event, user.age)" style="font-weight: bold">
+                      {{user.age}}
+                    </button>
+                    <input type="text" value="{{name}}" on-input="valueChange()">
+                  </div>
+                `,
                 watchers: {
                     'user.age': function (newValue, oldValue) {
                         console.log(newValue, oldValue);
@@ -39,10 +48,12 @@
                         console.log(newValue, oldValue, name);
                     }
                 },
-                template: '<div>{{name}}<button @click="submit(@event, user.age)" style="font-weight: bold">{{user.age}}</button><input type="text" value="{{name}}"></div>',
                 methods: {
                     submit: function (event, age) {
                         instance.set('user.age', age + 1);
+                    },
+                    valueChange: function (event) {
+                        console.log(event)
                     }
                 }
             });

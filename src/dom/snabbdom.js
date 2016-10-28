@@ -5,7 +5,7 @@ import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
 import attributes from 'snabbdom/modules/attributes'
 
-const patch = snabbdom.init([ props, attributes, style ])
+const applyPatch = snabbdom.init([ props, attributes, style ])
 
 import {
   parse as parseStyle,
@@ -30,6 +30,11 @@ import {
   DIRECTIVE,
   ELEMENT,
 } from '../compiler/nodeType'
+
+import {
+  DIRECTIVE_PREFIX,
+  DIRECTIVE_EVENT_PREFIX,
+} from '../syntax'
 
 function readValue(children) {
   // 如 disabled 这种布尔属性没有 children，默认就是 true
@@ -94,7 +99,15 @@ export function create(node, component) {
 
         node.directives.forEach(function (node) {
           let { name } = node
-          let directive = getDirective(name)
+          let directive
+          if (name.startsWith(DIRECTIVE_EVENT_PREFIX)) {
+            name = name.substr(DIRECTIVE_EVENT_PREFIX.length)
+            directive = getDirective('event')
+          }
+          else {
+            name = name.substr(DIRECTIVE_PREFIX.length)
+            directive = getDirective(name)
+          }
           if (directive) {
             hasDirective = true
             directives[name] = {
@@ -161,10 +174,6 @@ export function create(node, component) {
 
 }
 
-export function init(element, node) {
-  return patch(element, node)
-}
-
-export function update(oldNode, newNode) {
-  return patch(oldNode, newNode)
+export function patch(oldNode, newNode) {
+  return applyPatch(oldNode, newNode)
 }

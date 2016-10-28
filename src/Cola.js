@@ -38,8 +38,7 @@ import {
 
 import {
   create,
-  init,
-  update,
+  patch,
 } from './dom/snabbdom'
 
 export default class Cola extends Emitter {
@@ -75,6 +74,8 @@ export default class Cola extends Emitter {
     // this.components = { }
     // 过滤器
     // this.filters = { }
+    // 指令
+    // this.directives = { }
     // 模板片段
     // this.partials = { }
     // 实例方法
@@ -161,17 +162,13 @@ export default class Cola extends Emitter {
 
     let { el, data, $parser, $templateAst, $currentNode } = this
 
-    let newNode = create(
-      $parser.render($templateAst, data),
-      this
+    this.$currentNode = patch(
+      $currentNode || el,
+      create(
+        $parser.render($templateAst, data),
+        this
+      )
     )
-
-    if ($currentNode) {
-      this.$currentNode = update($currentNode, newNode)
-    }
-    else {
-      this.$currentNode = init(el, newNode)
-    }
 
   }
 
