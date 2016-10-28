@@ -20,7 +20,10 @@ export default class Context {
   }
 
   set(keypath, value) {
-    let { data } = this
+    let { data, cache } = this
+    if (has(cache, keypath)) {
+      delete cache[keypath]
+    }
     if (keypath.indexOf('.') > 0) {
       let terms = keypath.split('.')
       let prop = terms.pop()
