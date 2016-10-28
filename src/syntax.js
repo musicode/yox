@@ -7,4 +7,4 @@ export const PARTIAL = '#partial'
 export const IMPORT = '>'
 export const DIRECTIVE_PREFIX = '@'
 
-export const SPECIAL_EVENT = '$event'
+export const SPECIAL_EVENT = '@event'

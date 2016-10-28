@@ -107,8 +107,6 @@ export default class Cola extends Emitter {
 
     this.updateView()
 
-    this.fire('render')
-
   }
 
   get(keypath) {

@@ -39,7 +39,7 @@
                         console.log(newValue, oldValue, name);
                     }
                 },
-                template: '<div>{{name}}<button @click="submit(event, user.age)" style="font-weight: bold">{{user.age}}</button><input type="text" value="{{name}}"></div>',
+                template: '<div>{{name}}<button @click="submit(@event, user.age)" style="font-weight: bold">{{user.age}}</button><input type="text" value="{{name}}"></div>',
                 methods: {
                     submit: function (event, age) {
                         instance.set('user.age', age + 1);
