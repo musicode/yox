@@ -96,7 +96,7 @@ export class Emitter {
       ? new Event(type)
       : type
 
-    let list = this.$listeners[type]
+    let list = this.$listeners[event.type]
     if (isArray(list)) {
       eachArray(list, function (listener) {
         let result = listener.call(null, event)
