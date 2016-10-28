@@ -4,8 +4,6 @@ import {
   off,
 } from '../util/dom'
 
-import * as inputEvent from '../util/inputEvent'
-
 import {
   each,
 } from '../util/array'
@@ -27,16 +25,20 @@ import {
   SPECIAL_EVENT,
 } from '../syntax'
 
+function getListenerName(name) {
+  return `__${name}__`
+}
+
 export default {
   attach: function({el, component, keypath, name, value}) {
 
     let node = parse(value)
-    let prop = `__${name}`
+    let listener = getListenerName(name)
 
     if (node.type === CALL) {
-      el[prop] = function (e) {
+      el[listener] = function (e) {
         let args = [
-          ...node.arguments
+          ...node.arguments,
         ]
         if (!args.length) {
           args.push(e)
@@ -64,20 +66,20 @@ export default {
       }
     }
     else if (node.type === IDENTIFIER) {
-      el[prop] = function () {
+      el[listener] = function () {
         component.fire(node.name)
       }
     }
 
-    if (el[prop]) {
-      on(el, name, el[prop])
+    if (el[listener]) {
+      on(el, name, el[listener])
     }
   },
   detach: function ({el, name}) {
-    let prop = `__${name}`
-    if (el[prop]) {
-      off(el, name, el[prop])
-      el[prop] = null
+    let listener = getListenerName(name)
+    if (el[listener]) {
+      off(el, name, el[listener])
+      el[listener] = null
     }
   }
 }
