@@ -36,7 +36,7 @@ export default class Each extends Node {
 
   render(parent, context, keys) {
 
-    let { name, index, children } = this
+    let { name, index } = this
     let data = context.get(name)
 
     let each
@@ -53,7 +53,7 @@ export default class Each extends Node {
         if (index) {
           context.set(index, i)
         }
-        keys.push(index)
+        keys.push(i)
         this.renderChildren(parent, context, keys)
         keys.pop()
       })

@@ -36,7 +36,7 @@ export default class Element extends Node {
 
     this.renderChildren(node, context, keys, this.attrs)
     this.renderChildren(node, context, keys, this.directives)
-    this.renderChildren(node, context, keys, this.children)
+    this.renderChildren(node, context, keys)
 
   }
 
