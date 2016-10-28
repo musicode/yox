@@ -1,5 +1,5 @@
 
-export function encodeHTML(html) {
+export function encode(html) {
   return html
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

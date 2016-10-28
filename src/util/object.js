@@ -12,6 +12,10 @@ export function each(object, callback) {
   )
 }
 
+export function count(object) {
+  return Object.keys(object).length
+}
+
 export function has(object, name) {
   return object.hasOwnProperty(name)
 }

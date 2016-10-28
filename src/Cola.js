@@ -1,17 +1,30 @@
 
 import Mustache from './compiler/parser/Mustache'
 
-import nextTick from './function/nextTick'
+import {
+  add as addTask,
+  run as runTask,
+} from './util/nextTask'
+
+import {
+  getWildcardMatches,
+  getWildcardNames,
+} from './util/keypath'
 
 import {
   Emitter,
 } from './util/event'
 
 import {
+  count as objectCount,
   each as objectEach,
   set as objectSet,
   get as objectGet,
 } from './util/object'
+
+import {
+  merge,
+} from './util/array'
 
 import {
   find,
@@ -115,23 +128,34 @@ export default class Cola extends Emitter {
 
   updateModel(data) {
 
-    let oldValue
-    let hasChange
-    let watcher
+    let changes = { }
 
+    let oldValue
     objectEach(data, (value, keypath) => {
       oldValue = this.get(keypath)
       if (value !== oldValue) {
-        hasChange = true
+        changes[keypath] = [ value, oldValue ]
         objectSet(this.data, keypath, value)
-        watcher = this.watchers && this.watchers[keypath]
-        if (isFunction(watcher)) {
-          watcher.call(this, value, oldValue)
-        }
       }
     })
 
-    return hasChange
+    if (objectCount(changes)) {
+      let watchers = this.watchers || { }
+      objectEach(changes, (args, keypath) => {
+        getWildcardMatches(keypath).forEach(wildcardKeypath => {
+          if (isFunction(watchers[wildcardKeypath])) {
+            watchers[wildcardKeypath].apply(
+              this,
+              merge(
+                args,
+                getWildcardNames(keypath, wildcardKeypath)
+              )
+            )
+          }
+        })
+      })
+      return true
+    }
 
   }
 

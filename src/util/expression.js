@@ -629,6 +629,9 @@ export function compile(ast) {
 
 }
 
+/**
+ * 执行表达式
+ */
 export function execute(compileResult, context, getArg) {
   let args = compileResult.$arguments.map(getArg)
   return compileResult.apply(context, args)

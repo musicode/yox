@@ -9,7 +9,12 @@ import {
 } from '../util/array'
 
 import {
+  stringify,
+} from '../util/keypath'
+
+import {
   CALL,
+  MEMBER,
   LITERAL,
   IDENTIFIER,
   parse,
@@ -29,15 +34,19 @@ export default {
       el.$click = function (e) {
         let args = node.arguments.map(
           function (item) {
-            if (item.type === IDENTIFIER) {
-              if (item.name === EVENT) {
-                return e
-              }
-              return component.get(keypath ? `${keypath}.${item.name}` : item.name)
-            }
-            else if (item.type === LITERAL) {
+            let { name, type } = item
+            if (type === LITERAL) {
               return item.value
             }
+            if (type === IDENTIFIER) {
+              if (name === EVENT) {
+                return e
+              }
+            }
+            else if (type === MEMBER) {
+              name = stringify(item)
+            }
+            return component.get(keypath ? `${keypath}.${name}` : name)
           }
         )
         component.methods[node.callee.name].apply(component, args)

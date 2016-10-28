@@ -9,14 +9,8 @@ import {
 } from '../util/event'
 
 import {
-  isBoolean,
-} from '../util/is'
-
-import {
   each,
 } from '../util/array'
-
-import toString from '../function/toString'
 
 // 处理底层的事件函数
 let nativeAddEventListener = doc.addEventListener
@@ -86,90 +80,4 @@ export function off(element, type, listener) {
  */
 export function find(selector, context = doc) {
   return context.querySelector(selector)
-}
-
-/**
- * 属性的 getter/setter
- *
- * @param {HTMLElement} element
- * @param {string} name
- * @param {?(string|number\boolean)} value
- * @return {?string}
- */
-export function attr(element, name, value) {
-  if (value == null) {
-    return toString(
-      element.getAttribute(name),
-      ''
-    )
-  }
-
-  if (isBoolean(value)) {
-    element[name] = value
-  }
-  else {
-    value = toString(value, null)
-    if (value == null) {
-      throw new Error(
-        'attr(element, name, value) value must be a string or a number.'
-      )
-    }
-  }
-  element.setAttribute(name, value)
-}
-
-/**
- * 删除节点
- *
- * @param {HTMLNode} node
- */
-export function removeNode(node) {
-  let { parentNode } = node
-  if (parentNode) {
-    parentNode.removeChild(node)
-  }
-}
-
-/**
- * 替换节点
- *
- * @param {HTMLNode} newNode
- * @param {HTMLNode} oldNode
- */
-export function replaceNode(newNode, oldNode) {
-  let { parentNode } = node
-  if (parentNode) {
-    parentNode.replaceChild(newNode, oldNode)
-  }
-}
-
-/**
- * 创建元素节点
- *
- * @param {string} tag
- * @return {HTMLElementNode}
- */
-export function createElementNode(tag) {
-  return doc.createElement(tag)
-}
-
-
-/**
- * 创建文本节点
- *
- * @param {string} content
- * @return {HTMLTextNode}
- */
-export function createTextNode(content) {
-  return doc.createTextNode(content)
-}
-
-/**
- * 创建注释节点
- *
- * @param {string} content
- * @return {HTMLCommentNode}
- */
-export function createCommentNode(content) {
-  return doc.createComment(content)
 }

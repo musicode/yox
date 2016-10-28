@@ -8,5 +8,5 @@ export function parse(str, flag) {
   if (str instanceof Class) {
     return str
   }
-  return flag ? new Class(excape(str), flag) : new Class(excape(str))
+  return flag ? new Class(escape(str), flag) : new Class(escape(str))
 }

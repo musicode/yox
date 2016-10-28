@@ -20,6 +20,10 @@ export function reduce(array, callback, initialValue = null) {
   return array.reduce(callback, initialValue)
 }
 
+export function merge(array1, array2) {
+  return array1.concat(array2)
+}
+
 export function toArray(array) {
   try {
     'length' in array
