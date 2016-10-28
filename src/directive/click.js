@@ -22,7 +22,7 @@ import {
 } from '../util/expression'
 
 import {
-  EVENT,
+  SPECIAL_EVENT,
 } from '../syntax'
 
 export default {
@@ -39,7 +39,7 @@ export default {
               return item.value
             }
             if (type === IDENTIFIER) {
-              if (name === EVENT) {
+              if (name === SPECIAL_EVENT) {
                 return e
               }
             }

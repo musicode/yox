@@ -1,10 +1,10 @@
 # Cola
 
-[![Build Status](https://travis-ci.org/musicode/cola.svg?branch=master)](https://travis-ci.org/musicode/cola)
+[![Build Status](https://travis-ci.org/musicode/cola.svg?branch=master)](https://travis-ci.org/musicode/cola) [![Coverage Status](https://coveralls.io/repos/github/musicode/cola/badge.svg)](https://coveralls.io/github/musicode/cola)
 
-[![Coverage Status](https://coveralls.io/repos/github/musicode/cola/badge.svg)](https://coveralls.io/github/musicode/cola)
+从面向未来和移动优先的考虑，Cola 采用 ES6 编写。
 
-依赖的 ES5 方法如下：
+为了适配低版本浏览器，需要实现以下几个的 ES5 方法：
 
 * Date.now()
 * Object.keys()
@@ -15,55 +15,133 @@
 * Array.prototype.indexOf
 * Array.prototype.reduce
 
+## 结构
+
+```javascript
+new Cola({
+    el: '',
+    template: '',
+    data: {},
+    computed: {},
+    watchers: {},
+    components: {},
+    partials: {},
+    filters: {},
+    methods: {},
+    oninit: function,
+    oncompile: function,
+    onattach: function,
+    onupdate: function,
+    ondetach: function,
+})
+```
+
+## 模板
+
+我们选择了 `Mustache` 风格。
+
+### 插值
+
+```
+{{variable}}
+```
+
+### 不转义插值
+
+```
+{{{variable}}}
+```
+
+### 判断
+
+```
+{{#if condition}}
+    ...
+{{else if condition}}
+    ...
+{{/if}}
+```
+
+### 循环数组
+
+```
+{{#each array}}
+	...
+{{/each}}
+```
+
+如果需要用数组下标，加上 `:index`。
+
+```
+{{#each array:index}}
+	...
+{{/each}}
+```
+
+如果数组的每一项是基本类型，则用 `this` 表示当前项。
+
+```
+{{#each array}}
+	{{this}}
+{{/each}}
+```
+
+### 循环对象
+
+在实现**循环数组**的时候，顺便实现了循环对象，因此语法相同。
+
+```
+{{#each object:key}}
+	...
+{{/each}}
+```
+
+### 定义子模板
+
+```
+{{#partial name}}
+	...
+{{/each}}
+```
+
+### 导入子模板
+
+```
+{{> name}}
+```
+
+### 函数调用
+
+```
+{{formatDate(date)}}
+```
+
+### 特殊变量
+
+当触发事件时，可用 `$event` 表示当前事件对象，如下：
+
+```html
+<button @click="submit($event)">
+    submit
+</button>
+```
+
+在模板的任何位置，可用 `$keypath` 表示当前的 keypath（后面细说），如下：
+
+```html
+{{#each array}}
+	{{$keypath}}
+{{/each}}
+```
+
 ## 表达式
 
-模板中的表达式无需设计的非常强大，只要能满足常见的功能就够了。
+Cola 中的表达式符合 js 语法，并无扩展。
 
-我们约定只能使用以下表达式：
+为了限制复杂度，我们限定只能使用一元、二元和三目运算符。
 
-1. 变量
+为了满足扩展的需求（比如过滤器），我们实现了函数调用。
 
-    ```html
-    {{name}}
-    ```
-
-2. 属性和下标
-
-    ```html
-    {{user.name}} {{names[0]}}
-    ```
-
-3. 算术运算符
-
-    `+`、`-`、`*`、`/`、`%` 五种
-
-    ```html
-    {{a + b}}
-    ```
-
-4. 三目运算符
-
-    ```html
-    {{cond ? 'a': 'b'}}
-    ```
-
-5. 比较运算符
-
-    `>`、`>=`、`<`、`<=`、`==`、`===`、`!=`、`!==` 八种
-
-6. 逻辑运算符
-
-    `!`、`&&`、`||` 三种
-
-7. 函数调用
-
-    通过函数调用的形式，可扩展出任何功能，包括过滤器。
-
-    注册到组件实例 `filters` 属性中的或全局可访问的函数（如 parseInt、Math.floor）都可以调用。
-
-    ```html
-    {{truncate(name, 10)}}
-    ```
 
 ## 须知
 
