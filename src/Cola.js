@@ -1,6 +1,8 @@
 
 import Mustache from './compiler/parser/Mustache'
 
+import nextTick from './function/nextTick'
+
 import {
   Emitter,
 } from './util/event'
@@ -18,6 +20,7 @@ import {
 import {
   isString,
   isObject,
+  isFunction,
 } from './util/is'
 
 import {
@@ -100,19 +103,35 @@ export default class Cola extends Emitter {
   }
 
   set(keypath, value) {
-    if (isObject(keypath)) {
-      objectEach(keypath, (keypath, value) => {
-        objectSet(this.data, keypath, value)
-      })
-      this.updateView()
+    if (isString(keypath)) {
+      keypath = {
+        [keypath]: value,
+      }
     }
-    else {
-      objectSet(this.data, keypath, value)
+    if (this.updateModel(keypath)) {
       this.updateView()
     }
   }
 
-  updateModel() {
+  updateModel(data) {
+
+    let oldValue
+    let hasChange
+    let watcher
+
+    objectEach(data, (value, keypath) => {
+      oldValue = this.get(keypath)
+      if (value !== oldValue) {
+        hasChange = true
+        objectSet(this.data, keypath, value)
+        watcher = this.watchers && this.watchers[keypath]
+        if (isFunction(watcher)) {
+          watcher.call(this, value, oldValue)
+        }
+      }
+    })
+
+    return hasChange
 
   }
 

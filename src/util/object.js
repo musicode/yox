@@ -1,4 +1,6 @@
 
+import toString from '../function/toString'
+
 import {
   each as arrayEach,
 } from './array'
@@ -15,6 +17,8 @@ export function has(object, name) {
 }
 
 export function get(object, keypath) {
+  keypath = toString(keypath)
+
   // object 的 key 可能是 'a.b.c' 这样的
   // 如 data['a.b.c'] = 1 是一个合法赋值
   if (has(object, keypath)) {
@@ -35,6 +39,7 @@ export function get(object, keypath) {
 }
 
 export function set(object, keypath, value, autoFill = true) {
+  keypath = toString(keypath)
   if (keypath.indexOf('.') > 0) {
     let originalObject = object
     let list = keypath.split('.')

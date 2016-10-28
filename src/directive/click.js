@@ -14,7 +14,6 @@ import {
   IDENTIFIER,
   parse,
   compile,
-  execute,
 } from '../util/expression'
 
 import {
@@ -57,6 +56,7 @@ export default {
   detach: function ({el}) {
     if (el.$click) {
       off(el, 'click', el.$click)
+      el.$click = null
     }
   }
 }
