@@ -46,12 +46,13 @@ export class Event {
 export class Emitter {
 
   constructor() {
-    this.listeners = { }
+    // 避免继承的时候重名，这里加上 $ 前缀
+    this.$listeners = { }
   }
 
   on(type, listener) {
-    let { listeners } = this
-    let list = listeners[type] || (listeners[type] = [])
+    let { $listeners } = this
+    let list = $listeners[type] || ($listeners[type] = [])
     list.push(listener)
   }
 
@@ -68,16 +69,16 @@ export class Emitter {
   }
 
   off(type, listener) {
-    let { listeners } = this
+    let { $listeners } = this
     if (type == null) {
-      eachObject(listeners, function (list, type) {
-        if (isArray(listeners[type])) {
-          listeners[type].length = 0
+      eachObject($listeners, function (list, type) {
+        if (isArray($listeners[type])) {
+          $listeners[type].length = 0
         }
       })
     }
     else {
-      let list = listeners[type]
+      let list = $listeners[type]
       if (isArray(list)) {
         if (listener == null) {
           list.length = 0
@@ -95,7 +96,7 @@ export class Emitter {
       ? new Event(type)
       : type
 
-    let list = this.listeners[type]
+    let list = this.$listeners[type]
     if (isArray(list)) {
       eachArray(list, function (listener) {
         let result = listener.call(null, event)
@@ -118,7 +119,7 @@ export class Emitter {
 
   has(type, listener) {
 
-    let list = this.listeners[type]
+    let list = this.$listeners[type]
     if (listener == null) {
       return isArray(list) && list.length > 0
     }

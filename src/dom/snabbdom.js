@@ -5,7 +5,6 @@ import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
 import attributes from 'snabbdom/modules/attributes'
 
-// patch 用于初始化 dom 以及更新 dom
 const patch = snabbdom.init([ props, attributes, style ])
 
 import {

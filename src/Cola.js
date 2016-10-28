@@ -72,9 +72,9 @@ export default class Cola extends Emitter {
       this.el = find(this.el)
     }
 
-    this.parser = new Mustache()
+    this.$parser = new Mustache()
 
-    this.templateAst = this.parser.parse(
+    this.$templateAst = this.$parser.parse(
       this.template,
       name => {
         return (this.partials && this.partials[name]) || Cola.partials[name]
@@ -118,18 +118,18 @@ export default class Cola extends Emitter {
 
   updateView() {
 
-    let { el, data, parser, templateAst, currentNode } = this
+    let { el, data, $parser, $templateAst, $currentNode } = this
 
     let newNode = create(
-      parser.render(templateAst, data),
+      $parser.render($templateAst, data),
       this
     )
 
-    if (currentNode) {
-      this.currentNode = update(currentNode, newNode)
+    if ($currentNode) {
+      this.$currentNode = update($currentNode, newNode)
     }
     else {
-      this.currentNode = init(el, newNode)
+      this.$currentNode = init(el, newNode)
     }
 
   }
