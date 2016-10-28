@@ -5,10 +5,6 @@ import {
 
 import Node from './Node'
 
-import {
-  reduce,
-} from '../../util/array'
-
 /**
  * else 节点
  */
@@ -19,17 +15,10 @@ export default class Else extends Node {
     this.type = ELSE
   }
 
-  render(parent, context, prev) {
-
+  render(parent, context, keys, prev) {
     if (prev) {
-      reduce(
-        this.children,
-        function (prev, current) {
-          return current.render(parent, context, prev)
-        }
-      )
+      this.renderChildren(parent, context, keys)
     }
-
   }
 
 }

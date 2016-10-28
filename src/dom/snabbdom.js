@@ -16,6 +16,7 @@ import {
 } from '../util/object'
 
 import {
+  isArray,
   isFunction,
 } from '../util/is'
 
@@ -39,7 +40,31 @@ export function create(node, component) {
 
   let counter = 0
 
-  return node.traverse(
+  let traverse = function (node, enter, leave) {
+
+    if (enter(node) === false) {
+      return
+    }
+
+    let children = [ ]
+    if (isArray(node.children)) {
+      each(
+        node.children,
+        function (item) {
+          item = traverse(item, enter, leave)
+          if (item != null) {
+            children.push(item)
+          }
+        }
+      )
+    }
+
+    return leave(node, children)
+
+  }
+
+  return traverse(
+    node,
     function (node) {
       counter++
       if (node.type === ATTRIBUTE || node.type === DIRECTIVE) {
@@ -68,14 +93,15 @@ export function create(node, component) {
         })
 
         node.directives.forEach(function (node) {
-          let { name, children } = node
+          let { name } = node
           let directive = getDirective(name)
           if (directive) {
             hasDirective = true
             directives[name] = {
               ...directive,
-              name: name,
-              value: readValue(children),
+              name,
+              value: readValue(node.children),
+              keypath: node.keypath,
             }
           }
         })
@@ -103,6 +129,7 @@ export function create(node, component) {
                       el: vnode.elm,
                       name: directive.name,
                       value: directive.value,
+                      keypath: directive.keypath,
                       component,
                     })
                   }

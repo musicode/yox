@@ -18,10 +18,10 @@ export default class Text extends Node {
     this.content = content
   }
 
-  render(parent) {
-    parent.addChild(
-      new Text(parent, this.content)
-    )
+  render(parent, context, keys) {
+    let node = new Text(parent, this.content)
+    node.keypath = keys.join('.')
+    parent.addChild(node)
   }
 
 }

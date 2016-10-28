@@ -5,10 +5,6 @@ import {
 
 import Node from './Node'
 
-import {
-  reduce,
-} from '../../util/array'
-
 /**
  * else if 节点
  *
@@ -22,22 +18,15 @@ export default class ElseIf extends Node {
     this.expr = expr
   }
 
-  render(parent, context, prev) {
-
+  render(parent, context, keys, prev) {
     if (prev) {
       if (this.execute(context)) {
-        reduce(
-          this.children,
-          function (prev, current) {
-            return current.render(parent, context, prev)
-          }
-        )
+        this.renderChildren(parent, context, keys)
       }
       else {
         return prev
       }
     }
-
   }
 
 }

@@ -11,7 +11,7 @@ import Node from './Node'
  * @param {string} name
  */
 export default class Import extends Node {
-  constructor(parent, { name }) {
+  constructor(parent, name) {
     super(parent, false)
     this.type = IMPORT
     this.name = name

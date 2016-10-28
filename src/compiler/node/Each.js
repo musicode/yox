@@ -12,7 +12,6 @@ import {
 
 import {
   each as arrayEach,
-  reduce as arrayReduce,
 } from '../../util/array'
 
 import {
@@ -35,7 +34,7 @@ export default class Each extends Node {
     this.index = index
   }
 
-  render(parent, context) {
+  render(parent, context, keys) {
 
     let { name, index, children } = this
     let data = context.get(name)
@@ -50,16 +49,13 @@ export default class Each extends Node {
 
     if (each) {
       context = context.push(data)
-      each(data, function (item, i) {
+      each(data, (item, i) => {
         if (index) {
           context.set(index, i)
         }
-        arrayReduce(
-          children,
-          function (prev, current) {
-            return current.render(parent, context, prev)
-          }
-        )
+        keys.push(index)
+        this.renderChildren(parent, context, keys)
+        keys.pop()
       })
     }
 

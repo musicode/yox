@@ -5,10 +5,6 @@ import {
 
 import Node from './Node'
 
-import {
-  reduce,
-} from '../../util/array'
-
 /**
  * 变量节点
  *
@@ -22,19 +18,13 @@ export default class Attribute extends Node {
     this.name = name
   }
 
-  render(parent, context) {
+  render(parent, context, keys) {
 
-    let { name, children } = this
-
-    let node = new Attribute(parent, name)
+    let node = new Attribute(parent, this.name)
+    node.keypath = keys.join('.')
     parent.addAttr(node)
 
-    reduce(
-      children,
-      function (prev, current) {
-        return current.render(node, context, prev)
-      }
-    )
+    this.renderChildren(node, context, keys)
 
   }
 

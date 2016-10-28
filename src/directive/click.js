@@ -13,7 +13,7 @@ import {
 } from '../util/expression'
 
 export default {
-  attach: function({el, component, value}) {
+  attach: function({el, component, keypath, value}) {
 
     let node = parse(value)
 

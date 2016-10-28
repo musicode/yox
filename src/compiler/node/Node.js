@@ -1,11 +1,6 @@
 
 import {
-  isArray,
-  isFunction,
-} from '../../util/is'
-
-import {
-  each,
+  reduce,
   lastItem,
 } from '../../util/array'
 
@@ -57,29 +52,13 @@ export default class Node {
     // noop
   }
 
-  traverse(enter, leave) {
-
-    if (isFunction(enter) && enter(this) === false) {
-      return
-    }
-
-    let children = [ ]
-    if (isArray(this.children)) {
-      each(
-        this.children,
-        function (item) {
-          item = item.traverse(enter, leave)
-          if (item != null) {
-            children.push(item)
-          }
-        }
-      )
-    }
-
-    if (isFunction(leave)) {
-      return leave(this, children)
-    }
-
+  renderChildren(parent, context, keys, children) {
+    reduce(
+      children || this.children,
+      function (prev, current) {
+        return current.render(parent, context, keys, prev)
+      }
+    )
   }
 
 }

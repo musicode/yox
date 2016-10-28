@@ -5,10 +5,6 @@ import {
 
 import Node from './Node'
 
-import {
-  reduce,
-} from '../../util/array'
-
 /**
  * 元素节点
  *
@@ -32,20 +28,15 @@ export default class Element extends Node {
     this.directives.push(node)
   }
 
-  render(parent, context) {
+  render(parent, context, keys) {
 
-    let { name, attrs, directives, children } = this
-
-    let node = new Element(parent, name)
+    let node = new Element(parent, this.name)
+    node.keypath = keys.join('.')
     parent.addChild(node)
 
-    let handler = function (prev, current) {
-      return current.render(node, context, prev)
-    }
-
-    reduce(attrs, handler)
-    reduce(directives, handler)
-    reduce(children, handler)
+    this.renderChildren(node, context, keys, this.attrs)
+    this.renderChildren(node, context, keys, this.directives)
+    this.renderChildren(node, context, keys, this.children)
 
   }
 

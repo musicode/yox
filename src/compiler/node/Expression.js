@@ -25,16 +25,17 @@ export default class Expression extends Node {
     this.safe = safe
   }
 
-  render(parent, context) {
+  render(parent, context, keys) {
 
     let content = this.execute(context)
     if (this.safe) {
       content = encode(content)
     }
 
-    parent.addChild(
-      new Text(parent, content)
-    )
+    let node = new Text(parent, content)
+    node.keypath = keys.join('.')
+
+    parent.addChild(node)
 
   }
 

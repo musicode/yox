@@ -173,17 +173,18 @@ export default class Mustache {
 
     let rootElement = new Element(null, rootName)
     let rootContext = new Context(data)
+    let keypath = []
 
     if (ast.name === rootName) {
       each(
         ast.children,
         function (child) {
-          child.render(rootElement, rootContext)
+          child.render(rootElement, rootContext, keypath)
         }
       )
     }
     else {
-      ast.render(rootElement, rootContext)
+      ast.render(rootElement, rootContext, keypath)
     }
 
     let { children } = rootElement

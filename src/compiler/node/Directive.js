@@ -5,10 +5,6 @@ import {
 
 import Node from './Node'
 
-import {
-  reduce,
-} from '../../util/array'
-
 /**
  * 指令节点
  *
@@ -24,19 +20,13 @@ export default class Directive extends Node {
     this.name = name
   }
 
-  render(parent, context) {
+  render(parent, context, keys) {
 
-    let { name, children } = this
-
-    let node = new Directive(parent, name)
+    let node = new Directive(parent, this.name)
+    node.keypath = keys.join('.')
     parent.addDirective(node)
 
-    reduce(
-      children,
-      function (prev, current) {
-        return current.render(node, context, prev)
-      }
-    )
+    this.renderChildren(node, context, keys)
 
   }
 
