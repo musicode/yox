@@ -32,6 +32,12 @@ import {
   DIRECTIVE_EVENT_PREFIX,
 } from '../syntax'
 
+import {
+  ATTACH,
+  UPDATE,
+  DETACH,
+} from '../lifecycle'
+
 function readValue(children) {
   // 如 disabled 这种布尔属性没有 children，默认就是 true
   return children[0] ? children[0].content : true
@@ -169,13 +175,13 @@ export function create(node, component) {
 
           data.hook = {
             insert: function (vnode) {
-              process(vnode, 'attach')
+              process(vnode, ATTACH)
             },
             update: function (oldNode, vnode) {
-              process(vnode, 'update')
+              process(vnode, UPDATE)
             },
             destroy: function (vnode) {
-              process(vnode, 'detach')
+              process(vnode, DETACH)
             }
           }
         }

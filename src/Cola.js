@@ -1,6 +1,8 @@
 
 import Mustache from './compiler/parser/Mustache'
 
+import * as lifecycle from './lifecycle'
+
 import {
   add as addTask,
   run as runTask,
@@ -99,7 +101,17 @@ export default class Cola {
     this.filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
     this.partials = objectExtend({}, Cola.partials, options.partials)
 
+    // 监听各种事件
     this.$eventEmitter = new Emitter()
+
+    objectEach(lifecycle, name => {
+      let listener = options[`on${name}`]
+      if (isFunction(listener)) {
+        this.on(name, listener)
+      }
+    })
+
+    // 监听数据变化
     this.$watchEmitter = new Emitter()
     if (isObject(options.watchers)) {
       objectEach(options.watchers, (watcher, keypath) => {
@@ -107,7 +119,7 @@ export default class Cola {
       })
     }
 
-    this.fire('init')
+    this.fire(lifecycle.INIT)
 
     // 编译模板
     this.$parser = new Mustache()
@@ -121,7 +133,7 @@ export default class Cola {
       }
     )
 
-    this.fire('compile')
+    this.fire(lifecycle.COMPILE)
 
     this.updateView()
 

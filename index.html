@@ -67,6 +67,21 @@
                     valueChange: function (event) {
                         console.log(event)
                     }
+                },
+                oninit: function (e) {
+                    console.log(this, 'init', e);
+                },
+                oncompile: function (e) {
+                    console.log(this, 'compile', e);
+                },
+                onattach: function (e) {
+                    console.log(this, 'attach', e);
+                },
+                onupdate: function (e) {
+                    console.log(this, 'update', e);
+                },
+                ondetach: function (e) {
+                    console.log(this, 'detach', e);
                 }
             });
         });
