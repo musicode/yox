@@ -196,12 +196,17 @@ export default class Cola {
 
   updateView() {
 
-    let { el, data, $parser, $templateAst, $currentNode } = this
+    let { el, data, filters, $parser, $templateAst, $currentNode } = this
+
+    let context = {
+      ...data,
+      ...filters,
+    }
 
     this.$currentNode = patch(
       $currentNode || el,
       create(
-        $parser.render($templateAst, data),
+        $parser.render($templateAst, context),
         this
       )
     )
