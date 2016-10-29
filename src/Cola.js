@@ -91,7 +91,6 @@ export default class Cola {
   constructor(options) {
 
     this.data = options.data
-    this.computed = options.computed || { }
     this.components = options.components
     this.methods = options.methods
 
@@ -100,6 +99,31 @@ export default class Cola {
     this.directives = objectExtend({}, Cola.directives, options.directives)
     this.filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
     this.partials = objectExtend({}, Cola.partials, options.partials)
+
+    // 把计算属性拆为 getter 和 setter
+    this.$computedGetters = { }
+    this.$computedSetters = { }
+
+    if (isObject(options.computed)) {
+      objectEach(options.computed, (item, keypath) => {
+        if (isFunction(item)) {
+          item = item.bind(this)
+          // 当模板读取计算属性时，可通过 toString 求值
+          // 省的写一堆乱七八糟的判断逻辑
+          item.toString = item
+          this.$computedGetters[keypath] = item
+        }
+        else if (isObject(item)) {
+          let { get, set } = item
+          if (isFunction(get)) {
+            this.$computedGetters[keypath] = get.bind(this)
+          }
+          if (isFunction(set)) {
+            this.$computedSetters[keypath] = set.bind(this)
+          }
+        }
+      })
+    }
 
     // 监听各种事件
     this.$eventEmitter = new Emitter()
@@ -141,12 +165,9 @@ export default class Cola {
   }
 
   get(keypath) {
-    let getter = this.computed[keypath]
+    let getter = this.$computedGetters[keypath]
     if (isFunction(getter)) {
-      return getter.call(this)
-    }
-    else if (isObject(getter) && isFunction(getter.get)) {
-      return getter.get.call(this)
+      return getter()
     }
     return objectGet(this.data, keypath)
   }
@@ -204,9 +225,9 @@ export default class Cola {
       oldValue = this.get(keypath)
       if (value !== oldValue) {
         changes[keypath] = [ value, oldValue ]
-        setter = this.computed[keypath]
-        if (isObject(setter) && isFunction(setter.set)) {
-          setter.set.call(this, value)
+        setter = this.$computedSetters[keypath]
+        if (isFunction(setter)) {
+          setter(value)
         }
         else {
           objectSet(this.data, keypath, value)
@@ -233,11 +254,11 @@ export default class Cola {
 
   updateView() {
 
-    let { el, data, computed, filters, $parser, $templateAst, $currentNode } = this
+    let { el, data, $computedGetters, filters, $parser, $templateAst, $currentNode } = this
 
     let context = {
       ...data,
-      ...computed,
+      ...$computedGetters,
       ...filters,
     }
 
