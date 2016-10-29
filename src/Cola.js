@@ -113,13 +113,14 @@ export default class Cola {
 
     // 监听数据变化
     this.$watchEmitter = new Emitter()
+
     if (isObject(options.watchers)) {
       objectEach(options.watchers, (watcher, keypath) => {
         this.watch(keypath, watcher)
       })
     }
 
-    this.fire(lifecycle.INIT)
+    this.fire(lifecycle.CREATE)
 
     // 编译模板
     this.$parser = new Mustache()
@@ -140,6 +141,13 @@ export default class Cola {
   }
 
   get(keypath) {
+    let getter = this.computed[keypath]
+    if (isFunction(getter)) {
+      return getter.call(this)
+    }
+    else if (isObject(getter) && isFunction(getter.get)) {
+      return getter.get.call(this)
+    }
     return objectGet(this.data, keypath)
   }
 
@@ -189,12 +197,20 @@ export default class Cola {
 
     let changes = { }
 
+    let setter
     let oldValue
+
     objectEach(data, (value, keypath) => {
       oldValue = this.get(keypath)
       if (value !== oldValue) {
         changes[keypath] = [ value, oldValue ]
-        objectSet(this.data, keypath, value)
+        setter = this.computed[keypath]
+        if (isObject(setter) && isFunction(setter.set)) {
+          setter.set.call(this, value)
+        }
+        else {
+          objectSet(this.data, keypath, value)
+        }
       }
     })
 

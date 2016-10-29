@@ -29,7 +29,7 @@ new Cola({
     partials: {},
     filters: {},
     methods: {},
-    oninit: function,
+    oncreate: function,
     oncompile: function,
     onattach: function,
     onupdate: function,

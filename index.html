@@ -32,6 +32,11 @@
                 computed: {
                     welcome: function () {
                         return 'hi, ' + this.get('name');
+                    },
+                    bye: {
+                        get: function () {
+                            return '11';
+                        }
                     }
                 },
                 template: `
@@ -42,6 +47,9 @@
                     </button>
                     <input type="text" @model="name">
                     {{formatDate(date)}}
+                    <h1>
+                        {{welcome}}
+                    </h1>
                   </div>
                 `,
                 filters: {
@@ -68,8 +76,8 @@
                         console.log(event)
                     }
                 },
-                oninit: function (e) {
-                    console.log(this, 'init', e);
+                oncreate: function (e) {
+                    console.log(this, 'create', e);
                 },
                 oncompile: function (e) {
                     console.log(this, 'compile', e);
