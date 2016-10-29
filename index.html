@@ -29,6 +29,11 @@
                     },
                     date: new Date()
                 },
+                computed: {
+                    welcome: function () {
+                        return 'hi, ' + this.get('name');
+                    }
+                },
                 template: `
                   <div>
                     {{name}}
@@ -41,7 +46,7 @@
                 `,
                 filters: {
                     formatDate: function (date) {
-                        return date.getTime();
+                        return this.get(name) + date.getTime();
                     }
                 },
                 watchers: {

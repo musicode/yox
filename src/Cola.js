@@ -46,6 +46,14 @@ import lazy from './directive/lazy'
 import event from './directive/event'
 import model from './directive/model'
 
+function bindFunctions(functions, thisArg) {
+  let result = { }
+  objectEach(functions, function (fn, name) {
+    result[name] = fn.bind(thisArg)
+  })
+  return result
+}
+
 export default class Cola {
 
   /**
@@ -81,13 +89,14 @@ export default class Cola {
   constructor(options) {
 
     this.data = options.data
+    this.computed = options.computed || { }
     this.components = options.components
     this.methods = options.methods
 
     this.el = isString(options.el) ? find(options.el) : options.el
 
     this.directives = objectExtend({}, Cola.directives, options.directives)
-    this.filters = objectExtend({}, Cola.filters, options.filters)
+    this.filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
     this.partials = objectExtend({}, Cola.partials, options.partials)
 
     this.$eventEmitter = new Emitter()
@@ -196,10 +205,11 @@ export default class Cola {
 
   updateView() {
 
-    let { el, data, filters, $parser, $templateAst, $currentNode } = this
+    let { el, data, computed, filters, $parser, $templateAst, $currentNode } = this
 
     let context = {
       ...data,
+      ...computed,
       ...filters,
     }
 

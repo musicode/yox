@@ -14,6 +14,7 @@
 * Array.prototype.forEach
 * Array.prototype.indexOf
 * Array.prototype.reduce
+* Function.prototype.bind
 
 ## 结构
 
