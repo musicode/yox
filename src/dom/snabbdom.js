@@ -27,16 +27,8 @@ import {
   ELEMENT,
 } from '../compiler/nodeType'
 
-import {
-  DIRECTIVE_PREFIX,
-  DIRECTIVE_EVENT_PREFIX,
-} from '../config/syntax'
-
-import {
-  ATTACH,
-  UPDATE,
-  DETACH,
-} from '../config/lifecycle'
+import * as syntax from '../config/syntax'
+import * as lifecycle from '../config/lifecycle'
 
 function readValue(children) {
   // 如 disabled 这种布尔属性没有 children，默认就是 true
@@ -104,12 +96,12 @@ export function create(node, component) {
         node.directives.forEach(function (node) {
           let { name } = node
           let directive
-          if (name.startsWith(DIRECTIVE_EVENT_PREFIX)) {
-            name = name.substr(DIRECTIVE_EVENT_PREFIX.length)
+          if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
+            name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
             directive = allDirectives.event
           }
           else {
-            name = name.substr(DIRECTIVE_PREFIX.length)
+            name = name.substr(syntax.DIRECTIVE_PREFIX.length)
             directive = allDirectives[name]
           }
           if (directive) {
@@ -122,7 +114,6 @@ export function create(node, component) {
             }
           }
         })
-
 
         each(
           allDirectives,
@@ -175,13 +166,13 @@ export function create(node, component) {
 
           data.hook = {
             insert: function (vnode) {
-              process(vnode, ATTACH)
+              process(vnode, lifecycle.ATTACH)
             },
             update: function (oldNode, vnode) {
-              process(vnode, UPDATE)
+              process(vnode, lifecycle.UPDATE)
             },
             destroy: function (vnode) {
-              process(vnode, DETACH)
+              process(vnode, lifecycle.DETACH)
             }
           }
         }
