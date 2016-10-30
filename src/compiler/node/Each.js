@@ -38,7 +38,7 @@ export default class Each extends Node {
     this.index = index
   }
 
-  render(parent, context, keys) {
+  render(parent, context, keys, parseTemplate) {
 
     let { name, index } = this
     let data = context.get(name)
@@ -59,7 +59,7 @@ export default class Each extends Node {
         }
         keys.push(i)
         context.set(SPECIAL_KEYPATH, keys.join('.'))
-        this.renderChildren(parent, context.push(item), keys)
+        this.renderChildren(parent, context.push(item), keys, parseTemplate)
         keys.pop()
       })
       keys.pop()

@@ -52,11 +52,11 @@ export default class Node {
     // noop
   }
 
-  renderChildren(parent, context, keys, children) {
+  renderChildren(parent, context, keys, parseTemplate, children) {
     reduce(
       children || this.children,
       function (prev, current) {
-        return current.render(parent, context, keys, prev)
+        return current.render(parent, context, keys, parseTemplate, prev)
       }
     )
   }

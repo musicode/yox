@@ -18,13 +18,13 @@ export default class Attribute extends Node {
     this.name = name
   }
 
-  render(parent, context, keys) {
+  render(parent, context, keys, parseTemplate) {
 
     let node = new Attribute(parent, this.name)
     node.keypath = keys.join('.')
     parent.addAttr(node)
 
-    this.renderChildren(node, context, keys)
+    this.renderChildren(node, context, keys, parseTemplate)
 
   }
 

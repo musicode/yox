@@ -18,10 +18,10 @@ export default class ElseIf extends Node {
     this.expr = expr
   }
 
-  render(parent, context, keys, prev) {
+  render(parent, context, keys, parseTemplate, prev) {
     if (prev) {
       if (this.execute(context)) {
-        this.renderChildren(parent, context, keys)
+        this.renderChildren(parent, context, keys, parseTemplate)
       }
       else {
         return prev

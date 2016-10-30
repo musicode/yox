@@ -28,15 +28,15 @@ export default class Element extends Node {
     this.directives.push(node)
   }
 
-  render(parent, context, keys) {
+  render(parent, context, keys, parseTemplate) {
 
     let node = new Element(parent, this.name)
     node.keypath = keys.join('.')
     parent.addChild(node)
 
-    this.renderChildren(node, context, keys, this.attrs)
-    this.renderChildren(node, context, keys, this.directives)
-    this.renderChildren(node, context, keys)
+    this.renderChildren(node, context, keys, parseTemplate, this.attrs)
+    this.renderChildren(node, context, keys, parseTemplate, this.directives)
+    this.renderChildren(node, context, keys, parseTemplate)
 
   }
 

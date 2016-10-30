@@ -11,6 +11,8 @@ import {
   encode,
 } from '../../util/html'
 
+const elementPattern = /<[^>]+>/
+
 /**
  * 表达式节点
  *
@@ -26,21 +28,23 @@ export default class Expression extends Node {
     this.safe = safe
   }
 
-  render(parent, context, keys) {
+  render(parent, context, keys, parseTemplate) {
 
     let content = this.execute(context)
     if (content && content.toString) {
       content = content.toString()
     }
 
-    if (this.safe) {
-      content = encode(content)
+    if (this.safe || !elementPattern.test(content)) {
+      let node = new Text(parent, content)
+      node.keypath = keys.join('.')
+      parent.addChild(node)
     }
-
-    let node = new Text(parent, content)
-    node.keypath = keys.join('.')
-
-    parent.addChild(node)
+    else {
+      parseTemplate(content).forEach(function (node) {
+        node.render(parent, context, keys, parseTemplate)
+      })
+    }
 
   }
 

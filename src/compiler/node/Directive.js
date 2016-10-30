@@ -20,13 +20,13 @@ export default class Directive extends Node {
     this.name = name
   }
 
-  render(parent, context, keys) {
+  render(parent, context, keys, parseTemplate) {
 
     let node = new Directive(parent, this.name)
     node.keypath = keys.join('.')
     parent.addDirective(node)
 
-    this.renderChildren(node, context, keys)
+    this.renderChildren(node, context, keys, parseTemplate)
 
   }
 

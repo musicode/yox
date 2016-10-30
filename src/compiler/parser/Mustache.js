@@ -173,18 +173,23 @@ export default class Mustache {
 
     let rootElement = new Element(null, rootName)
     let rootContext = new Context(data)
-    let keypath = []
+    let keys = []
+
+    // 非转义插值需要解析模板字符串
+    let parseTemplate = template => {
+      return this.parse(template).children
+    }
 
     if (ast.name === rootName) {
       each(
         ast.children,
         function (child) {
-          child.render(rootElement, rootContext, keypath)
+          child.render(rootElement, rootContext, keys, parseTemplate)
         }
       )
     }
     else {
-      ast.render(rootElement, rootContext, keypath)
+      ast.render(rootElement, rootContext, keys, parseTemplate)
     }
 
     let { children } = rootElement
