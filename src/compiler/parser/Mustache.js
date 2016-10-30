@@ -6,7 +6,7 @@
  *
  */
 
-import * as syntax from '../../syntax'
+import * as syntax from '../../config/syntax'
 
 import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
@@ -174,6 +174,11 @@ export default class Mustache {
     let rootElement = new Element(null, rootName)
     let rootContext = new Context(data)
     let keys = []
+
+    // 在渲染语法树的过程中，如果发现 Element 节点是一个组件
+    // 则在节点上绑定一个 create 函数
+    // 在第一次渲染元素时，调用该函数，并把组件实例绑定组件元素上
+    // 当组件元素销毁时，连带销毁组件实例
 
     // 非转义插值需要解析模板字符串
     let parseTemplate = template => {

@@ -23,7 +23,7 @@ import {
 
 import {
   SPECIAL_EVENT,
-} from '../syntax'
+} from '../config/syntax'
 
 function getListenerName(name) {
   return `$${name}`

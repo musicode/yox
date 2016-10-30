@@ -1,11 +1,11 @@
 
 import Mustache from './compiler/parser/Mustache'
 
-import * as lifecycle from './lifecycle'
+import * as lifecycle from './config/lifecycle'
 
 import {
   SPECIAL_KEYPATH,
-} from './syntax'
+} from './config/syntax'
 
 import {
   add as addTask,
@@ -370,13 +370,13 @@ export default class Cola {
       $parser,
       $templateAst,
       $currentNode,
-      $computedGetters, 
+      $computedGetters,
     } = this
 
     let context = {
       ...data,
-      ...$computedGetters,
       ...filters,
+      ...$computedGetters,
       [SPECIAL_KEYPATH]: '',
     }
 

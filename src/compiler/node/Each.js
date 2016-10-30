@@ -20,7 +20,7 @@ import {
 
 import {
   SPECIAL_KEYPATH,
-} from '../../syntax'
+} from '../../config/syntax'
 
 /**
  * each 节点

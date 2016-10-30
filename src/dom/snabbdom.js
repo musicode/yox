@@ -30,13 +30,13 @@ import {
 import {
   DIRECTIVE_PREFIX,
   DIRECTIVE_EVENT_PREFIX,
-} from '../syntax'
+} from '../config/syntax'
 
 import {
   ATTACH,
   UPDATE,
   DETACH,
-} from '../lifecycle'
+} from '../config/lifecycle'
 
 function readValue(children) {
   // 如 disabled 这种布尔属性没有 children，默认就是 true
