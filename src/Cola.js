@@ -47,7 +47,7 @@ import {
 import {
   create,
   patch,
-} from './dom/snabbdom'
+} from './dom/vdom'
 
 import lazy from './directive/lazy'
 import event from './directive/event'
