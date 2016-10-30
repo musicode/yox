@@ -10,14 +10,17 @@ export default function getLocationByIndex(str, index) {
 
   let pos = 0
 
-  each(str.split('\n'), function (line) {
+  each(str.split('\n'), function (lineStr) {
     line++
     col = 0
 
-    if (index >= pos && index <= (pos += line.length)) {
+    let { length } = lineStr
+    if (index >= pos && index <= (pos + length)) {
       col = index - pos
       return false
     }
+
+    pos += length
   })
 
   return {
