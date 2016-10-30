@@ -141,6 +141,9 @@ export function create(node, component) {
 
           data.hook = {
             insert: function (vnode) {
+              if (isRootElement) {
+                component.el = vnode.elm
+              }
               process(vnode, lifecycle.ATTACH)
             },
             update: function (oldNode, vnode) {
