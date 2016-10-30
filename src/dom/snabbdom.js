@@ -89,24 +89,23 @@ export function create(node, component) {
 
         node.directives.forEach(function (node) {
           let { name } = node
-          let directive
-          if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
-            name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
-            directive = allDirectives.event
+
+          // 去掉前缀
+          name = name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
+            ? 'event'
+            : name.substr(syntax.DIRECTIVE_PREFIX.length)
+
+          let directive = allDirectives[name]
+          if (!directive) {
+            return new Error(`${name} directive is not existed.`)
           }
-          else {
-            name = name.substr(syntax.DIRECTIVE_PREFIX.length)
-            directive = allDirectives[name]
-          }
-          if (directive) {
-            directives[name] = { name, node, directive }
-          }
+
+          directives[name] = { node, directive }
         })
 
         if (isFunction(node.create)) {
           directives.component = {
             node,
-            name: 'component',
             directive: allDirectives.component,
           }
         }
@@ -130,7 +129,6 @@ export function create(node, component) {
                   if (isFunction(item.directive[name])) {
                     item.directive[name]({
                       el: vnode.elm,
-                      name: item.name,
                       node: item.node,
                       component,
                       directives,

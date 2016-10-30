@@ -21,19 +21,15 @@ import {
   compile,
 } from '../util/expression'
 
-import {
-  SPECIAL_EVENT,
-} from '../config/syntax'
-
-function getListenerName(name) {
-  return `$${name}`
-}
+import * as syntax from '../config/syntax'
 
 export default {
-  attach: function({el, name, node, component}) {
+  attach: function({el, node, component}) {
+
+    let name = node.name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
+    let listener = `$${name}`
 
     let ast = parse(node.getValue())
-    let listener = getListenerName(name)
 
     if (ast.type === CALL) {
       el[listener] = function (e) {
@@ -51,7 +47,7 @@ export default {
                 return item.value
               }
               if (type === IDENTIFIER) {
-                if (name === SPECIAL_EVENT) {
+                if (name === syntax.SPECIAL_EVENT) {
                   return e
                 }
               }
@@ -75,8 +71,9 @@ export default {
       on(el, name, el[listener])
     }
   },
-  detach: function ({el, name}) {
-    let listener = getListenerName(name)
+  detach: function ({el, node}) {
+    let name = node.name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
+    let listener = `$${name}`
     if (el[listener]) {
       off(el, name, el[listener])
       el[listener] = null

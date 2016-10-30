@@ -8,7 +8,6 @@ export default {
   },
 
   detach: function ({el}) {
-    el.$component.fire(lifecycle.DETACH)
     el.$component = null
   }
 
