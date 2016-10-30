@@ -251,7 +251,7 @@ export default class Cola {
   get(keypath) {
 
     // 计算属性的依赖追踪
-    let { $computedGetters, $computedStack } = this
+    let { data, $computedGetters, $computedStack } = this
     let deps = lastItem($computedStack)
     if (deps) {
       deps.push(keypath)
@@ -261,7 +261,7 @@ export default class Cola {
     if (isFunction(getter)) {
       return getter()
     }
-    return objectGet(this.data, keypath)
+    return objectGet(data, keypath)
 
   }
 
@@ -363,7 +363,15 @@ export default class Cola {
 
   updateView() {
 
-    let { el, data, $computedGetters, filters, $parser, $templateAst, $currentNode } = this
+    let {
+      el,
+      data,
+      filters,
+      $parser,
+      $templateAst,
+      $currentNode,
+      $computedGetters, 
+    } = this
 
     let context = {
       ...data,
