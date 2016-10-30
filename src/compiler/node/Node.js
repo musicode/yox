@@ -37,6 +37,11 @@ export default class Node {
     children.push(node)
   }
 
+  getValue() {
+    let { children } = this
+    return children[0] ? children[0].content : true
+  }
+
   execute(context) {
     let { expr } = this
     return execute(

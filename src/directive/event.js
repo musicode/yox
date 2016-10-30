@@ -30,15 +30,15 @@ function getListenerName(name) {
 }
 
 export default {
-  attach: function({el, component, keypath, name, value}) {
+  attach: function({el, name, node, component}) {
 
-    let node = parse(value)
+    let ast = parse(node.getValue())
     let listener = getListenerName(name)
 
-    if (node.type === CALL) {
+    if (ast.type === CALL) {
       el[listener] = function (e) {
         let args = [
-          ...node.arguments,
+          ...ast.arguments,
         ]
         if (!args.length) {
           args.push(e)
@@ -58,16 +58,16 @@ export default {
               else if (type === MEMBER) {
                 name = stringify(item)
               }
-              return component.get(keypath ? `${keypath}.${name}` : name)
+              return component.get(node.keypath ? `${node.keypath}.${name}` : name)
             }
           )
         }
-        component.methods[node.callee.name].apply(component, args)
+        component.methods[ast.callee.name].apply(component, args)
       }
     }
-    else if (node.type === IDENTIFIER) {
+    else if (ast.type === IDENTIFIER) {
       el[listener] = function () {
-        component.fire(node.name)
+        component.fire(ast.name)
       }
     }
 

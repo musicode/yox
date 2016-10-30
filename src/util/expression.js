@@ -1,5 +1,10 @@
 
 import {
+  expressionParseCache,
+  expressionCompileCache,
+} from '../config/cache'
+
+import {
   each as arrayEach,
 } from './array'
 
@@ -39,9 +44,6 @@ const COLON  = 58 // :
 const TRUE = true
 const FALSE = false
 const NULL = null
-
-let parseCache = { }
-let compileCache = { }
 
 /**
  * 倒排对象的 key
@@ -578,13 +580,13 @@ export function parse(content) {
 
   }
 
-  if (!parseCache[content]) {
+  if (!expressionParseCache[content]) {
     let node = parseExpression()
     node.$raw = content
-    parseCache[content] = node
+    expressionParseCache[content] = node
   }
 
-  return parseCache[content]
+  return expressionParseCache[content]
 
 }
 
@@ -606,7 +608,7 @@ export function compile(ast) {
     content = ast.$raw
   }
 
-  if (!compileCache[content]) {
+  if (!expressionCompileCache[content]) {
     let args = [ ]
 
     traverse(
@@ -622,10 +624,10 @@ export function compile(ast) {
 
     let fn = new Function(args.join(', '), `return ${content}`)
     fn.$arguments = args
-    compileCache[content] = fn
+    expressionCompileCache[content] = fn
   }
 
-  return compileCache[content]
+  return expressionCompileCache[content]
 
 }
 

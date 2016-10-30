@@ -1,11 +1,8 @@
 
 import Mustache from './compiler/parser/Mustache'
 
+import * as syntax from './config/syntax'
 import * as lifecycle from './config/lifecycle'
-
-import {
-  SPECIAL_KEYPATH,
-} from './config/syntax'
 
 import {
   add as addTask,
@@ -22,11 +19,11 @@ import {
 } from './util/event'
 
 import {
-  extend as objectExtend,
-  count as objectCount,
-  each as objectEach,
-  set as objectSet,
   get as objectGet,
+  set as objectSet,
+  each as objectEach,
+  count as objectCount,
+  extend as objectExtend,
 } from './util/object'
 
 import {
@@ -55,6 +52,7 @@ import {
 import lazy from './directive/lazy'
 import event from './directive/event'
 import model from './directive/model'
+import component from './directive/component'
 
 function bindFunctions(functions, thisArg) {
   let result = { }
@@ -71,7 +69,7 @@ export default class Cola {
    *
    * @type {Object}
    */
-  static directives = { lazy, event, model }
+  static directives = { lazy, event, model, component }
 
   /**
    * 全局过滤器
@@ -98,11 +96,11 @@ export default class Cola {
    */
   constructor(options) {
 
-    this.data = options.data
     this.components = options.components
     this.methods = options.methods
 
     this.el = isString(options.el) ? find(options.el) : options.el
+    this.data = isFunction(options.data) ? options.data.call(this) : options.data
 
     this.directives = objectExtend({}, Cola.directives, options.directives)
     this.filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
@@ -120,7 +118,7 @@ export default class Cola {
     let $computedStack =
     this.$computedStack = [ ]
     // 计算属性的依赖关系
-    // keypath => [ computed1, computed2, ... ]
+    // dep => [ computed1, computed2, ... ]
     let $computedWatchers =
     this.$computedWatchers = { }
     // computed => [ dep1, dep2, ... ]
@@ -223,9 +221,12 @@ export default class Cola {
     this.$watchEmitter = new Emitter()
 
     if (isObject(options.watchers)) {
-      objectEach(options.watchers, (watcher, keypath) => {
-        this.watch(keypath, watcher)
-      })
+      objectEach(
+        options.watchers,
+        (watcher, keypath) => {
+          this.watch(keypath, watcher)
+        }
+      )
     }
 
     this.fire(lifecycle.CREATE)
@@ -235,7 +236,24 @@ export default class Cola {
     this.$templateAst = this.$parser.parse(
       options.template,
       name => {
-        return this.partials[name] || Cola.partials[name]
+        let config = this.components[name]
+        if (!config) {
+          return new Error(`${name} component is not existed.`)
+        }
+        return function (el) {
+          return new Cola({
+            ...config,
+            replace: true,
+            el,
+          })
+        }
+      },
+      name => {
+        let partial = this.partials[name]
+        if (!partial) {
+          return new Error(`${name} partial is not existed.`)
+        }
+        return partial
       },
       (name, node) => {
         this.partials[name] = node
@@ -344,18 +362,20 @@ export default class Cola {
     })
 
     if (objectCount(changes)) {
-      objectEach(changes, (args, keypath) => {
-        getWildcardMatches(keypath).forEach(wildcardKeypath => {
-          $watchEmitter.fire(
-            wildcardKeypath,
-            merge(
-              args,
-              getWildcardNames(keypath, wildcardKeypath)
-            ),
-            this
+      objectEach(
+        changes,
+        (args, keypath) => {
+          getWildcardMatches(keypath).forEach(
+            wildcardKeypath => {
+              $watchEmitter.fire(
+                wildcardKeypath,
+                merge(args, getWildcardNames(keypath, wildcardKeypath)),
+                this
+              )
+            }
           )
-        })
-      })
+        }
+      )
       return true
     }
 
@@ -377,7 +397,7 @@ export default class Cola {
       ...data,
       ...filters,
       ...$computedGetters,
-      [SPECIAL_KEYPATH]: '',
+      [syntax.SPECIAL_KEYPATH]: '',
     }
 
     this.$currentNode = patch(

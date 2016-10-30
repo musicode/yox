@@ -20,6 +20,26 @@
         });
         require(['Cola'], function (Cola) {
             Cola = Cola.default
+
+            let Custom = {
+                template: `
+                    <div id="custom-component">
+                        {{title}}
+                        <button on-click="click()">click</button>
+                    </div>
+                `,
+                data: function () {
+                    return {
+                        title: 'custom component'
+                    };
+                },
+                methods: {
+                    click: function () {
+                        console.log(this, 'click');
+                    }
+                }
+            };
+
             var instance = new Cola({
                 el: '#app',
                 data: {
@@ -74,8 +94,12 @@
                         {{/each}}
                     </ul>
                     {{/if}}
+                    <Custom />
                   </div>
                 `,
+                components: {
+                    Custom: Custom
+                },
                 filters: {
                     formatDate: function (date) {
                         return this.get(name) + date.getTime();

@@ -8,7 +8,7 @@ import debounce from '../function/debounce'
 
 export default {
 
-  attach: function ({el, component, keypath, value, directives}) {
+  attach: function ({el, node, component, directives}) {
 
     let type = 'input', interval
 
@@ -22,7 +22,7 @@ export default {
       }
     }
 
-    keypath = keypath ? `${keypath}.${value}` : value
+    let keypath = node.keypath ? `${node.keypath}.${node.getValue()}` : node.getValue()
     el.value = component.get(keypath)
 
     component.watch(keypath, function (value) {

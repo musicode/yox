@@ -13,6 +13,7 @@ import {
 
 import {
   each,
+  count,
 } from '../util/object'
 
 import {
@@ -29,11 +30,6 @@ import {
 
 import * as syntax from '../config/syntax'
 import * as lifecycle from '../config/lifecycle'
-
-function readValue(children) {
-  // 如 disabled 这种布尔属性没有 children，默认就是 true
-  return children[0] ? children[0].content : true
-}
 
 export function create(node, component) {
 
@@ -80,16 +76,14 @@ export function create(node, component) {
         let directives = { }
         let styles
 
-        let hasDirective = false
         let isRootElement = !counter
 
         node.attrs.forEach(function (node) {
-          let { name, children } = node
-          if (name === 'style') {
-            styles = parseStyle(readValue(children))
+          if (node.name === 'style') {
+            styles = parseStyle(node.getValue())
           }
           else {
-            attrs[node.name] = readValue(children)
+            attrs[node.name] = node.getValue()
           }
         })
 
@@ -105,41 +99,25 @@ export function create(node, component) {
             directive = allDirectives[name]
           }
           if (directive) {
-            hasDirective = true
-            directives[name] = {
-              ...directive,
-              name,
-              value: readValue(node.children),
-              keypath: node.keypath,
-            }
+            directives[name] = { name, node, directive }
           }
         })
 
-        each(
-          allDirectives,
-          function (directive, name) {
-            if (!(name in directives)) {
-              // 是否默认开启
-              if (isFunction(directive.defaultOn) && directive.defaultOn(node.name)) {
-                directives[name] = {
-                  ...directive,
-                  name,
-                  value: true,
-                  keypath: node.keypath,
-                }
-              }
-            }
+        if (isFunction(node.create)) {
+          directives.component = {
+            node,
+            name: 'component',
+            directive: allDirectives.component,
           }
-        )
-
-        let data = {
-          attrs,
         }
+
+        let data = { attrs }
 
         if (styles) {
           data.style = styles
         }
 
+        let hasDirective = count(directives)
         if (isRootElement || hasDirective) {
           let process = function (vnode, name) {
             if (isRootElement) {
@@ -148,13 +126,12 @@ export function create(node, component) {
             if (hasDirective) {
               each(
                 directives,
-                function (directive) {
-                  if (isFunction(directive[name])) {
-                    directive[name]({
+                function (item) {
+                  if (isFunction(item.directive[name])) {
+                    item.directive[name]({
                       el: vnode.elm,
-                      name: directive.name,
-                      value: directive.value,
-                      keypath: directive.keypath,
+                      name: item.name,
+                      node: item.node,
                       component,
                       directives,
                     })

@@ -12,10 +12,11 @@ import Node from './Node'
  */
 export default class Element extends Node {
 
-  constructor(parent, name) {
+  constructor(parent, name, create) {
     super(parent)
     this.type = ELEMENT
     this.name = name
+    this.create = create
     this.attrs = []
     this.directives = []
   }
@@ -30,7 +31,7 @@ export default class Element extends Node {
 
   render(parent, context, keys, parseTemplate) {
 
-    let node = new Element(parent, this.name)
+    let node = new Element(parent, this.name, this.create)
     node.keypath = keys.join('.')
     parent.addChild(node)
 

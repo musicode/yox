@@ -6,6 +6,15 @@
  *
  */
 
+import {
+  log,
+  warn,
+} from '../../config/env'
+
+import {
+  templateParseCache,
+} from '../../config/cache'
+
 import * as syntax from '../../config/syntax'
 
 import Context from '../helper/Context'
@@ -37,11 +46,6 @@ import {
   ELEMENT,
   ATTRIBUTE,
 } from '../nodeType'
-
-import {
-  log,
-  warn,
-} from '../../config/env'
 
 import {
   isArray,
@@ -214,7 +218,11 @@ export default class Mustache {
    * @param {Function} setPartial 当解析到 PARTIAL 节点时，需要注册模板片段
    * @return {Object}
    */
-  parse(template, getPartial, setPartial) {
+  parse(template, getComponent, getPartial, setPartial) {
+
+    if (templateParseCache[template]) {
+      return templateParseCache[template]
+    }
 
     let rootNode = new Element(null, rootName)
 
@@ -227,6 +235,7 @@ export default class Mustache {
     let name
     let content
 
+    let isComponent
     let isAttributesParsing
     let isAttributeValueParsing
 
@@ -434,7 +443,6 @@ export default class Mustache {
 
       errorPos = mainScanner.pos
 
-
       // 结束标签
       if (mainScanner.charAt(1) === '/') {
         content = mainScanner.nextAfter(elementPattern)
@@ -454,9 +462,10 @@ export default class Mustache {
       else {
         content = mainScanner.nextAfter(elementPattern)
         name = content.substr(1)
+        isComponent = componentPattern.test(name)
 
         addChild(
-          new Element(currentNode, name)
+          new Element(currentNode, isComponent ? 'div' : name, isComponent && getComponent(name))
         )
 
         // 截取 <name 和 > 之间的内容
@@ -473,7 +482,7 @@ export default class Mustache {
           return throwError('标签缺少 >')
         }
 
-        if (componentPattern.test(name) || selfClosingTagPattern.test(name)) {
+        if (isComponent || selfClosingTagPattern.test(name)) {
           popStack()
         }
       }
@@ -482,6 +491,8 @@ export default class Mustache {
     if (nodeStack.length) {
       return throwError('节点没有正确的结束')
     }
+
+    templateParseCache[template] = rootNode
 
     return rootNode
 
