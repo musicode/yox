@@ -4,6 +4,10 @@ import Mustache from './compiler/parser/Mustache'
 import * as lifecycle from './lifecycle'
 
 import {
+  SPECIAL_KEYPATH,
+} from './syntax'
+
+import {
   add as addTask,
   run as runTask,
 } from './util/nextTask'
@@ -27,6 +31,9 @@ import {
 
 import {
   merge,
+  hasItem,
+  lastItem,
+  removeItem,
 } from './util/array'
 
 import {
@@ -34,6 +41,7 @@ import {
 } from './util/dom'
 
 import {
+  isArray,
   isString,
   isObject,
   isFunction,
@@ -104,24 +112,100 @@ export default class Cola {
     this.$computedGetters = { }
     this.$computedSetters = { }
 
+    // 存储计算属性的值，提升性能
+    let $computedCache =
+    this.$computedCache = { }
+
+    // 辅助获取计算属性的依赖
+    let $computedStack =
+    this.$computedStack = [ ]
+    // 计算属性的依赖关系
+    // keypath => [ computed1, computed2, ... ]
+    let $computedWatchers =
+    this.$computedWatchers = { }
+    // computed => [ dep1, dep2, ... ]
+    let $computedDeps =
+    this.$computedDeps = { }
+
     if (isObject(options.computed)) {
       objectEach(options.computed, (item, keypath) => {
+        let get, set, cache = true
         if (isFunction(item)) {
-          item = item.bind(this)
-          // 当模板读取计算属性时，可通过 toString 求值
-          // 省的写一堆乱七八糟的判断逻辑
-          item.toString = item
-          this.$computedGetters[keypath] = item
+          get = item
         }
         else if (isObject(item)) {
-          let { get, set } = item
-          if (isFunction(get)) {
-            this.$computedGetters[keypath] = get.bind(this)
+          if ('cache' in item) {
+            cache = item.cache
           }
-          if (isFunction(set)) {
-            this.$computedSetters[keypath] = set.bind(this)
+          if (isFunction(item.get)) {
+            get = item.get
+          }
+          if (isFunction(item.set)) {
+            set = item.set
           }
         }
+
+        if (get) {
+          let getter = () => {
+
+            if (cache && keypath in $computedCache) {
+              return $computedCache[keypath]
+            }
+
+            // 新推一个依赖收集数组
+            $computedStack.push([])
+            let result = get.call(this)
+
+            // 处理收集好的依赖
+            let newDeps = $computedStack.pop()
+            let oldDeps = $computedDeps[keypath]
+            $computedDeps[keypath] = newDeps
+
+            // 增加了哪些依赖，删除了哪些依赖
+            let addedDeps = [], removedDeps = []
+            if (isArray(oldDeps)) {
+              merge(oldDeps, newDeps)
+              .forEach(function (dep) {
+                let oldExisted = hasItem(oldDeps, dep)
+                let newExisted = hasItem(newDeps, dep)
+                if (oldExisted && !newExisted) {
+                  removedDeps.push(dep)
+                }
+                else if (!oldExisted && newExisted) {
+                  addedDeps.push(dep)
+                }
+              })
+            }
+            else {
+              addedDeps = newDeps
+            }
+
+            addedDeps.forEach(function (dep) {
+              if (!isArray($computedWatchers[dep])) {
+                $computedWatchers[dep] = []
+              }
+              $computedWatchers[dep].push(keypath)
+            })
+
+            removedDeps.forEach(function (dep) {
+              removeItem($computedWatchers[dep], keypath)
+            })
+
+            // 获取 oldValue 还有用
+            $computedCache[keypath] = result
+
+            return result
+          }
+          // 当模板读取计算属性时，可通过 toString 求值
+          // 省的写一堆乱七八糟的判断逻辑
+          getter.toString = getter
+          this.$computedGetters[keypath] = getter
+        }
+
+        if (set) {
+          this.$computedSetters[keypath] = set.bind(this)
+        }
+
       })
     }
 
@@ -165,11 +249,20 @@ export default class Cola {
   }
 
   get(keypath) {
-    let getter = this.$computedGetters[keypath]
+
+    // 计算属性的依赖追踪
+    let { $computedGetters, $computedStack } = this
+    let deps = lastItem($computedStack)
+    if (deps) {
+      deps.push(keypath)
+    }
+
+    let getter = $computedGetters[keypath]
     if (isFunction(getter)) {
       return getter()
     }
     return objectGet(this.data, keypath)
+
   }
 
   set(keypath, value) {
@@ -214,23 +307,38 @@ export default class Cola {
     )
   }
 
-  updateModel(data) {
+  updateModel(model) {
 
     let changes = { }
 
     let setter
     let oldValue
 
-    objectEach(data, (value, keypath) => {
+    let {
+      data,
+      $watchEmitter,
+      $computedCache,
+      $computedWatchers,
+      $computedSetters,
+    } = this
+
+    objectEach(model, (value, keypath) => {
       oldValue = this.get(keypath)
       if (value !== oldValue) {
         changes[keypath] = [ value, oldValue ]
-        setter = this.$computedSetters[keypath]
+        setter = $computedSetters[keypath]
         if (isFunction(setter)) {
           setter(value)
         }
         else {
-          objectSet(this.data, keypath, value)
+          objectSet(data, keypath, value)
+        }
+        if (isArray($computedWatchers[keypath])) {
+          $computedWatchers[keypath].forEach(function (watcher) {
+            if (watcher in $computedCache) {
+              delete $computedCache[watcher]
+            }
+          })
         }
       }
     })
@@ -238,12 +346,13 @@ export default class Cola {
     if (objectCount(changes)) {
       objectEach(changes, (args, keypath) => {
         getWildcardMatches(keypath).forEach(wildcardKeypath => {
-          this.$watchEmitter.fire(
+          $watchEmitter.fire(
             wildcardKeypath,
             merge(
               args,
               getWildcardNames(keypath, wildcardKeypath)
-            )
+            ),
+            this
           )
         })
       })
@@ -260,6 +369,7 @@ export default class Cola {
       ...data,
       ...$computedGetters,
       ...filters,
+      [SPECIAL_KEYPATH]: '',
     }
 
     this.$currentNode = patch(

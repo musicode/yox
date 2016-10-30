@@ -27,11 +27,25 @@
                     user: {
                         age: 10,
                     },
+                    list: [
+                        {
+                            name: 'jay1'
+                        },
+                        {
+                            name: '<strong>jay2<strong>'
+                        },
+                        {
+                            name: 'jay3'
+                        },
+                    ],
                     date: new Date()
                 },
                 computed: {
-                    welcome: function () {
-                        return 'hi, ' + this.get('name');
+                    welcome: {
+                      cache: true,
+                      get: function () {
+                          return 'hi, ' + this.get('name');
+                      }
                     },
                     bye: {
                         get: function () {
@@ -41,8 +55,9 @@
                 },
                 template: `
                   <div>
+                    {{$keypath}}
                     {{name}}
-                    <button on-click="submit(@event, user.age)" style="font-weight: bold">
+                    <button on-click="submit($event, user.age)" style="font-weight: bold">
                       {{user.age}}
                     </button>
                     <input type="text" @model="name">
@@ -50,6 +65,15 @@
                     <h1>
                         {{welcome}}
                     </h1>
+                    {{#if list.length > 0}}
+                    <ul>
+                        {{#each list:index}}
+                        <li>
+                            {{index}} => {{{name}}} => {{$keypath}}
+                        </li>
+                        {{/each}}
+                    </ul>
+                    {{/if}}
                   </div>
                 `,
                 filters: {

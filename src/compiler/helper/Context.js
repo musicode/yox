@@ -11,7 +11,7 @@ export default class Context {
     this.data = data
     this.parent = parent
     this.cache = {
-      '.': data
+      'this': data
     }
   }
 

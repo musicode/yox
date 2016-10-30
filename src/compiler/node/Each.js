@@ -18,6 +18,10 @@ import {
   each as objectEach,
 } from '../../util/object'
 
+import {
+  SPECIAL_KEYPATH,
+} from '../../syntax'
+
 /**
  * each 节点
  *
@@ -48,15 +52,17 @@ export default class Each extends Node {
     }
 
     if (each) {
-      context = context.push(data)
+      keys.push(name)
       each(data, (item, i) => {
         if (index) {
           context.set(index, i)
         }
         keys.push(i)
-        this.renderChildren(parent, context, keys)
+        context.set(SPECIAL_KEYPATH, keys.join('.'))
+        this.renderChildren(parent, context.push(item), keys)
         keys.pop()
       })
+      keys.pop()
     }
 
   }

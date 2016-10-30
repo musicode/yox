@@ -148,9 +148,9 @@ const parsers = [
       return true
     },
     create: function (source, currentNode) {
-      let safe = false
+      let safe = true
       if (source.startsWith('{')) {
-        safe = true
+        safe = false
         source = source.substr(1)
       }
       return new Expression(currentNode, parse(source), safe)
