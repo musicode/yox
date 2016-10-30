@@ -60,7 +60,7 @@
                     <button on-click="submit($event, user.age)" style="font-weight: bold">
                       {{user.age}}
                     </button>
-                    <input type="text" @model="name">
+                    <input type="text" @model="name" @lazy>
                     {{formatDate(date)}}
                     <h1>
                         {{welcome}}

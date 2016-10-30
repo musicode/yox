@@ -4,6 +4,7 @@ import {
   off,
 } from '../util/dom'
 
+import debounce from '../function/debounce'
 
 export default {
 

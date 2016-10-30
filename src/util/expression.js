@@ -138,7 +138,6 @@ function isWhitespace(charCode) {
 function isIdentifierStart(charCode) {
   return charCode === 36 // $
     || charCode === 95   // _
-    || charCode === 64   // @ 方便实现 @keypath 这种特殊变量
     || (charCode >= 97 && charCode <= 122) // a...z
     || (charCode >= 65 && charCode <= 90)  // A...Z
 }
