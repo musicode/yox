@@ -37,6 +37,21 @@
                     click: function () {
                         console.log(this, 'click');
                     }
+                },
+                oncreate: function (e) {
+                    console.log(this, 'create', e);
+                },
+                oncompile: function (e) {
+                    console.log(this, 'compile', e);
+                },
+                onattach: function (e) {
+                    console.log(this, 'attach', e);
+                },
+                onupdate: function (e) {
+                    console.log(this, 'update', e);
+                },
+                ondetach: function (e) {
+                    console.log(this, 'detach', e);
                 }
             };
 
@@ -44,6 +59,7 @@
                 el: '#app',
                 data: {
                     name: 'musicode',
+                    counter: 0,
                     user: {
                         age: 10,
                     },
@@ -77,8 +93,8 @@
                   <div>
                     {{$keypath}}
                     {{name}}
-                    <button on-click="submit($event, user.age)" style="font-weight: bold">
-                      {{user.age}}
+                    <button on-click="add()" style="font-weight: bold">
+                        add
                     </button>
                     <input type="text" @model="name" @lazy>
                     {{formatDate(date)}}
@@ -94,7 +110,9 @@
                         {{/each}}
                     </ul>
                     {{/if}}
-                    <Custom />
+                    {{#if counter % 2 === 0}}
+                        <Custom />
+                    {{/if}}
                   </div>
                 `,
                 components: {
@@ -117,8 +135,11 @@
                     }
                 },
                 methods: {
-                    submit: function (event, age) {
-                        instance.set('user.age', age + 1);
+                    add: function () {
+                        this.set(
+                            'counter',
+                            this.get('counter') + 1
+                        );
                     },
                     valueChange: function (event) {
                         console.log(event)
