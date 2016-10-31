@@ -5,7 +5,6 @@ import {
 
 import Node from './Node'
 import Text from './Text'
-import Element from './Element'
 
 const elementPattern = /<[^>]+>/
 
@@ -27,18 +26,18 @@ export default class Expression extends Node {
   render(parent, context, keys, parseTemplate) {
 
     let content = this.execute(context)
-    if (content && content.toString) {
-      content = content.toString()
+    if (content == null) {
+      content = ''
     }
 
     if (this.safe || !elementPattern.test(content)) {
       let node = new Text(parent, content)
-      return node.render(parent, context, keys)
+      node.render(parent, context, keys)
     }
     else {
-      return parseTemplate(content).map(
+      parseTemplate(content).forEach(
         function (node) {
-          return node.render(parent, context, keys, parseTemplate)
+          node.render(parent, context, keys, parseTemplate)
         }
       )
     }

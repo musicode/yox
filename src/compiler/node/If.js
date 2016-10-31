@@ -25,7 +25,7 @@ export default class If extends Node {
     // 这里用到 reduce 的机制非常合适
     // 即如果前一个分支不满足，返回 true，告知后续的要执行
     if (this.execute(context)) {
-      return this.renderChildren(parent, context, keys, parseTemplate)
+      this.renderChildren(parent, context, keys, parseTemplate)
     }
     else {
       return true

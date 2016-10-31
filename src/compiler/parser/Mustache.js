@@ -61,7 +61,7 @@ const elementEndPattern = /(?:\/)?>/
 const selfClosingTagPattern = /input|img|br/i
 
 const attributeSuffixPattern = /^([^"']*)["']/
-const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+)['"])?)?/i
+const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+))?)/i
 const attributeValueStartPattern = /^=["']/
 
 const componentPattern = /[-A-Z]/
@@ -384,7 +384,6 @@ export default class Mustache {
             if (currentNode.type !== ATTRIBUTE) {
               // 下一个属性的开始
               while (match = attributePattern.exec(content)) {
-
                 content = content.substr(match.index + match[0].length)
 
                 isDirective = match[1].startsWith(syntax.DIRECTIVE_PREFIX)
@@ -396,11 +395,12 @@ export default class Mustache {
                   : new Attribute(currentNode, match[1])
                 )
 
-                if (match[2]) {
-                  if (match[3] != null) {
-                    addChild(
-                      new Text(currentNode, match[3])
-                    )
+                if (match[3]) {
+                  addChild(
+                    new Text(currentNode, match[3])
+                  )
+                  // 剩下的只可能是引号了
+                  if (content) {
                     popStack()
                   }
                 }

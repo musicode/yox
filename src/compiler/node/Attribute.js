@@ -7,7 +7,7 @@ import {
 import Node from './Node'
 
 /**
- * 变量节点
+ * 属性节点
  *
  * @param {string} name 属性名
  */
@@ -23,7 +23,7 @@ export default class Attribute extends Node {
 
     let { name } = this
     if (name.type === EXPRESSION) {
-      name = name.render(parent, context, keys, parseTemplate).content
+      name = name.execute(context)
     }
 
     let node = new Attribute(parent, name)
@@ -31,8 +31,6 @@ export default class Attribute extends Node {
     parent.addAttr(node)
 
     this.renderChildren(node, context, keys, parseTemplate)
-
-    return node
 
   }
 

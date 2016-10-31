@@ -19,9 +19,9 @@ export default class ElseIf extends Node {
   }
 
   render(parent, context, keys, parseTemplate, prev) {
-    if (prev === true) {
+    if (prev) {
       if (this.execute(context)) {
-        return this.renderChildren(parent, context, keys, parseTemplate)
+        this.renderChildren(parent, context, keys, parseTemplate)
       }
       else {
         return prev

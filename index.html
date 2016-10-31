@@ -64,6 +64,8 @@
             var instance = new Cola({
                 el: '#app',
                 data: {
+                    id: 'xxx',
+                    link: 'baidu.com',
                     name: 'musicode',
                     counter: 0,
                     user: {
@@ -98,9 +100,12 @@
                 },
                 template: `
                   <div id="root">
-                    {{#if counter % 2 === 0}}
-                        <Custom @ref="custom"{{#each user:key}} {{key}}="{{this}}"{{/each}} />
-                    {{/if}}
+                      <a href="http://{{link}}" {{id}}="{{id}}">
+                          link
+                      </a>
+                      {{#if counter % 2 === 0}}
+                          <Custom @ref="custom"{{#each user:key}} {{key}}="{{this}}"{{/each}}/>
+                      {{/if}}
                   </div>
                 `,
                 components: {

@@ -43,14 +43,17 @@ export default class Node {
   }
 
   execute(context) {
-    let { expr } = this
-    return execute(
-      compile(expr),
+    let content = execute(
+      compile(this.expr),
       context.data,
       function (name) {
         return context.get(name)
       }
     )
+    if (content && content.toString) {
+      content = content.toString()
+    }
+    return content
   }
 
   render() {

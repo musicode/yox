@@ -12,7 +12,6 @@ import {
 
 import {
   each as arrayEach,
-  merge as arrayMerge,
 } from '../../util/array'
 
 import {
@@ -53,9 +52,6 @@ export default class Each extends Node {
     }
 
     if (each) {
-      let result = [ ]
-      let children
-
       keys.push(name)
       each(data, (item, i) => {
         if (index) {
@@ -63,17 +59,10 @@ export default class Each extends Node {
         }
         keys.push(i)
         context.set(SPECIAL_KEYPATH, keys.join('.'))
-
-        children = this.renderChildren(parent, context.push(item), keys, parseTemplate)
-        if (children) {
-          result = arrayMerge(result, children)
-        }
-
+        this.renderChildren(parent, context.push(item), keys, parseTemplate)
         keys.pop()
       })
       keys.pop()
-
-      return result
     }
 
   }
