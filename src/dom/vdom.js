@@ -119,9 +119,6 @@ export function create(node, component) {
         let hasDirective = count(directives)
         if (isRootElement || hasDirective) {
           let process = function (vnode, name) {
-            if (isRootElement) {
-              component.fire(name)
-            }
             if (hasDirective) {
               each(
                 directives,
@@ -150,6 +147,9 @@ export function create(node, component) {
               process(vnode, lifecycle.UPDATE)
             },
             destroy: function (vnode) {
+              if (isRootElement) {
+                component.fire(lifecycle.DETACH)
+              }
               process(vnode, lifecycle.DETACH)
             }
           }

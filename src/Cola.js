@@ -104,15 +104,6 @@ export default class Cola {
       throw new Error('el is not a element.')
     }
 
-    if (!options.replace) {
-      el.innerHTML = '<div></div>'
-      el = el.firstChild
-      this.$el = el
-    }
-    else {
-      this.$el = el
-    }
-
     this.$data = isFunction(options.data) ? options.data.call(this) : options.data
 
     this.$directives = objectExtend({}, Cola.directives, options.directives)
@@ -275,6 +266,17 @@ export default class Cola {
 
     this.fire(lifecycle.COMPILE)
 
+    // 触发 compile 事件之后再给 $el 赋值
+    // 避免有些人在 oncompile 就误以为可以操作 el 了
+    if (!options.replace) {
+      el.innerHTML = '<div></div>'
+      el = el.firstChild
+      this.$el = el
+    }
+    else {
+      this.$el = el
+    }
+
     this.updateView()
 
   }
@@ -413,13 +415,19 @@ export default class Cola {
       [syntax.SPECIAL_KEYPATH]: '',
     }
 
-    this.$currentNode = patch(
-      $currentNode || $el,
-      create(
-        $parser.render($templateAst, context),
-        this
-      )
+    let newNode = create(
+      $parser.render($templateAst, context),
+      this
     )
+
+    if ($currentNode) {
+      this.$currentNode = patch($currentNode, newNode)
+      this.fire(lifecycle.UDPATE)
+    }
+    else {
+      this.$currentNode = patch($el, newNode)
+      this.fire(lifecycle.ATTACH)
+    }
 
   }
 
