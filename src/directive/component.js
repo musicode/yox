@@ -1,19 +1,11 @@
 
 import * as lifecycle from '../config/lifecycle'
 
-function getData(node) {
-  let data = { }
-  node.attrs.forEach(function (node) {
-    data[node.name] = node.getValue()
-  })
-  return data
-}
-
 export default {
 
   attach: function ({el, node, component, directives}) {
 
-    let instance = node.create({ el, props: getData(node) })
+    let instance = node.create({ el, props: node.getAttributes() })
     let $component = { instance }
 
     let { ref } = directives
@@ -33,9 +25,7 @@ export default {
   },
 
   update: function ({ el, node }) {
-    el.$component.instance.set(
-      getData(node)
-    )
+    el.$component.instance.set(node.getAttributes())
   },
 
   detach: function ({el, component}) {

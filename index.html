@@ -40,10 +40,8 @@
                         name: ''
                     };
                 },
-                methods: {
-                    click: function () {
-                        console.log(this, 'click');
-                    }
+                click: function () {
+                    console.log(this, 'click');
                 },
                 oncreate: function (e) {
                     console.log('  ', this, 'create', e);
@@ -141,16 +139,14 @@
                         console.log(newValue, oldValue, name);
                     }
                 },
-                methods: {
-                    add: function () {
-                        this.set(
-                            'counter',
-                            this.get('counter') + 1
-                        );
-                    },
-                    valueChange: function (event) {
-                        console.log(event)
-                    }
+                add: function () {
+                    this.set(
+                        'counter',
+                        this.get('counter') + 1
+                    );
+                },
+                valueChange: function (event) {
+                    console.log(event)
                 },
                 oncreate: function (e) {
                     console.log(this, 'create', e);

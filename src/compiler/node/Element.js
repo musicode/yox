@@ -29,6 +29,14 @@ export default class Element extends Node {
     this.directives.push(node)
   }
 
+  getAttributes() {
+    let result = { }
+    this.attrs.forEach(function (node) {
+      result[node.name] = node.getValue()
+    })
+    return result
+  }
+
   render(parent, context, keys, parseTemplate) {
 
     let node = new Element(parent, this.name, this.create)

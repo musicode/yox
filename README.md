@@ -8,17 +8,15 @@
 * 移动友好（体积小）
 * 理论上可实现类似 Vue - Weex 的生态（但我不会...）
 
-## Why
+## 设计目标
 
-在我看来，一个好的框架要满足以下几点要求：
+一个好的框架要满足以下几点要求：
 
 * 简单易学，不乱造新概念，上手成本低
 * 核心精简，扩展方便
 * 体积尽可能小
 * 在不膨胀体积的前提下，兼容尽可能多的浏览器
 * 性能下限是不影响用户体验，性能上限看缘分，不做跑分党
-
-这是我们的重新造轮子的初衷。
 
 ## 组件化
 
@@ -44,8 +42,9 @@
     partials: {},
     // 模板中使用的过滤器
     filters: {},
-    // 组件的实例方法
-    methods: {},
+    // 实例方法
+    method1: function,
+    method2: function,
     // 以下是生命周期钩子
     oncreate: function,
     oncompile: function,
@@ -77,7 +76,11 @@ new Cola({
 
 ## 组件生命周期
 
-create -> compile -> attach -> update -> detach
+* create: 解析完传入的参数后触发
+* compile: 模板编译完成后触发
+* attach: 组件加入 DOM 树时触发
+* update: 组件更新时触发
+* detach: 组件从 DOM 树移除时触发
 
 ## 模板
 

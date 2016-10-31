@@ -94,8 +94,9 @@ export default class Cola {
    */
   constructor(options) {
 
+    Object.assign(this, options)
+
     this.$components = objectExtend({}, options.components)
-    this.$methods = objectExtend({}, options.methods)
 
     let data = isFunction(options.data) ? options.data.call(this) : options.data
     if (isObject(options.props)) {
