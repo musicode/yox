@@ -33,13 +33,14 @@ export default class Expression extends Node {
 
     if (this.safe || !elementPattern.test(content)) {
       let node = new Text(parent, content)
-      node.keypath = keys.join('.')
-      parent.addChild(node)
+      return node.render(parent, context, keys)
     }
     else {
-      parseTemplate(content).forEach(function (node) {
-        node.render(parent, context, keys, parseTemplate)
-      })
+      return parseTemplate(content).map(
+        function (node) {
+          return node.render(parent, context, keys, parseTemplate)
+        }
+      )
     }
 
   }

@@ -1,6 +1,7 @@
 
 import {
   ATTRIBUTE,
+  EXPRESSION,
 } from '../nodeType'
 
 import Node from './Node'
@@ -20,11 +21,18 @@ export default class Attribute extends Node {
 
   render(parent, context, keys, parseTemplate) {
 
-    let node = new Attribute(parent, this.name)
+    let { name } = this
+    if (name.type === EXPRESSION) {
+      name = name.render(parent, context, keys, parseTemplate).content
+    }
+
+    let node = new Attribute(parent, name)
     node.keypath = keys.join('.')
     parent.addAttr(node)
 
     this.renderChildren(node, context, keys, parseTemplate)
+
+    return node
 
   }
 

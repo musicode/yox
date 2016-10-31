@@ -78,26 +78,34 @@ export function create(node, component) {
 
         let isRootElement = !counter
 
-        node.attrs.forEach(function (node) {
-          if (node.name === 'style') {
-            styles = parseStyle(node.getValue())
+        each(
+          node.getAttributes(),
+          function (value, key) {
+            if (key === 'style') {
+              styles = parseStyle(value)
+            }
+            else {
+              attrs[key] = value
+            }
           }
-          else {
-            attrs[node.name] = node.getValue()
-          }
-        })
+        )
 
         node.directives.forEach(function (node) {
           let { name } = node
 
-          // 去掉前缀
-          name = name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
-            ? 'event'
-            : name.substr(syntax.DIRECTIVE_PREFIX.length)
+          let directiveName
+          if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
+            name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
+            directiveName = 'event'
+          }
+          else {
+            name =
+            directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
+          }
 
-          let directive = $directives[name]
+          let directive = $directives[directiveName]
           if (!directive) {
-            throw new Error(`${name} directive is not existed.`)
+            throw new Error(`${directiveName} directive is not existed.`)
           }
 
           directives[name] = { node, directive }

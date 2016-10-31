@@ -27,6 +27,7 @@
                         <ul>
                             <li>title: {{title}}</li>
                             <li>name: {{name}}</li>
+                            <li>age: {{age}}</li>
                         </ul>
                         <button on-click="click()">
                             click
@@ -66,6 +67,7 @@
                     name: 'musicode',
                     counter: 0,
                     user: {
+                        name: 'haha',
                         age: 10,
                     },
                     list: [
@@ -83,10 +85,10 @@
                 },
                 computed: {
                     welcome: {
-                      cache: true,
-                      get: function () {
-                          return 'hi, ' + this.get('name');
-                      }
+                        cache: true,
+                        get: function () {
+                            return 'hi, ' + this.get('name');
+                        }
                     },
                     bye: {
                         get: function () {
@@ -96,27 +98,8 @@
                 },
                 template: `
                   <div id="root">
-                    {{$keypath}}
-                    {{name}}
-                    <button on-click="add()" style="font-weight: bold">
-                        add
-                    </button>
-                    <input type="text" @model="name" @lazy="200">
-                    {{formatDate(date)}}
-                    <h1>
-                        {{welcome}}
-                    </h1>
-                    {{#if list.length > 0}}
-                    <ul>
-                        {{#each list:index}}
-                        <li>
-                            {{index}} => {{{name}}} => {{$keypath}}
-                        </li>
-                        {{/each}}
-                    </ul>
-                    {{/if}}
                     {{#if counter % 2 === 0}}
-                        <Custom @ref="custom" name="{{name}}" />
+                        <Custom @ref="custom"{{#each user:key}} {{key}}="{{this}}"{{/each}} />
                     {{/if}}
                   </div>
                 `,

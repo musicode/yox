@@ -47,6 +47,8 @@ export default class Element extends Node {
     this.renderChildren(node, context, keys, parseTemplate, this.directives)
     this.renderChildren(node, context, keys, parseTemplate)
 
+    return node
+
   }
 
 }

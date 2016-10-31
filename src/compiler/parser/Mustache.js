@@ -1,20 +1,10 @@
 
-/**
- * 把模板字符串解析成返回 virtual dom 的 function
- *
- * 从前到后扫描模板，提取出需要的节点
- *
- */
-
 import {
   log,
   warn,
 } from '../../config/env'
 
-import {
-  templateParseCache,
-} from '../../config/cache'
-
+import * as cache from '../../config/cache'
 import * as syntax from '../../config/syntax'
 
 import Context from '../helper/Context'
@@ -39,6 +29,7 @@ import {
   ELSE_IF,
   ELSE,
   EACH,
+  DIRECTIVE,
   EXPRESSION,
   IMPORT,
   PARTIAL,
@@ -71,11 +62,12 @@ const selfClosingTagPattern = /input|img|br/i
 
 const attributeSuffixPattern = /^([^"']*)["']/
 const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+)['"])?)?/i
+const attributeValueStartPattern = /^=["']/
 
 const componentPattern = /[-A-Z]/
 
-const brealinePrefixPattern = /^[ \t]*\n/
-const brealineSuffixPattern = /\n[ \t]*$/
+const breaklinePrefixPattern = /^[ \t]*\n/
+const breaklineSuffixPattern = /\n[ \t]*$/
 
 const parsers = [
   {
@@ -220,14 +212,15 @@ export default class Mustache {
    */
   parse(template, getComponent, getPartial, setPartial) {
 
-    if (templateParseCache[template]) {
-      return templateParseCache[template]
+    if (cache.templateParseCache[template]) {
+      return cache.templateParseCache[template]
     }
 
     let rootNode = new Element(null, rootName)
 
     let currentNode = rootNode
     let lastNode
+    let node
 
     let mainScanner = new Scanner(template)
     let helperScanner = new Scanner()
@@ -236,8 +229,8 @@ export default class Mustache {
     let content
 
     let isComponent
+    let isDirective
     let isAttributesParsing
-    let isAttributeValueParsing
 
     let match
     let errorPos
@@ -246,16 +239,10 @@ export default class Mustache {
 
     let pushStack = function (node) {
       nodeStack.push(currentNode)
-      if (node.type === ATTRIBUTE) {
-        isAttributeValueParsing = true
-      }
       currentNode = node
     }
 
     let popStack = function () {
-      if (currentNode.type === ATTRIBUTE) {
-        isAttributeValueParsing = false
-      }
       currentNode = nodeStack.pop()
       return currentNode
     }
@@ -265,8 +252,8 @@ export default class Mustache {
     }
     let trimBreakline = function (content) {
       return content
-      .replace(brealinePrefixPattern, '')
-      .replace(brealineSuffixPattern, '')
+      .replace(breaklinePrefixPattern, '')
+      .replace(breaklineSuffixPattern, '')
     }
 
     let addChild = function (node) {
@@ -306,12 +293,20 @@ export default class Mustache {
         return
       }
 
-      if (currentNode.type === ELEMENT && isAttributesParsing) {
-        currentNode.addAttr(node)
+      let action = 'addChild'
+      if (currentNode.type === ELEMENT) {
+        if (node.type === DIRECTIVE) {
+          action = 'addDirective'
+        }
+        else if (node.type === ATTRIBUTE) {
+          action = 'addAttr'
+        }
+        else if (isAttributesParsing) {
+          action = 'addAttr'
+        }
       }
-      else {
-        currentNode.addChild(node)
-      }
+
+      currentNode[action](node)
 
       if (node.children) {
         pushStack(node)
@@ -344,39 +339,63 @@ export default class Mustache {
 
         if (content) {
 
-          // 可能是 文本 或 属性
+          // 支持以下 5 种 attribute
+          // name
+          // {{name}}
+          // name="value"
+          // name="{{value}}"
+          // {{name}}="{{value}}"
+
           if (isAttributesParsing) {
 
+            // 当前节点是 ATTRIBUTE
+            // 表示至少已经有了属性名
             if (currentNode.type === ATTRIBUTE) {
-              // 上一个属性的结束
-              match = content.match(attributeSuffixPattern)
-              if (match) {
-                if (match[1]) {
-                  addChild(
-                    new Text(currentNode, match[1])
-                  )
+
+              // 走进这里，只可能是以下几种情况
+              // 1. 属性名是字面量，属性值已包含表达式
+              // 2. 属性名是表达式，属性值不确定是否存在
+
+              // 当前属性的属性值是字面量结尾
+              if (currentNode.children.length) {
+                if (match = content.match(attributeSuffixPattern)) {
+                  if (match[1]) {
+                    addChild(
+                      new Text(currentNode, match[1])
+                    )
+                  }
+                  content = content.replace(attributeSuffixPattern, '')
+                  popStack()
                 }
-                content = content.replace(attributeSuffixPattern, '')
-                popStack()
               }
+              else {
+                // 属性值开头部分是字面量
+                if (attributeValueStartPattern.test(content)) {
+                  content = content.replace(attributeValueStartPattern, '')
+                }
+                // 没有属性值
+                else {
+                  popStack()
+                }
+              }
+
             }
 
-            if (!isAttributeValueParsing) {
+            if (currentNode.type !== ATTRIBUTE) {
               // 下一个属性的开始
               while (match = attributePattern.exec(content)) {
+
                 content = content.substr(match.index + match[0].length)
-                if (match[1].startsWith(syntax.DIRECTIVE_PREFIX)
+
+                isDirective = match[1].startsWith(syntax.DIRECTIVE_PREFIX)
                   || match[1].startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
-                ) {
-                  addChild(
-                    new Directive(currentNode, match[1])
-                  )
-                }
-                else {
-                  addChild(
-                    new Attribute(currentNode, match[1])
-                  )
-                }
+
+                addChild(
+                  isDirective
+                  ? new Directive(currentNode, match[1])
+                  : new Attribute(currentNode, match[1])
+                )
+
                 if (match[2]) {
                   if (match[3] != null) {
                     addChild(
@@ -415,9 +434,12 @@ export default class Mustache {
             }
             each(parsers, function (parser) {
               if (parser.test(content)) {
-                addChild(
-                  parser.create(content, currentNode, popStack)
-                )
+                node = parser.create(content, currentNode, popStack)
+                // 表达式是属性名称
+                if (isAttributesParsing && node.type === EXPRESSION && currentNode.type !== ATTRIBUTE) {
+                  node = new Attribute(currentNode, node)
+                }
+                addChild(node)
                 return false
               }
             })
@@ -492,7 +514,7 @@ export default class Mustache {
       return throwError('节点没有正确的结束')
     }
 
-    templateParseCache[template] = rootNode
+    cache.templateParseCache[template] = rootNode
 
     return rootNode
 

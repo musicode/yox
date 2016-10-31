@@ -28,6 +28,8 @@ export default class Directive extends Node {
 
     this.renderChildren(node, context, keys, parseTemplate)
 
+    return node
+
   }
 
 }

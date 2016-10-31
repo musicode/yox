@@ -16,8 +16,8 @@ export default class Else extends Node {
   }
 
   render(parent, context, keys, parseTemplate, prev) {
-    if (prev) {
-      this.renderChildren(parent, context, keys, parseTemplate)
+    if (prev === true) {
+      return this.renderChildren(parent, context, keys, parseTemplate)
     }
   }
 

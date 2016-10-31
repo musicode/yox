@@ -46,7 +46,7 @@ export default class Node {
     let { expr } = this
     return execute(
       compile(expr),
-      context,
+      context.data,
       function (name) {
         return context.get(name)
       }
