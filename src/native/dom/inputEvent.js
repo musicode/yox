@@ -1,12 +1,12 @@
 
 import {
   doc,
-} from '../config/env'
+} from '../../config/env'
 
 import {
   on as addDomListener,
   off as removeDomListener,
-} from './dom'
+} from './helper'
 
 const supportInputEvent = 'oninput' in doc.createElement('input')
 

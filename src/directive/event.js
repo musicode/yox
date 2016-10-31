@@ -2,7 +2,7 @@
 import {
   on,
   off,
-} from '../util/dom'
+} from '../native/dom/helper'
 
 import {
   each,

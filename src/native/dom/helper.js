@@ -1,16 +1,22 @@
 
 import {
   doc,
-} from '../config/env'
+} from '../../config/env'
 
 import {
   Event,
   Emitter,
-} from '../util/event'
+} from '../../util/event'
 
 import {
   each,
-} from '../util/array'
+} from '../../util/array'
+
+import {
+  isString,
+} from '../../util/is'
+
+import camelCase from '../../function/camelCase'
 
 // 处理底层的事件函数
 let nativeAddEventListener = doc.addEventListener
@@ -80,4 +86,31 @@ export function off(element, type, listener) {
  */
 export function find(selector, context = doc) {
   return context.querySelector(selector)
+}
+
+export function parseStyle(str) {
+  let result = { }
+
+  if (isString(str)) {
+
+    let pairs
+    let name
+    let value
+
+    str.split(';').forEach(function (term) {
+      if (term && term.trim()) {
+        pairs = term.split(':')
+        if (pairs.length === 2) {
+          name = pairs[0].trim()
+          value = pairs[1].trim()
+          if (name) {
+            result[camelCase(name)] = value
+          }
+        }
+      }
+    })
+
+  }
+
+  return result
 }

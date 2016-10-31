@@ -2,60 +2,80 @@
 
 [![Build Status](https://travis-ci.org/musicode/cola.svg?branch=master)](https://travis-ci.org/musicode/cola) [![Coverage Status](https://coveralls.io/repos/github/musicode/cola/badge.svg)](https://coveralls.io/github/musicode/cola)
 
-全新的 MVVM Web 端框架，灵感来自 Ractive 和 Vue。
+全新的 **跨浏览器** 的 MVVM 框架。
 
-> 暂无服务器渲染的开发计划
+* PC 端兼容 IE 全系列
+* 移动友好（体积小）
+* 理论上可实现类似 Vue - Weex 的生态（但我不会...）
 
 ## Why
 
 在我看来，一个好的框架要满足以下几点要求：
 
-* 简单易学，上手成本低
+* 简单易学，不乱造新概念，上手成本低
 * 核心精简，扩展方便
 * 体积尽可能小
 * 在不膨胀体积的前提下，兼容尽可能多的浏览器
 * 性能下限是不影响用户体验，性能上限看缘分，不做跑分党
 
-## 低版本浏览器
+这是我们的重新造轮子的初衷。
 
-从面向未来的考虑，我们采用了 ES6 编写。
+## 组件化
 
-为了适配低版本浏览器，需要实现以下几个的 ES5 方法：
+## 组件结构
 
-* Date.now()
-* Object.keys()
-* String.prototype.trim
-* String.prototype.startsWith
-* String.prototype.endsWith
-* Array.prototype.forEach
-* Array.prototype.indexOf
-* Array.prototype.reduce
-* Function.prototype.bind
-
-> 理论上兼容 IE6
-
-## 结构
+用过 Vue 的同学，应该对下面的结构非常熟悉了。
 
 ```javascript
-new Cola({
-    el: '元素或选择器',
+{
+    // 组件模板
     template: '组件模板',
-    data: {},
+    // 组件数据
+    data: function () {
+        return {};
+    },
+    // 计算属性
     computed: {},
+    // 监听数据变化，参考 Vue
     watchers: {},
+    // 子组件
     components: {},
+    // 子模板
     partials: {},
+    // 模板中使用的过滤器
     filters: {},
+    // 组件的实例方法
     methods: {},
+    // 以下是生命周期钩子
     oncreate: function,
     oncompile: function,
     onattach: function,
     onupdate: function,
     ondetach: function,
+}
+```
+
+通常来说，组件有两种，一种是可复用的子组件（上面这种 js 对象），另一种是入口组件。
+
+入口组件稍稍有些差别，如下：
+
+* 需要显式的调用构造函数
+* 需要传入 `el`
+* `data` 通常是一个对象
+
+```javascript
+new Cola({
+    el: '#app',
+    data: {
+
+    },
+    ...
 })
 ```
 
-## 生命周期
+
+
+## 组件生命周期
 
 create -> compile -> attach -> update -> detach
 
@@ -166,6 +186,22 @@ create -> compile -> attach -> update -> detach
 表示式支持函数调用，和大部分框架不同的是，我们不支持调用全局函数，如 `parseInt`、`Math.random` 等函数。
 
 函数必须通过 filters 注册到组件中才能使用。
+
+## 低版本浏览器
+
+从面向未来的考虑，我们采用了 ES6 编写。
+
+为了适配低版本浏览器，需要实现以下几个的 ES5 方法：
+
+* Date.now()
+* Object.keys()
+* String.prototype.trim
+* String.prototype.startsWith
+* String.prototype.endsWith
+* Array.prototype.forEach
+* Array.prototype.indexOf
+* Array.prototype.reduce
+* Function.prototype.bind
 
 ## 须知
 

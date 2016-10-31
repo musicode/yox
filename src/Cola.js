@@ -30,10 +30,6 @@ import {
 } from './util/array'
 
 import {
-  find,
-} from './util/dom'
-
-import {
   isArray,
   isString,
   isObject,
@@ -41,9 +37,13 @@ import {
 } from './util/is'
 
 import {
+  find,
+} from './native/dom/helper'
+
+import {
   create,
   patch,
-} from './dom/vdom'
+} from './native/dom/vdom'
 
 // 5 个内建指令，其他指令通过扩展实现
 import ref from './directive/ref'

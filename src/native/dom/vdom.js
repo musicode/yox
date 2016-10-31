@@ -8,28 +8,28 @@ import attributes from 'snabbdom/modules/attributes'
 const applyPatch = snabbdom.init([ props, attributes, style ])
 
 import {
-  parse as parseStyle,
-} from './style'
+  parseStyle,
+} from './helper'
 
 import {
   each,
   count,
-} from '../util/object'
+} from '../../util/object'
 
 import {
   isArray,
   isFunction,
-} from '../util/is'
+} from '../../util/is'
 
 import {
   TEXT,
   ATTRIBUTE,
   DIRECTIVE,
   ELEMENT,
-} from '../compiler/nodeType'
+} from '../../compiler/nodeType'
 
-import * as syntax from '../config/syntax'
-import * as lifecycle from '../config/lifecycle'
+import * as syntax from '../../config/syntax'
+import * as lifecycle from '../../config/lifecycle'
 
 export function create(node, component) {
 

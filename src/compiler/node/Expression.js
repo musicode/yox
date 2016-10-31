@@ -7,10 +7,6 @@ import Node from './Node'
 import Text from './Text'
 import Element from './Element'
 
-import {
-  encode,
-} from '../../util/html'
-
 const elementPattern = /<[^>]+>/
 
 /**
