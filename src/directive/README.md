@@ -15,9 +15,7 @@
 ```javascript
 {
   el: 'DOM 元素',
+  node: '指令对应的语法树节点',
   component: '组件实例',
-  keypath: '指令所处位置的 keypath',
-  name: '指令名称',
-  value: '指令内容',
 }
 ```

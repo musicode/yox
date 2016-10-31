@@ -96,15 +96,28 @@ export default class Cola {
    */
   constructor(options) {
 
-    this.components = options.components
-    this.methods = options.methods
+    this.$components = options.components
+    this.$methods = options.methods
 
-    this.el = isString(options.el) ? find(options.el) : options.el
-    this.data = isFunction(options.data) ? options.data.call(this) : options.data
+    let el = isString(options.el) ? find(options.el) : options.el
+    if (!el || el.nodeType !== 1) {
+      throw new Error('el is not a element.')
+    }
 
-    this.directives = objectExtend({}, Cola.directives, options.directives)
-    this.filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
-    this.partials = objectExtend({}, Cola.partials, options.partials)
+    if (!options.replace) {
+      el.innerHTML = '<div></div>'
+      el = el.firstChild
+      this.$el = el
+    }
+    else {
+      this.$el = el
+    }
+
+    this.$data = isFunction(options.data) ? options.data.call(this) : options.data
+
+    this.$directives = objectExtend({}, Cola.directives, options.directives)
+    this.$filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
+    this.$partials = objectExtend({}, Cola.partials, options.partials)
 
     // 把计算属性拆为 getter 和 setter
     this.$computedGetters = { }
@@ -236,7 +249,7 @@ export default class Cola {
     this.$templateAst = this.$parser.parse(
       options.template,
       name => {
-        let config = this.components[name]
+        let config = this.$components[name]
         if (!config) {
           return new Error(`${name} component is not existed.`)
         }
@@ -249,14 +262,14 @@ export default class Cola {
         }
       },
       name => {
-        let partial = this.partials[name]
+        let partial = this.$partials[name]
         if (!partial) {
           return new Error(`${name} partial is not existed.`)
         }
         return partial
       },
       (name, node) => {
-        this.partials[name] = node
+        this.$partials[name] = node
       }
     )
 
@@ -269,7 +282,7 @@ export default class Cola {
   get(keypath) {
 
     // 计算属性的依赖追踪
-    let { data, $computedGetters, $computedStack } = this
+    let { $data, $computedGetters, $computedStack } = this
     let deps = lastItem($computedStack)
     if (deps) {
       deps.push(keypath)
@@ -279,7 +292,7 @@ export default class Cola {
     if (isFunction(getter)) {
       return getter()
     }
-    return objectGet(data, keypath)
+    return objectGet($data, keypath)
 
   }
 
@@ -333,7 +346,7 @@ export default class Cola {
     let oldValue
 
     let {
-      data,
+      $data,
       $watchEmitter,
       $computedCache,
       $computedWatchers,
@@ -349,7 +362,7 @@ export default class Cola {
           setter(value)
         }
         else {
-          objectSet(data, keypath, value)
+          objectSet($data, keypath, value)
         }
         if (isArray($computedWatchers[keypath])) {
           $computedWatchers[keypath].forEach(function (watcher) {
@@ -384,9 +397,9 @@ export default class Cola {
   updateView() {
 
     let {
-      el,
-      data,
-      filters,
+      $el,
+      $data,
+      $filters,
       $parser,
       $templateAst,
       $currentNode,
@@ -394,14 +407,14 @@ export default class Cola {
     } = this
 
     let context = {
-      ...data,
-      ...filters,
+      ...$data,
+      ...$filters,
       ...$computedGetters,
       [syntax.SPECIAL_KEYPATH]: '',
     }
 
     this.$currentNode = patch(
-      $currentNode || el,
+      $currentNode || $el,
       create(
         $parser.render($templateAst, context),
         this

@@ -58,7 +58,7 @@ export default {
             }
           )
         }
-        component.methods[ast.callee.name].apply(component, args)
+        component.$methods[ast.callee.name].apply(component, args)
       }
     }
     else if (ast.type === IDENTIFIER) {

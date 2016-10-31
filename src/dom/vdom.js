@@ -35,7 +35,7 @@ export function create(node, component) {
 
   let counter = 0
 
-  let allDirectives = component.directives
+  let { $directives } = component
 
   let traverse = function (node, enter, leave) {
 
@@ -95,7 +95,7 @@ export function create(node, component) {
             ? 'event'
             : name.substr(syntax.DIRECTIVE_PREFIX.length)
 
-          let directive = allDirectives[name]
+          let directive = $directives[name]
           if (!directive) {
             return new Error(`${name} directive is not existed.`)
           }
@@ -106,7 +106,7 @@ export function create(node, component) {
         if (isFunction(node.create)) {
           directives.component = {
             node,
-            directive: allDirectives.component,
+            directive: $directives.component,
           }
         }
 
@@ -142,7 +142,7 @@ export function create(node, component) {
           data.hook = {
             insert: function (vnode) {
               if (isRootElement) {
-                component.el = vnode.elm
+                component.$el = vnode.elm
               }
               process(vnode, lifecycle.ATTACH)
             },
