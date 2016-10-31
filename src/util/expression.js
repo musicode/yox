@@ -182,7 +182,7 @@ function matchBestToken(content, sortedTokens) {
  * @return {Error}
  */
 function throwError(expression) {
-  return new Error(`Expression parse error: [${expression}]`)
+  throw new Error(`Expression parse error: [${expression}]`)
 }
 
 /**

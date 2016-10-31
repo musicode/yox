@@ -97,7 +97,7 @@ export function create(node, component) {
 
           let directive = $directives[name]
           if (!directive) {
-            return new Error(`${name} directive is not existed.`)
+            throw new Error(`${name} directive is not existed.`)
           }
 
           directives[name] = { node, directive }
@@ -118,13 +118,13 @@ export function create(node, component) {
 
         let hasDirective = count(directives)
         if (isRootElement || hasDirective) {
-          let process = function (vnode, name) {
+          let notify = function (vnode, type) {
             if (hasDirective) {
               each(
                 directives,
                 function (item) {
-                  if (isFunction(item.directive[name])) {
-                    item.directive[name]({
+                  if (isFunction(item.directive[type])) {
+                    item.directive[type]({
                       el: vnode.elm,
                       node: item.node,
                       component,
@@ -138,19 +138,13 @@ export function create(node, component) {
 
           data.hook = {
             insert: function (vnode) {
-              if (isRootElement) {
-                component.$el = vnode.elm
-              }
-              process(vnode, lifecycle.ATTACH)
+              notify(vnode, lifecycle.ATTACH)
             },
             update: function (oldNode, vnode) {
-              process(vnode, lifecycle.UPDATE)
+              notify(vnode, lifecycle.UPDATE)
             },
             destroy: function (vnode) {
-              if (isRootElement) {
-                component.fire(lifecycle.DETACH)
-              }
-              process(vnode, lifecycle.DETACH)
+              notify(vnode, lifecycle.DETACH)
             }
           }
         }

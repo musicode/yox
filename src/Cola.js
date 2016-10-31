@@ -5,20 +5,16 @@ import * as syntax from './config/syntax'
 import * as lifecycle from './config/lifecycle'
 
 import {
-  add as addTask,
-  run as runTask,
-} from './util/nextTask'
-
-import {
-  getWildcardMatches,
-  getWildcardNames,
-} from './util/keypath'
-
-import {
   Emitter,
 } from './util/event'
 
 import {
+  getWildcardNames,
+  getWildcardMatches,
+} from './util/keypath'
+
+import {
+  has as objectHas,
   get as objectGet,
   set as objectSet,
   each as objectEach,
@@ -27,7 +23,7 @@ import {
 } from './util/object'
 
 import {
-  merge,
+  merge as mergeArray,
   hasItem,
   lastItem,
   removeItem,
@@ -49,6 +45,7 @@ import {
   patch,
 } from './dom/vdom'
 
+// 四个内建指令，其他指令通过扩展实现
 import lazy from './directive/lazy'
 import event from './directive/event'
 import model from './directive/model'
@@ -88,30 +85,27 @@ export default class Cola {
   /**
    * 配置项
    *
+   * @constructor
    * @param {Object} options
    * @property {string|HTMLElement} options.el
    * @property {string} options.template
-   * @property {Object} options.data
-   * @return {Object}
+   * @property {Object|Function} options.data
    */
   constructor(options) {
 
-    this.$components = options.components
-    this.$methods = options.methods
-
-    let el = isString(options.el) ? find(options.el) : options.el
-    if (!el || el.nodeType !== 1) {
-      throw new Error('el is not a element.')
-    }
+    this.$components = objectExtend({}, options.components)
+    this.$methods = objectExtend({}, options.methods)
 
     this.$data = isFunction(options.data) ? options.data.call(this) : options.data
-
     this.$directives = objectExtend({}, Cola.directives, options.directives)
     this.$filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
     this.$partials = objectExtend({}, Cola.partials, options.partials)
 
     // 把计算属性拆为 getter 和 setter
+    let $computedGetters =
     this.$computedGetters = { }
+
+    let $computedSetters =
     this.$computedSetters = { }
 
     // 存储计算属性的值，提升性能
@@ -130,96 +124,104 @@ export default class Cola {
     this.$computedDeps = { }
 
     if (isObject(options.computed)) {
-      objectEach(options.computed, (item, keypath) => {
-        let get, set, cache = true
-        if (isFunction(item)) {
-          get = item
-        }
-        else if (isObject(item)) {
-          if ('cache' in item) {
-            cache = item.cache
+      objectEach(
+        options.computed,
+        (item, keypath) => {
+          let get, set, cache = true
+          if (isFunction(item)) {
+            get = item
           }
-          if (isFunction(item.get)) {
-            get = item.get
+          else if (isObject(item)) {
+            if (objectHas(item, 'cache')) {
+              cache = item.cache
+            }
+            if (isFunction(item.get)) {
+              get = item.get
+            }
+            if (isFunction(item.set)) {
+              set = item.set
+            }
           }
-          if (isFunction(item.set)) {
-            set = item.set
-          }
-        }
 
-        if (get) {
-          let getter = () => {
+          if (get) {
+            let getter = () => {
 
-            if (cache && keypath in $computedCache) {
-              return $computedCache[keypath]
-            }
-
-            // 新推一个依赖收集数组
-            $computedStack.push([])
-            let result = get.call(this)
-
-            // 处理收集好的依赖
-            let newDeps = $computedStack.pop()
-            let oldDeps = $computedDeps[keypath]
-            $computedDeps[keypath] = newDeps
-
-            // 增加了哪些依赖，删除了哪些依赖
-            let addedDeps = [], removedDeps = []
-            if (isArray(oldDeps)) {
-              merge(oldDeps, newDeps)
-              .forEach(function (dep) {
-                let oldExisted = hasItem(oldDeps, dep)
-                let newExisted = hasItem(newDeps, dep)
-                if (oldExisted && !newExisted) {
-                  removedDeps.push(dep)
-                }
-                else if (!oldExisted && newExisted) {
-                  addedDeps.push(dep)
-                }
-              })
-            }
-            else {
-              addedDeps = newDeps
-            }
-
-            addedDeps.forEach(function (dep) {
-              if (!isArray($computedWatchers[dep])) {
-                $computedWatchers[dep] = []
+              if (cache && objectHas($computedCache, keypath)) {
+                return $computedCache[keypath]
               }
-              $computedWatchers[dep].push(keypath)
-            })
 
-            removedDeps.forEach(function (dep) {
-              removeItem($computedWatchers[dep], keypath)
-            })
+              // 新推一个依赖收集数组
+              $computedStack.push([])
+              let result = get.call(this)
 
-            // 获取 oldValue 还有用
-            $computedCache[keypath] = result
+              // 处理收集好的依赖
+              let newDeps = $computedStack.pop()
+              let oldDeps = $computedDeps[keypath]
+              $computedDeps[keypath] = newDeps
 
-            return result
+              // 增加了哪些依赖，删除了哪些依赖
+              let addedDeps = []
+              let removedDeps = []
+              if (isArray(oldDeps)) {
+                mergeArray(oldDeps, newDeps)
+                .forEach(function (dep) {
+                  let oldExisted = hasItem(oldDeps, dep)
+                  let newExisted = hasItem(newDeps, dep)
+                  if (oldExisted && !newExisted) {
+                    removedDeps.push(dep)
+                  }
+                  else if (!oldExisted && newExisted) {
+                    addedDeps.push(dep)
+                  }
+                })
+              }
+              else {
+                addedDeps = newDeps
+              }
+
+              addedDeps.forEach(function (dep) {
+                if (!isArray($computedWatchers[dep])) {
+                  $computedWatchers[dep] = []
+                }
+                $computedWatchers[dep].push(keypath)
+              })
+
+              removedDeps.forEach(function (dep) {
+                removeItem($computedWatchers[dep], keypath)
+              })
+
+              // 不论是否开启 computed cache，获取 oldValue 时还有用
+              // 因此要存一下
+              $computedCache[keypath] = result
+
+              return result
+            }
+            // 当模板读取计算属性时，可通过 toString 求值
+            // 省的写一堆乱七八糟的判断逻辑
+            getter.toString = getter
+            $computedGetters[keypath] = getter
           }
-          // 当模板读取计算属性时，可通过 toString 求值
-          // 省的写一堆乱七八糟的判断逻辑
-          getter.toString = getter
-          this.$computedGetters[keypath] = getter
-        }
 
-        if (set) {
-          this.$computedSetters[keypath] = set.bind(this)
-        }
+          if (set) {
+            $computedSetters[keypath] = set.bind(this)
+          }
 
-      })
+        }
+      )
     }
 
     // 监听各种事件
     this.$eventEmitter = new Emitter()
 
-    objectEach(lifecycle, name => {
-      let listener = options[`on${name}`]
-      if (isFunction(listener)) {
-        this.on(name, listener)
+    objectEach(
+      lifecycle,
+      name => {
+        let listener = options[`on${name}`]
+        if (isFunction(listener)) {
+          this.on(name, listener)
+        }
       }
-    })
+    )
 
     // 监听数据变化
     this.$watchEmitter = new Emitter()
@@ -233,6 +235,7 @@ export default class Cola {
       )
     }
 
+    // 准备就绪
     this.fire(lifecycle.CREATE)
 
     // 编译模板
@@ -242,7 +245,7 @@ export default class Cola {
       name => {
         let config = this.$components[name]
         if (!config) {
-          return new Error(`${name} component is not existed.`)
+          throw new Error(`${name} component is not existed.`)
         }
         return function (el) {
           return new Cola({
@@ -255,7 +258,7 @@ export default class Cola {
       name => {
         let partial = this.$partials[name]
         if (!partial) {
-          return new Error(`${name} partial is not existed.`)
+          throw new Error(`${name} partial is not existed.`)
         }
         return partial
       },
@@ -266,18 +269,20 @@ export default class Cola {
 
     this.fire(lifecycle.COMPILE)
 
+
+    let el = isString(options.el) ? find(options.el) : options.el
+    if (!el || el.nodeType !== 1) {
+      throw new Error('el is not a element.')
+    }
+
     // 触发 compile 事件之后再给 $el 赋值
     // 避免有些人在 oncompile 就误以为可以操作 el 了
     if (!options.replace) {
       el.innerHTML = '<div></div>'
       el = el.firstChild
-      this.$el = el
-    }
-    else {
-      this.$el = el
     }
 
-    this.updateView()
+    this.updateView(el)
 
   }
 
@@ -384,7 +389,7 @@ export default class Cola {
             wildcardKeypath => {
               $watchEmitter.fire(
                 wildcardKeypath,
-                merge(args, getWildcardNames(keypath, wildcardKeypath)),
+                mergeArray(args, getWildcardNames(keypath, wildcardKeypath)),
                 this
               )
             }
@@ -396,10 +401,9 @@ export default class Cola {
 
   }
 
-  updateView() {
+  updateView(el) {
 
     let {
-      $el,
       $data,
       $filters,
       $parser,
@@ -425,7 +429,8 @@ export default class Cola {
       this.fire(lifecycle.UDPATE)
     }
     else {
-      this.$currentNode = patch($el, newNode)
+      this.$currentNode = patch(el, newNode)
+      this.$el = this.$currentNode.elm
       this.fire(lifecycle.ATTACH)
     }
 
