@@ -2,19 +2,23 @@
 
 [![Build Status](https://travis-ci.org/musicode/cola.svg?branch=master)](https://travis-ci.org/musicode/cola) [![Coverage Status](https://coveralls.io/repos/github/musicode/cola/badge.svg)](https://coveralls.io/github/musicode/cola)
 
-从面向未来和移动优先的考虑，Cola 采用 ES6 编写。
+全新的 MVVM Web 端框架，灵感来自 Ractive 和 Vue。
+
+> 暂无服务器渲染的开发计划
 
 ## Why
 
 在我看来，一个好的框架要满足以下几点要求：
 
 * 简单易学，上手成本低
-* 核心精简，方便扩展
-* 兼容尽可能多的浏览器
+* 核心精简，扩展方便
 * 体积尽可能小
-* 性能的下限是不影响用户体验，性能上限看缘分
+* 在不膨胀体积的前提下，兼容尽可能多的浏览器
+* 性能下限是不影响用户体验，性能上限看缘分，不做跑分党
 
-## 低端浏览器适配
+## 低版本浏览器
+
+从面向未来的考虑，我们采用了 ES6 编写。
 
 为了适配低版本浏览器，需要实现以下几个的 ES5 方法：
 
@@ -28,12 +32,14 @@
 * Array.prototype.reduce
 * Function.prototype.bind
 
+> 理论上兼容 IE6
+
 ## 结构
 
 ```javascript
 new Cola({
-    el: '',
-    template: '',
+    el: '元素或选择器',
+    template: '组件模板',
     data: {},
     computed: {},
     watchers: {},
@@ -48,6 +54,10 @@ new Cola({
     ondetach: function,
 })
 ```
+
+## 生命周期
+
+create -> compile -> attach -> update -> detach
 
 ## 模板
 
@@ -149,18 +159,19 @@ new Cola({
 
 ## 表达式
 
-Cola 中的表达式符合 js 语法，并无扩展。
+我们设计了一个简单的符合 js 语法的表达式引擎，支持一元、二元和三目运算符。
 
-为了限制复杂度，我们限定只能使用一元、二元和三目运算符。
+表达式最后通过 `new Function` 的机制运行，因此表达式中不能出现不符合 js 语法的内容，如变量名不能是 `@name`。
 
-为了满足扩展的需求（比如过滤器），我们实现了函数调用。
+表示式支持函数调用，和大部分框架不同的是，我们不支持调用全局函数，如 `parseInt`、`Math.random` 等函数。
 
+函数必须通过 filters 注册到组件中才能使用。
 
 ## 须知
 
 ### html 属性必须有引号
 
-为了项目的代码风格保持一致，html 属性值必须有引号。
+为了项目的代码风格保持一致，html 属性值**必须**有引号。
 
 建议使用双引号，但在某些特殊场景下，如属性值带有双引号，可使用单引号。
 
@@ -179,6 +190,7 @@ Cola 中的表达式符合 js 语法，并无扩展。
 
 是否以 `/>` 结尾不是必须的，项目可自行决定（反正都无视）。
 
+> 不能写成 `<AppHeader prop="value"></AppHeader>`
 > 虽然 html 标签大小写不敏感，但是作为一个专业的前端，`<div>` 非要写成 `<DIV>`，那只能说我们不合适。
 
 ### 组件必须有一个根元素
@@ -207,6 +219,8 @@ Cola 中的表达式符合 js 语法，并无扩展。
 {{/if}}
 ```
 
-### 用户的使用常识
+### 基本常识
 
-我们假定用户有基本常识，如 IE8- 不能用 svg，用户需要对自己的行为负责。
+我们假定用户是理性的，是有基本常识的，如 IE8- 不能用 SVG。
+
+我们认为常识类报错是无意义的，徒增代码体积。
