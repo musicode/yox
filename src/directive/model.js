@@ -14,11 +14,12 @@ export default {
 
     let { lazy } = directives
     if (lazy) {
-      if (lazy.value === true) {
+      let value = lazy.node.getValue()
+      if (value === true) {
         type = 'change'
       }
-      else if (lazy.value >= 0) {
-        interval = lazy.value
+      else if (value >= 0) {
+        interval = value
       }
     }
 

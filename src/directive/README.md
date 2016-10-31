@@ -16,6 +16,6 @@
 {
   el: 'DOM 元素',
   node: '指令对应的语法树节点',
-  component: '组件实例',
+  component: '组件实例'
 }
 ```

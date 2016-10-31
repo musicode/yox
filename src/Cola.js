@@ -45,7 +45,8 @@ import {
   patch,
 } from './dom/vdom'
 
-// 四个内建指令，其他指令通过扩展实现
+// 5 个内建指令，其他指令通过扩展实现
+import ref from './directive/ref'
 import lazy from './directive/lazy'
 import event from './directive/event'
 import model from './directive/model'
@@ -66,7 +67,7 @@ export default class Cola {
    *
    * @type {Object}
    */
-  static directives = { lazy, event, model, component }
+  static directives = { ref, lazy, event, model, component }
 
   /**
    * 全局过滤器
@@ -96,7 +97,13 @@ export default class Cola {
     this.$components = objectExtend({}, options.components)
     this.$methods = objectExtend({}, options.methods)
 
-    this.$data = isFunction(options.data) ? options.data.call(this) : options.data
+    let data = isFunction(options.data) ? options.data.call(this) : options.data
+    if (isObject(options.props)) {
+      objectExtend(data, options.props)
+    }
+    this.$data = data
+
+    // 这里貌似不应该 copy 到实例，否则后续内容占用会很大？
     this.$directives = objectExtend({}, Cola.directives, options.directives)
     this.$filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
     this.$partials = objectExtend({}, Cola.partials, options.partials)
@@ -247,11 +254,11 @@ export default class Cola {
         if (!config) {
           throw new Error(`${name} component is not existed.`)
         }
-        return function (el) {
+        return function (extra) {
           return new Cola({
             ...config,
+            ...extra,
             replace: true,
-            el,
           })
         }
       },

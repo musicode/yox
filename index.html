@@ -24,13 +24,20 @@
             let Custom = {
                 template: `
                     <div id="custom-component">
-                        {{title}}
-                        <button on-click="click()">click</button>
+                        <ul>
+                            <li>title: {{title}}</li>
+                            <li>name: {{name}}</li>
+                        </ul>
+                        <button on-click="click()">
+                            click
+                        </button>
                     </div>
                 `,
                 data: function () {
                     return {
-                        title: 'custom component'
+                        title: 'custom component',
+                        // 外部传入
+                        name: ''
                     };
                 },
                 methods: {
@@ -96,7 +103,7 @@
                     <button on-click="add()" style="font-weight: bold">
                         add
                     </button>
-                    <input type="text" @model="name" @lazy>
+                    <input type="text" @model="name" @lazy="200">
                     {{formatDate(date)}}
                     <h1>
                         {{welcome}}
@@ -111,7 +118,7 @@
                     </ul>
                     {{/if}}
                     {{#if counter % 2 === 0}}
-                        <Custom />
+                        <Custom @ref="custom" name="{{name}}" />
                     {{/if}}
                   </div>
                 `,
