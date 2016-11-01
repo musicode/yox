@@ -76,20 +76,6 @@ export function create(node, component) {
         let directives = { }
         let styles
 
-        let isRootElement = !counter
-
-        each(
-          node.getAttributes(),
-          function (value, key) {
-            if (key === 'style') {
-              styles = parseStyle(value)
-            }
-            else {
-              attrs[key] = value
-            }
-          }
-        )
-
         node.directives.forEach(function (node) {
           let { name } = node
 
@@ -111,11 +97,25 @@ export function create(node, component) {
           directives[name] = { node, directive }
         })
 
+        // 组件的 attrs 作为 props 传入组件，不需要写到元素上
         if (isFunction(node.create)) {
           directives.component = {
             node,
             directive: $directives.component,
           }
+        }
+        else {
+          each(
+            node.getAttributes(),
+            function (value, key) {
+              if (key === 'style') {
+                styles = parseStyle(value)
+              }
+              else {
+                attrs[key] = value
+              }
+            }
+          )
         }
 
         let data = { attrs }
@@ -125,7 +125,7 @@ export function create(node, component) {
         }
 
         let hasDirective = count(directives)
-        if (isRootElement || hasDirective) {
+        if (!counter || hasDirective) {
           let notify = function (vnode, type) {
             if (hasDirective) {
               each(
