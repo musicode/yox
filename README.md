@@ -87,7 +87,7 @@ new Cola({
 在下面的表达式中会介绍，我们实现的表达式引擎必须符合 js 语法，延展操作符在低版本浏览器无法运行，如果运用在元素属性上，又涉及转换，反而不如以下代码来的简单直接：
 
 ```html
-<Component{{#each props:key}} {{key}}={{this}}{{/each}} />
+<Component{{#each props:key}} {{key}}="{{this}}"{{/each}} />
 ```
 
 ## 模板
