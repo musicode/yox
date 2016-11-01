@@ -43,6 +43,7 @@
                 },
                 click: function () {
                     console.log(this, 'click');
+                    this.fire('click', { name: 'component' });
                 },
                 oncreate: function (e) {
                     console.log('  ', this, 'create', e);
@@ -104,7 +105,7 @@
                           link
                       </a>
                       {{#if counter % 2 === 0}}
-                          <Custom @ref="custom"{{#each user:key}} {{key}}="{{this}}"{{/each}}/>
+                          <Custom @ref="custom"{{#each user:key}} {{key}}="{{this}}"{{/each}} on-click="clickFromComponent($event)"/>
                       {{/if}}
                   </div>
                 `,
@@ -133,8 +134,8 @@
                         this.get('counter') + 1
                     );
                 },
-                valueChange: function (event) {
-                    console.log(event)
+                clickFromComponent: function (event) {
+                    console.log('clickFromComponent', event);
                 },
                 oncreate: function (e) {
                     console.log(this, 'create', e);

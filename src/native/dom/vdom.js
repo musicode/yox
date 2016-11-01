@@ -13,7 +13,6 @@ import {
 
 import {
   each,
-  count,
 } from '../../util/object'
 
 import {
@@ -73,8 +72,36 @@ export function create(node, component) {
       if (node.type === ELEMENT) {
 
         let attrs = { }
-        let directives = { }
         let styles
+
+        let directives = [ ]
+
+        // 指令的创建要确保顺序
+        // 组件必须第一个执行
+        // 因为如果在组件上写了 on-click="xx" 其实是监听从组件 fire 出的 click 事件
+        // 因此 component 必须在 event 指令之前执行
+
+        // 组件的 attrs 作为 props 传入组件，不需要写到元素上
+        if (isFunction(node.create)) {
+          directives.push({
+            name: 'component',
+            node,
+            directive: $directives.component,
+          })
+        }
+        else {
+          each(
+            node.getAttributes(),
+            function (value, key) {
+              if (key === 'style') {
+                styles = parseStyle(value)
+              }
+              else {
+                attrs[key] = value
+              }
+            }
+          )
+        }
 
         node.directives.forEach(function (node) {
           let { name } = node
@@ -94,29 +121,12 @@ export function create(node, component) {
             throw new Error(`${directiveName} directive is not existed.`)
           }
 
-          directives[name] = { node, directive }
-        })
-
-        // 组件的 attrs 作为 props 传入组件，不需要写到元素上
-        if (isFunction(node.create)) {
-          directives.component = {
+          directives.push({
+            name,
             node,
-            directive: $directives.component,
-          }
-        }
-        else {
-          each(
-            node.getAttributes(),
-            function (value, key) {
-              if (key === 'style') {
-                styles = parseStyle(value)
-              }
-              else {
-                attrs[key] = value
-              }
-            }
-          )
-        }
+            directive,
+          })
+        })
 
         let data = { attrs }
 
@@ -124,24 +134,19 @@ export function create(node, component) {
           data.style = styles
         }
 
-        let hasDirective = count(directives)
-        if (!counter || hasDirective) {
+        if (!counter || directives.length) {
           let notify = function (vnode, type) {
-            if (hasDirective) {
-              each(
-                directives,
-                function (item) {
-                  if (isFunction(item.directive[type])) {
-                    item.directive[type]({
-                      el: vnode.elm,
-                      node: item.node,
-                      component,
-                      directives,
-                    })
-                  }
-                }
-              )
-            }
+            directives.forEach(function (item) {
+              if (isFunction(item.directive[type])) {
+                item.directive[type]({
+                  el: vnode.elm,
+                  node: item.node,
+                  name: item.name,
+                  component,
+                  directives,
+                })
+              }
+            })
           }
 
           data.hook = {

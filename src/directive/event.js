@@ -24,15 +24,14 @@ import {
 import * as syntax from '../config/syntax'
 
 export default {
-  attach: function({el, node, component}) {
 
-    let name = node.name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
-    let listener = `$${name}`
+  attach: function({ el, name, node, component }) {
 
+    let listener
     let ast = parse(node.getValue())
 
     if (ast.type === CALL) {
-      el[listener] = function (e) {
+      listener = function (e) {
         let args = [
           ...ast.arguments,
         ]
@@ -62,20 +61,34 @@ export default {
       }
     }
     else if (ast.type === IDENTIFIER) {
-      el[listener] = function () {
+      listener = function () {
         component.fire(ast.name)
       }
     }
 
-    if (el[listener]) {
-      on(el, name, el[listener])
+    if (listener) {
+      let { $component } = el
+      if ($component) {
+        $component.on(name, listener)
+      }
+      else {
+        on(el, name, listener)
+      }
+      el[`$${name}`] = listener
     }
+
   },
-  detach: function ({el, node}) {
-    let name = node.name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
+
+  detach: function ({ el, name, node }) {
     let listener = `$${name}`
     if (el[listener]) {
-      off(el, name, el[listener])
+      let { $component } = el
+      if ($component) {
+        $component.off(name, el[listener])
+      }
+      else {
+        off(el, name, el[listener])
+      }
       el[listener] = null
     }
   }

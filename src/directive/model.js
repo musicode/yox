@@ -8,13 +8,18 @@ import debounce from '../function/debounce'
 
 export default {
 
-  attach: function ({el, node, component, directives}) {
+  attach: function ({ el, node, component, directives }) {
 
-    let type = 'input', interval
+    let type = 'input', interval, value
 
-    let { lazy } = directives
-    if (lazy) {
-      let value = lazy.node.getValue()
+    let lazyDirective = directives.filter(
+      function (item) {
+        return item.name === 'lazy'
+      }
+    )[0]
+
+    if (lazyDirective) {
+      value = lazyDirective.node.getValue()
       if (value === true) {
         type = 'change'
       }
@@ -23,7 +28,9 @@ export default {
       }
     }
 
-    let keypath = node.keypath ? `${node.keypath}.${node.getValue()}` : node.getValue()
+    value = node.getValue()
+
+    let keypath = node.keypath ? `${node.keypath}.${value}` : value
     el.value = component.get(keypath)
 
     component.watch(keypath, function (value) {
@@ -47,7 +54,7 @@ export default {
 
   },
 
-  detach: function ({el}) {
+  detach: function ({ el }) {
     let { $model } = el
     off(el, $model.type, $model.listener)
     el.$model = null
