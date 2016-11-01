@@ -444,8 +444,8 @@ export default class Cola {
 
   }
 
-  dispose() {
-
+  detach() {
+    this.fire(lifecycle.DETACH)
   }
 
 }
@@ -460,5 +460,6 @@ export default class Cola {
  * 6. 需要转义的文本节点如果出现在属性值里，是否需要 encode
  * 7. 数组方法的劫持（不需要劫持，改完再 set 即可）
  * 8. 属性延展
- * 9. SEO友好
+ * 9. 报错信息完善
+ * 10. SEO友好
  */

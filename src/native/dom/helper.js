@@ -18,8 +18,10 @@ import {
 
 import camelCase from '../../function/camelCase'
 
+let isModernBrowser = doc.addEventListener
+
 // 处理底层的事件函数
-let nativeAddEventListener = doc.addEventListener
+let nativeAddEventListener = isModernBrowser
  ? function (element, type, listener) {
    element.addEventListener(type, listener, false)
  }
@@ -27,13 +29,45 @@ let nativeAddEventListener = doc.addEventListener
    element.attachEvent(`on$(type)`, listener)
  }
 
-let nativeRemoveEventListener = doc.removeEventListener
+let nativeRemoveEventListener = isModernBrowser
  ? function (element, type, listener) {
    element.removeEventListener(type, listener, false)
  }
  : function (element, type, listener) {
    element.detachEvent(`on$(type)`, listener)
  }
+
+class IEEvent {
+
+  constructor(event, element) {
+
+    Object.assign(this, event)
+
+    this.currentTarget = element
+    this.target = event.srcElement || element
+    this.originalEvent = event
+
+  }
+
+  preventDefault() {
+   this.originalEvent.returnValue = false
+  }
+
+  stopPropagation() {
+    this.originalEvent.cancelBubble = true
+  }
+
+}
+
+// 把 IE 事件模拟成标准事件
+let createEvent = isModernBrowser
+  ? function (event) {
+    return event
+  }
+  : function (event, element) {
+    return IEEvent(event, element)
+  }
+
 
 /**
  * 绑定事件
@@ -46,7 +80,7 @@ export function on(element, type, listener) {
   let $emitter = element.$emitter || (element.$emitter = new Emitter())
   if (!$emitter.has(type)) {
     let nativeListener = function (e) {
-      let event = new Event(e)
+      let event = new Event(createEvent(e, element))
       $emitter.fire(event.type, [event])
     }
     $emitter[type] = nativeListener
@@ -88,6 +122,12 @@ export function find(selector, context = doc) {
   return context.querySelector(selector)
 }
 
+/**
+ * 把 style-name: value 解析成对象的形式
+ *
+ * @param {string} str
+ * @return {Object}
+ */
 export function parseStyle(str) {
   let result = { }
 

@@ -12,7 +12,7 @@ export default {
   },
 
   detach: function ({ el, name, component }) {
-    el.$component.dispose()
+    el.$component.detach()
     el.$component = null
   }
 

@@ -25,18 +25,25 @@ export class Event {
     else {
       this.type = event
     }
-    this.isDefaultPrevented = false
-    this.isPropagationStoped = false
+    this.timestamp = Date.now()
   }
 
   preventDefault() {
     if (!this.isDefaultPrevented) {
+      let { originalEvent } = this
+      if (originalEvent && isFunction(originalEvent.preventDefault)) {
+        originalEvent.preventDefault()
+      }
       this.isDefaultPrevented = true
     }
   }
 
   stopPropagation() {
     if (!this.isPropagationStoped) {
+      let { originalEvent } = this
+      if (originalEvent && isFunction(originalEvent.stopPropagation)) {
+        originalEvent.stopPropagation()
+      }
       this.isPropagationStoped = true
     }
   }
@@ -57,9 +64,6 @@ export class Emitter {
 
   once(type, listener) {
     let me = this
-    // 为了避免 has(type, listener)
-    // 这里不改写 listener
-    // 而是在 listener 上面加一个属性
     listener.$once = function () {
       me.off(type, listener)
       delete listener.$once
@@ -95,12 +99,26 @@ export class Emitter {
     if (isArray(list)) {
       eachArray(list, function (listener) {
         let result = listener.apply(context, data)
+
         let { $once } = listener
         if (isFunction($once)) {
           $once()
         }
+
+        // 如果没有返回 false，而是调用了 event.stopPropagation 也算是返回 false
+        let event = data[0]
+        if (event && event instanceof Event) {
+          if (result === false) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+          else if (event.isPropagationStoped) {
+            result = false
+          }
+        }
+
         if (result === false) {
-          return false
+          return result
         }
       })
     }

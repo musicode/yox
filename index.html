@@ -29,7 +29,7 @@
                             <li>name: {{name}}</li>
                             <li>age: {{age}}</li>
                         </ul>
-                        <button on-click="click()">
+                        <button on-click="click($event)">
                             click
                         </button>
                     </div>
@@ -41,8 +41,8 @@
                         name: ''
                     };
                 },
-                click: function () {
-                    console.log(this, 'click');
+                click: function (event) {
+                    console.log(this, 'click', event);
                     this.fire('click', { name: 'component' });
                 },
                 oncreate: function (e) {
