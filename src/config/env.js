@@ -13,7 +13,7 @@ import {
  *
  * @type {boolean}
  */
-export const isDebug = true
+export const debug = true
 
 /**
  * 是否在浏览器运行
@@ -64,7 +64,7 @@ const hasConsole = typeof console !== 'undefined' && isFunction(console.log)
  * @param {string} tpl
  * @param {?*} ...args
  */
-export const log = isDebug && hasConsole
+export const log = debug && hasConsole
   ? function (tpl, ...args) {
     console.log(print(tpl, ...args))
   }
@@ -76,7 +76,7 @@ export const log = isDebug && hasConsole
  * @param {string} tpl
  * @param {?*} ...args
  */
-export const warn = isDebug && hasConsole
+export const warn = debug && hasConsole
   ? function (tpl, ...args) {
     console.warn(tpl)
   }

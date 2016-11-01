@@ -23,7 +23,7 @@ import {
 } from './util/object'
 
 import {
-  merge as mergeArray,
+  merge,
   hasItem,
   lastItem,
   removeItem,
@@ -94,47 +94,49 @@ export default class Cola {
    */
   constructor(options) {
 
-    Object.assign(this, options)
+    let instance = this
 
-    this.$components = objectExtend({}, options.components)
+    Object.assign(instance, options)
 
-    let data = isFunction(options.data) ? options.data.call(this) : options.data
+    instance.$components = objectExtend({}, options.components)
+
+    let data = isFunction(options.data) ? options.data.call(instance) : options.data
     if (isObject(options.props)) {
       objectExtend(data, options.props)
     }
-    this.$data = data
+    instance.$data = data
 
     // 这里貌似不应该 copy 到实例，否则后续内容占用会很大？
-    this.$directives = objectExtend({}, Cola.directives, options.directives)
-    this.$filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), this)
-    this.$partials = objectExtend({}, Cola.partials, options.partials)
+    instance.$directives = objectExtend({}, Cola.directives, options.directives)
+    instance.$filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), instance)
+    instance.$partials = objectExtend({}, Cola.partials, options.partials)
 
     // 把计算属性拆为 getter 和 setter
     let $computedGetters =
-    this.$computedGetters = { }
+    instance.$computedGetters = { }
 
     let $computedSetters =
-    this.$computedSetters = { }
+    instance.$computedSetters = { }
 
     // 存储计算属性的值，提升性能
     let $computedCache =
-    this.$computedCache = { }
+    instance.$computedCache = { }
 
     // 辅助获取计算属性的依赖
     let $computedStack =
-    this.$computedStack = [ ]
+    instance.$computedStack = [ ]
     // 计算属性的依赖关系
     // dep => [ computed1, computed2, ... ]
     let $computedWatchers =
-    this.$computedWatchers = { }
+    instance.$computedWatchers = { }
     // computed => [ dep1, dep2, ... ]
     let $computedDeps =
-    this.$computedDeps = { }
+    instance.$computedDeps = { }
 
     if (isObject(options.computed)) {
       objectEach(
         options.computed,
-        (item, keypath) => {
+        function (item, keypath) {
           let get, set, cache = true
           if (isFunction(item)) {
             get = item
@@ -160,7 +162,7 @@ export default class Cola {
 
               // 新推一个依赖收集数组
               $computedStack.push([])
-              let result = get.call(this)
+              let result = get.call(instance)
 
               // 处理收集好的依赖
               let newDeps = $computedStack.pop()
@@ -171,7 +173,7 @@ export default class Cola {
               let addedDeps = []
               let removedDeps = []
               if (isArray(oldDeps)) {
-                mergeArray(oldDeps, newDeps)
+                merge(oldDeps, newDeps)
                 .forEach(function (dep) {
                   let oldExisted = hasItem(oldDeps, dep)
                   let newExisted = hasItem(newDeps, dep)
@@ -211,7 +213,7 @@ export default class Cola {
           }
 
           if (set) {
-            $computedSetters[keypath] = set.bind(this)
+            $computedSetters[keypath] = set.bind(instance)
           }
 
         }
@@ -219,39 +221,39 @@ export default class Cola {
     }
 
     // 监听各种事件
-    this.$eventEmitter = new Emitter()
+    instance.$eventEmitter = new Emitter()
 
     objectEach(
       lifecycle,
       name => {
         let listener = options[`on${name}`]
         if (isFunction(listener)) {
-          this.on(name, listener)
+          instance.on(name, listener)
         }
       }
     )
 
     // 监听数据变化
-    this.$watchEmitter = new Emitter()
+    instance.$watchEmitter = new Emitter()
 
     if (isObject(options.watchers)) {
       objectEach(
         options.watchers,
         (watcher, keypath) => {
-          this.watch(keypath, watcher)
+          instance.watch(keypath, watcher)
         }
       )
     }
 
     // 准备就绪
-    this.fire(lifecycle.CREATE)
+    instance.fire(lifecycle.CREATE)
 
     // 编译模板
-    this.$parser = new Mustache()
-    this.$templateAst = this.$parser.parse(
+    instance.$parser = new Mustache()
+    instance.$templateAst = instance.$parser.parse(
       options.template,
       name => {
-        let config = this.$components[name]
+        let config = instance.$components[name]
         if (!config) {
           throw new Error(`${name} component is not existed.`)
         }
@@ -264,18 +266,18 @@ export default class Cola {
         }
       },
       name => {
-        let partial = this.$partials[name]
+        let partial = instance.$partials[name]
         if (!partial) {
           throw new Error(`${name} partial is not existed.`)
         }
         return partial
       },
       (name, node) => {
-        this.$partials[name] = node
+        instance.$partials[name] = node
       }
     )
 
-    this.fire(lifecycle.COMPILE)
+    instance.fire(lifecycle.COMPILE)
 
 
     let el = isString(options.el) ? find(options.el) : options.el
@@ -290,7 +292,7 @@ export default class Cola {
       el = el.firstChild
     }
 
-    this.updateView(el)
+    instance.updateView(el)
 
   }
 
@@ -360,16 +362,18 @@ export default class Cola {
     let setter
     let oldValue
 
+    let instance = this
+
     let {
       $data,
       $watchEmitter,
       $computedCache,
       $computedWatchers,
       $computedSetters,
-    } = this
+    } = instance
 
-    objectEach(model, (value, keypath) => {
-      oldValue = this.get(keypath)
+    objectEach(model, function (value, keypath) {
+      oldValue = instance.get(keypath)
       if (value !== oldValue) {
         changes[keypath] = [ value, oldValue ]
         setter = $computedSetters[keypath]
@@ -392,13 +396,13 @@ export default class Cola {
     if (objectCount(changes)) {
       objectEach(
         changes,
-        (args, keypath) => {
+        function (args, keypath) {
           getWildcardMatches(keypath).forEach(
             wildcardKeypath => {
               $watchEmitter.fire(
                 wildcardKeypath,
-                mergeArray(args, getWildcardNames(keypath, wildcardKeypath)),
-                this
+                merge(args, getWildcardNames(keypath, wildcardKeypath)),
+                instance
               )
             }
           )
@@ -411,6 +415,8 @@ export default class Cola {
 
   updateView(el) {
 
+    let instance = this
+
     let {
       $data,
       $filters,
@@ -418,29 +424,29 @@ export default class Cola {
       $templateAst,
       $currentNode,
       $computedGetters,
-    } = this
-
-    let context = {
-      ...$data,
-      ...$filters,
-      ...$computedGetters,
-      [syntax.SPECIAL_KEYPATH]: '',
-    }
+    } = instance
 
     let newNode = create(
-      $parser.render($templateAst, context),
-      this
+      $parser.render($templateAst, {
+        ...$data,
+        ...$filters,
+        ...$computedGetters,
+        [syntax.SPECIAL_KEYPATH]: '',
+      }),
+      instance
     )
 
     if ($currentNode) {
-      this.$currentNode = patch($currentNode, newNode)
-      this.fire(lifecycle.UDPATE)
+      $currentNode = patch($currentNode, newNode)
+      instance.fire(lifecycle.UDPATE)
     }
     else {
-      this.$currentNode = patch(el, newNode)
-      this.$el = this.$currentNode.elm
-      this.fire(lifecycle.ATTACH)
+      $currentNode = patch(el, newNode)
+      instance.$el = $currentNode.elm
+      instance.fire(lifecycle.ATTACH)
     }
+
+    instance.$currentNode = $currentNode
 
   }
 
