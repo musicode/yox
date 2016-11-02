@@ -213,25 +213,9 @@ export function parse(template, getComponent, getPartial, setPartial) {
     return templateParseCache[template]
   }
 
-  let rootNode = new Element(rootName)
-
-  let currentNode = rootNode
-  let lastNode
-  let node
-
-  let mainScanner = new Scanner(template)
-  let helperScanner = new Scanner()
-
-  let name
-  let content
-
-  let isComponent
-  let isDirective
-  let isAttributesParsing
-
-  let match
-  let errorPos
-
+  let mainScanner = new Scanner(template), helperScanner = new Scanner()
+  let rootNode = new Element(rootName), currentNode = rootNode, lastNode, node
+  let name, value, content, isComponent, isDirective, isAttributesParsing, match, errorPos
   let nodeStack = []
 
   let pushStack = function (node) {
@@ -334,9 +318,10 @@ export function parse(template, getComponent, getPartial, setPartial) {
             // 当前属性的属性值是字面量结尾
             if (currentNode.children.length) {
               if (match = content.match(attributeSuffixPattern)) {
-                if (match[1]) {
+                value = match[1]
+                if (value) {
                   addChild(
-                    new Text(match[1])
+                    new Text(value)
                   )
                 }
                 content = content.replace(attributeSuffixPattern, '')
@@ -362,6 +347,8 @@ export function parse(template, getComponent, getPartial, setPartial) {
               content = content.substr(match.index + match[0].length)
 
               name = match[1]
+              value = match[3]
+
               isDirective = name.startsWith(syntax.DIRECTIVE_PREFIX)
                 || name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
 
@@ -371,9 +358,9 @@ export function parse(template, getComponent, getPartial, setPartial) {
                 : new Attribute(name)
               )
 
-              if (isString(match[3])) {
+              if (isString(value)) {
                 addChild(
-                  new Text(match[3])
+                  new Text(value)
                 )
                 // 剩下的只可能是引号了
                 if (content) {
@@ -463,8 +450,12 @@ export function parse(template, getComponent, getPartial, setPartial) {
       name = content.substr(1)
       isComponent = pattern.componentName.test(name)
 
+      // 低版本浏览器不支持自定义标签，因此需要转成 div
       addChild(
-        new Element(isComponent ? 'div' : name, isComponent && getComponent(name))
+        new Element(
+          isComponent ? 'div' : name,
+          isComponent && getComponent(name)
+        )
       )
 
       // 截取 <name 和 > 之间的内容
