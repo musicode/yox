@@ -16,11 +16,11 @@ import {
  */
 module.exports = class Element extends Node {
 
-  constructor(name, create) {
+  constructor(name, custom) {
     super()
     this.type = ELEMENT
     this.name = name
-    this.create = create
+    this.custom = custom
     this.attrs = []
     this.directives = []
   }
@@ -46,7 +46,7 @@ module.exports = class Element extends Node {
 
   render(parent, context, keys, parseTemplate) {
 
-    let node = new Element(this.name, this.create)
+    let node = new Element(this.name, this.custom)
     node.keypath = keys.join('.')
     parent.addChild(node)
 

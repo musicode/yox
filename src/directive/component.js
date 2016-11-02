@@ -1,10 +1,21 @@
 
 import * as lifecycle from '../config/lifecycle'
 
+import {
+  get,
+} from '../util/component'
+
+import Cola from '../Cola'
+
 module.exports = {
 
   attach: function ({ el, name, node, component, directives }) {
-    el.$component = node.create({ el, props: node.getAttributes(), replace: true })
+    el.$component = new Cola({
+      ...get(component, 'component', node.custom),
+      el,
+      props: node.getAttributes(),
+      replace: true,
+    })
   },
 
   update: function ({ el, name, node }) {

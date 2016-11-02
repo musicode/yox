@@ -336,20 +336,6 @@ module.exports = class Cola {
     instance.$template = parseTemplate(
       template,
       name => {
-        let component = componentGet(instance, 'component', name)
-        if (__DEBUG__) {
-          if (!component) {
-            throw new Error(`${name} component is not existed.`)
-          }
-        }
-        return function (extra) {
-          return new Cola({
-            ...component,
-            ...extra,
-          })
-        }
-      },
-      name => {
         let partial = componentGet(instance, 'partial', name)
         if (__DEBUG__) {
           if (!partial) {

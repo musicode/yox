@@ -88,7 +88,7 @@ export function create(node, component) {
         // 因此 component 必须在 event 指令之前执行
 
         // 组件的 attrs 作为 props 传入组件，不需要写到元素上
-        if (isFunction(node.create)) {
+        if (isFunction(node.custom)) {
           directives.push({
             name: 'component',
             node,

@@ -200,12 +200,11 @@ export function render(ast, data) {
  * 把模板解析为抽象语法树
  *
  * @param {string} template
- * @param {Function} getComponent
  * @param {Function} getPartial 当解析到 IMPORT 节点时，需要获取模板片段
  * @param {Function} setPartial 当解析到 PARTIAL 节点时，需要注册模板片段
  * @return {Object}
  */
-export function parse(template, getComponent, getPartial, setPartial) {
+export function parse(template, getPartial, setPartial) {
 
   let { templateParseCache } = cache
 
@@ -454,7 +453,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
       addChild(
         new Element(
           isComponent ? 'div' : name,
-          isComponent && getComponent(name)
+          isComponent ? name : ''
         )
       )
 
