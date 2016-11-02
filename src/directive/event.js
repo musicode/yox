@@ -25,7 +25,7 @@ import * as syntax from '../config/syntax'
 
 module.exports = {
 
-  attach: function({ el, name, node, component }) {
+  attach: function({ el, name, node, instance }) {
 
     let listener
     let ast = parse(node.getValue())
@@ -53,16 +53,16 @@ module.exports = {
               else if (type === MEMBER) {
                 name = stringify(item)
               }
-              return component.get(node.keypath ? `${node.keypath}.${name}` : name)
+              return instance.get(node.keypath ? `${node.keypath}.${name}` : name)
             }
           )
         }
-        component[ast.callee.name].apply(component, args)
+        instance[ast.callee.name].apply(instance, args)
       }
     }
     else if (ast.type === IDENTIFIER) {
       listener = function () {
-        component.fire(ast.name)
+        instance.fire(ast.name)
       }
     }
 

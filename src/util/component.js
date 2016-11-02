@@ -5,12 +5,19 @@ import {
   extend,
 } from './object'
 
+
 export function bind(instance, functions) {
   let result = { }
   each(functions, function (fn, name) {
     result[name] = fn.bind(instance)
   })
   return result
+}
+
+export function create(instance, options, extra) {
+  return new instance.constructor(
+    extend({}, options, extra)
+  )
 }
 
 export function magic(object, name, value) {

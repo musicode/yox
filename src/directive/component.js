@@ -3,26 +3,28 @@ import * as lifecycle from '../config/lifecycle'
 
 import {
   get,
+  create,
 } from '../util/component'
-
-import Cola from '../Cola'
 
 module.exports = {
 
-  attach: function ({ el, name, node, component, directives }) {
-    el.$component = new Cola({
-      ...get(component, 'component', node.custom),
-      el,
-      props: node.getAttributes(),
-      replace: true,
-    })
+  attach: function ({ el, name, node, instance, directives }) {
+    el.$component = create(
+      instance,
+      get(instance, 'component', node.custom),
+      {
+        el,
+        props: node.getAttributes(),
+        replace: true,
+      }
+    )
   },
 
-  update: function ({ el, name, node }) {
+  update: function ({ el, node }) {
     el.$component.set(node.getAttributes())
   },
 
-  detach: function ({ el, name, component }) {
+  detach: function ({ el }) {
     el.$component.detach()
     el.$component = null
   }

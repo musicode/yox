@@ -16,7 +16,7 @@
 {
   el: 'DOM 元素',
   node: '指令对应的语法树节点',
-  component: '组件实例',
+  instance: '组件实例',
   directives: 'DOM 元素上绑定的其他指令，有时需要用到其他指令的数据'
 }
 ```

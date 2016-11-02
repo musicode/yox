@@ -5,27 +5,28 @@
  * <Component @ref="component" />
  */
 
+import {
+  set,
+} from '../util/component'
+
 module.exports = {
 
-  attach: function ({ el, name, node, component, directives }) {
+  attach: function ({ el, node, instance, directives }) {
 
-    let instance = el[`$component`]
+    let component = el[`$component`]
     let value = node.getValue()
-    if (instance && value) {
-      if (!component.$refs) {
-        component.$refs = { }
-      }
-      component.$refs[value] = instance
-      el.$rel = value
+    if (component && value) {
+      set(instance, 'ref', value, component)
+      el.$ref = value
     }
 
   },
 
-  detach: function ({ el, name, component }) {
+  detach: function ({ el, instance }) {
 
-    if (el.$rel) {
-      delete component.$refs[el.$rel]
-      el.$rel = null
+    if (el.$ref) {
+      delete instance.$refs[el.$ref]
+      el.$ref = null
     }
 
   }

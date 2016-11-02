@@ -5,7 +5,8 @@ import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
 import attributes from 'snabbdom/modules/attributes'
 
-const innerPatch = snabbdom.init([ props, attributes, style ])
+import * as syntax from '../../config/syntax'
+import * as lifecycle from '../../config/lifecycle'
 
 import {
   parseStyle,
@@ -35,10 +36,13 @@ import {
   ELEMENT,
 } from '../../compiler/nodeType'
 
-import * as syntax from '../../config/syntax'
-import * as lifecycle from '../../config/lifecycle'
 
-export function create(node, component) {
+
+export let patch = snabbdom.init([ props, attributes, style ])
+
+
+
+export function create(node, instance) {
 
   let counter = 0
 
@@ -88,11 +92,11 @@ export function create(node, component) {
         // 因此 component 必须在 event 指令之前执行
 
         // 组件的 attrs 作为 props 传入组件，不需要写到元素上
-        if (isFunction(node.custom)) {
+        if (node.custom) {
           directives.push({
             name: 'component',
             node,
-            directive: get(component, 'directive', 'component'),
+            directive: get(instance, 'directive', 'component'),
           })
         }
         else {
@@ -124,7 +128,7 @@ export function create(node, component) {
               directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
             }
 
-            let directive = get(component, 'directive', directiveName)
+            let directive = get(instance, 'directive', directiveName)
             if (!directive) {
               throw new Error(`${directiveName} directive is not existed.`)
             }
@@ -153,7 +157,7 @@ export function create(node, component) {
                     el: vnode.elm,
                     node: item.node,
                     name: item.name,
-                    component,
+                    instance,
                     directives,
                   })
                 }
@@ -182,8 +186,4 @@ export function create(node, component) {
     }
   )
 
-}
-
-export function patch(oldNode, newNode) {
-  return innerPatch(oldNode, newNode)
 }
