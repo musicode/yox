@@ -2,6 +2,8 @@
 module.exports = function camelCase(name) {
   return name.replace(
     /-([a-z])/gi,
-    ($0, $1) => $1.toUpperCase()
+    function ($0, $1) {
+      return $1.toUpperCase()
+    }
   )
 }

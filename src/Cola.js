@@ -160,7 +160,7 @@ module.exports = class Cola {
     let hooks = { }
     objectEach(
       lifecycle,
-      name => {
+      function (name) {
         hooks[`on${name}`] = name
       }
     )
@@ -237,7 +237,7 @@ module.exports = class Cola {
           }
 
           if (get) {
-            let getter = () => {
+            let getter = function () {
 
               if (cache && objectHas($computedCache, keypath)) {
                 return $computedCache[keypath]
@@ -342,7 +342,7 @@ module.exports = class Cola {
     // 编译结果
     instance.$template = parseTemplate(
       template,
-      name => {
+      function (name) {
         let partial = componentGet(instance, 'partial', name)
         if (__DEBUG__) {
           if (!partial) {
@@ -351,7 +351,7 @@ module.exports = class Cola {
         }
         return partial
       },
-      (name, node) => {
+      function (name, node) {
         componentSet(instance, 'partial', name, node)
       }
     )

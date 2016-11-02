@@ -12,7 +12,9 @@ import {
 export function each(object, callback) {
   arrayEach(
     Object.keys(object),
-    key => callback(object[key], key)
+    function (key) {
+      return callback(object[key], key)
+    }
   )
 }
 

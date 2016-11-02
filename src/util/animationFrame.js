@@ -2,13 +2,19 @@
 import {
   win,
   noop,
-  vendors,
 } from '../config/env'
 
 import {
   isString,
   isFunction,
 } from './is'
+
+/**
+ * 支持的所有厂商前缀
+ *
+ * @type {Array.<string>}
+ */
+const venders = [ 'o', 'ms', 'moz', 'webkit' ]
 
 let requestAnimationFrame
 let cancelAnimationFrame
@@ -36,7 +42,7 @@ if (win) {
     // 保证帧率是 60帧/每秒
     let lastFrameTime = 0
     let timePerFrame = 1000 / 60
-    requestAnimationFrame = callback => {
+    requestAnimationFrame = function (callback) {
 
       let now = Date.now()
       let waitingTime = timePerFrame - (now - lastFrameTime)
@@ -46,7 +52,7 @@ if (win) {
       let nextFrameTime = now + waitingTime
 
       let id = win.setTimeout(
-        () => {
+        function () {
           callback(nextFrameTime)
         },
         waitingTime
@@ -56,7 +62,7 @@ if (win) {
 
       return id
     }
-    cancelAnimationFrame = id => {
+    cancelAnimationFrame = function (id) {
       win.clearTimeout(id)
     }
   }
