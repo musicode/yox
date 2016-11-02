@@ -21,4 +21,4 @@ else {
   }
 }
 
-export default nextTick
+module.exports = nextTick

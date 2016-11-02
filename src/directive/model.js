@@ -6,7 +6,7 @@ import {
 
 import debounce from '../function/debounce'
 
-export default {
+module.exports = {
 
   attach: function ({ el, node, component, directives }) {
 

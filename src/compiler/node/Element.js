@@ -10,7 +10,7 @@ import Node from './Node'
  *
  * @param {string} name
  */
-export default class Element extends Node {
+module.exports = class Element extends Node {
 
   constructor(parent, name, create) {
     super(parent)

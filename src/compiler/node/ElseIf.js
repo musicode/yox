@@ -10,7 +10,7 @@ import Node from './Node'
  *
  * @param {string} expr 判断条件
  */
-export default class ElseIf extends Node {
+module.exports = class ElseIf extends Node {
 
   constructor(parent, expr) {
     super(parent)

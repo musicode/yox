@@ -5,7 +5,7 @@
  * <Component @ref="component" />
  */
 
-export default {
+module.exports = {
 
   attach: function ({ el, name, node, component, directives }) {
 

@@ -5,7 +5,7 @@ import {
   set,
 } from '../../util/object'
 
-export default class Context {
+module.exports = class Context {
 
   constructor(data, parent) {
     this.data = data

@@ -11,7 +11,7 @@ import Node from './Node'
  *
  * @param {string} name 属性名
  */
-export default class Attribute extends Node {
+module.exports = class Attribute extends Node {
 
   constructor(parent, name) {
     super(parent)

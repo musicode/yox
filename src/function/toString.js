@@ -3,7 +3,7 @@ import {
   isNumeric,
 } from '../util/is'
 
-export default function toString(str, defaultValue = '') {
+module.exports = function toString(str, defaultValue = '') {
   if (isString(str)) {
     return str
   }

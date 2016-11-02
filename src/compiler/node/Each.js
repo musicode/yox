@@ -29,7 +29,7 @@ import {
  *
  * @param {string} literal 字面量，如 list:index
  */
-export default class Each extends Node {
+module.exports = class Each extends Node {
 
   constructor(parent, name, index) {
     super(parent)

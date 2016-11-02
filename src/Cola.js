@@ -1,7 +1,6 @@
 
 import Mustache from './compiler/parser/Mustache'
 
-import * as syntax from './config/syntax'
 import * as lifecycle from './config/lifecycle'
 
 import {
@@ -60,7 +59,7 @@ function bindFunctions(functions, thisArg) {
   return result
 }
 
-export default class Cola {
+module.exports = class Cola {
 
   /**
    * 全局指令
@@ -251,7 +250,9 @@ export default class Cola {
     // 编译模板
     instance.$parser = new Mustache()
     instance.$templateAst = instance.$parser.parse(
-      options.template,
+      options.template.startsWith('#')
+      ? find(options.template).innerHTML
+      : options.template,
       name => {
         let config = instance.$components[name]
         if (!config) {
@@ -431,7 +432,6 @@ export default class Cola {
         ...$data,
         ...$filters,
         ...$computedGetters,
-        [syntax.SPECIAL_KEYPATH]: '',
       }),
       instance
     )

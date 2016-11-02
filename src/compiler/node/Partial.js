@@ -10,7 +10,7 @@ import Node from './Node'
  *
  * @param {string} name
  */
-export default class Partial extends Node {
+module.exports = class Partial extends Node {
   constructor(parent, name) {
     super(parent)
     this.type = PARTIAL

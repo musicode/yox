@@ -23,7 +23,7 @@ import {
 
 import * as syntax from '../config/syntax'
 
-export default {
+module.exports = {
 
   attach: function({ el, name, node, component }) {
 

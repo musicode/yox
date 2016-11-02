@@ -14,7 +14,7 @@ const elementPattern = /<[^>]+>/
  * @param {string} expr
  * @param {boolean} safe
  */
-export default class Expression extends Node {
+module.exports = class Expression extends Node {
 
   constructor(parent, expr, safe) {
     super(parent, false)

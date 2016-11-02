@@ -3,7 +3,7 @@ import {
   each,
 } from '../util/array'
 
-export default function getLocationByIndex(str, index) {
+module.exports = function getLocationByIndex(str, index) {
 
   let line = 0
   let col = 0

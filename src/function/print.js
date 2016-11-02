@@ -1,5 +1,5 @@
 
-export default function print(tpl, ...args) {
+module.exports = function print(tpl, ...args) {
   let index = -1
   return tpl.replace(/%s/g, origin => {
     index++

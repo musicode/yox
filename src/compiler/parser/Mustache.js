@@ -156,7 +156,7 @@ const parsers = [
 
 const rootName = 'root'
 
-export default class Mustache {
+module.exports = class Mustache {
 
   /**
    * 把抽象语法树渲染成 Virtual DOM

@@ -10,7 +10,7 @@ import Node from './Node'
  *
  * @param {string} expr 判断条件
  */
-export default class If extends Node {
+module.exports = class If extends Node {
 
   constructor(parent, expr) {
     super(parent)

@@ -5,6 +5,6 @@
  * <input @model="name" @lazy>
  */
 
-export default {
+module.exports = {
 
 }

@@ -1,7 +1,7 @@
 
 import * as lifecycle from '../config/lifecycle'
 
-export default {
+module.exports = {
 
   attach: function ({ el, name, node, component, directives }) {
     el.$component = node.create({ el, props: node.getAttributes() })

@@ -12,7 +12,7 @@ import Node from './Node'
  *
  * @param {string} name 指令名
  */
-export default class Directive extends Node {
+module.exports = class Directive extends Node {
 
   constructor(parent, name) {
     super(parent)

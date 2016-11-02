@@ -16,7 +16,7 @@ import {
 /**
  * 节点基类
  */
-export default class Node {
+module.exports = class Node {
 
   constructor(parent, hasChildren = true) {
     // this.parent = parent

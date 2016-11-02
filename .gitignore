@@ -4,3 +4,4 @@ dep
 edp-*
 node_modules
 .*
+dist

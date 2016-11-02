@@ -11,7 +11,7 @@ import {
  * @param {boolean=} lazy 是否在最后调用
  * @return {Function}
  */
-export default function debounce (fn, delay, lazy) {
+module.exports = function debounce (fn, delay, lazy) {
 
   let prevTime
   let timer

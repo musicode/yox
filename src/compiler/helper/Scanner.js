@@ -1,5 +1,5 @@
 
-export default class Scanner {
+module.exports = class Scanner {
 
   constructor(str) {
     this.reset(str)

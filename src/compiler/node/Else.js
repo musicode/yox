@@ -8,7 +8,7 @@ import Node from './Node'
 /**
  * else 节点
  */
-export default class Else extends Node {
+module.exports = class Else extends Node {
 
   constructor(parent) {
     super(parent)
