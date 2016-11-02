@@ -59,6 +59,24 @@ function bindFunctions(functions, thisArg) {
   return result
 }
 
+function magic(object, name, value) {
+  return function (name, value) {
+    if (value) {
+      object[name] = value
+    }
+    else {
+      if (isObject(name)) {
+        objectEach(name, function (value, name) {
+          object[name] = value
+        })
+      }
+      else {
+        return object[name]
+      }
+    }
+  }
+}
+
 module.exports = class Cola {
 
   /**
@@ -82,6 +100,10 @@ module.exports = class Cola {
    */
   static partials = { }
 
+  static directive = magic(Cola.directives)
+  static filter = magic(Cola.filters)
+  static partial = magic(Cola.partials)
+
   /**
    * 配置项
    *
@@ -95,20 +117,33 @@ module.exports = class Cola {
 
     let instance = this
 
-    Object.assign(instance, options)
+    let {
+      el,
+      data,
+      props,
+      computed,
+      template,
+      directives,
+      filters,
+      partials,
+    } = instance
 
-    instance.$components = objectExtend({}, options.components)
+    if (__DEBUG__) {
+      if (el && isObject(object)) {
+        throw new Error('组件 data 必须是 function.')
+      }
+    }
 
-    let data = isFunction(options.data) ? options.data.call(instance) : options.data
-    if (isObject(options.props)) {
-      objectExtend(data, options.props)
+    data = isFunction(data) ? data.call(instance) : data
+    if (isObject(props)) {
+      objectExtend(data, props)
     }
     instance.$data = data
 
     // 这里貌似不应该 copy 到实例，否则后续内容占用会很大？
-    instance.$directives = objectExtend({}, Cola.directives, options.directives)
-    instance.$filters = bindFunctions(objectExtend({}, Cola.filters, options.filters), instance)
-    instance.$partials = objectExtend({}, Cola.partials, options.partials)
+    instance.$directives = objectExtend({}, Cola.directives, directives)
+    instance.$filters = bindFunctions(objectExtend({}, Cola.filters, filters), instance)
+    instance.$partials = objectExtend({}, Cola.partials, partials)
 
     // 把计算属性拆为 getter 和 setter
     let $computedGetters =
@@ -132,9 +167,9 @@ module.exports = class Cola {
     let $computedDeps =
     instance.$computedDeps = { }
 
-    if (isObject(options.computed)) {
+    if (isObject(computed)) {
       objectEach(
-        options.computed,
+        computed,
         function (item, keypath) {
           let get, set, cache = true
           if (isFunction(item)) {
@@ -254,7 +289,7 @@ module.exports = class Cola {
       ? find(options.template).innerHTML
       : options.template,
       name => {
-        let config = instance.$components[name]
+        let config = components[name]
         if (!config) {
           throw new Error(`${name} component is not existed.`)
         }

@@ -18,6 +18,7 @@ if (env === 'release') {
 }
 else if (env === 'dev') {
     envVariables.__DEV__ = true;
+    envVariables.__DEBUG__ = true;
     plugins.push(
         new webpack.HotModuleReplacementPlugin()
     );
