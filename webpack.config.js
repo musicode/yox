@@ -9,6 +9,8 @@ var outputFilename = '.js';
 var envVariables = { };
 
 if (env === 'release') {
+    envVariables.__DEV__ = false;
+    envVariables.__DEBUG__ = false;
     outputFilename = '.min' + outputFilename;
     plugins.push(
         new webpack.optimize.UglifyJsPlugin({
