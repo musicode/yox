@@ -10,8 +10,8 @@ import Node from './Node'
  */
 module.exports = class Else extends Node {
 
-  constructor(parent) {
-    super(parent)
+  constructor() {
+    super()
     this.type = ELSE
   }
 

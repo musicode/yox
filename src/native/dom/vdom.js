@@ -5,7 +5,7 @@ import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
 import attributes from 'snabbdom/modules/attributes'
 
-const applyPatch = snabbdom.init([ props, attributes, style ])
+const innerPatch = snabbdom.init([ props, attributes, style ])
 
 import {
   parseStyle,
@@ -13,6 +13,10 @@ import {
 
 import {
   each,
+} from '../../util/array'
+
+import {
+  each as objectEach,
 } from '../../util/object'
 
 import {
@@ -92,7 +96,7 @@ export function create(node, component) {
           })
         }
         else {
-          each(
+          objectEach(
             node.getAttributes(),
             function (value, key) {
               if (key === 'style') {
@@ -105,30 +109,33 @@ export function create(node, component) {
           )
         }
 
-        node.directives.forEach(function (node) {
-          let { name } = node
+        each(
+          node.directives,
+          function (node) {
+            let { name } = node
 
-          let directiveName
-          if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
-            name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
-            directiveName = 'event'
-          }
-          else {
-            name =
-            directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
-          }
+            let directiveName
+            if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
+              name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
+              directiveName = 'event'
+            }
+            else {
+              name =
+              directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
+            }
 
-          let directive = get(component, 'directive', directiveName)
-          if (!directive) {
-            throw new Error(`${directiveName} directive is not existed.`)
-          }
+            let directive = get(component, 'directive', directiveName)
+            if (!directive) {
+              throw new Error(`${directiveName} directive is not existed.`)
+            }
 
-          directives.push({
-            name,
-            node,
-            directive,
-          })
-        })
+            directives.push({
+              name,
+              node,
+              directive,
+            })
+          }
+        )
 
         let data = { attrs }
 
@@ -138,17 +145,20 @@ export function create(node, component) {
 
         if (!counter || directives.length) {
           let notify = function (vnode, type) {
-            directives.forEach(function (item) {
-              if (isFunction(item.directive[type])) {
-                item.directive[type]({
-                  el: vnode.elm,
-                  node: item.node,
-                  name: item.name,
-                  component,
-                  directives,
-                })
+            each(
+              directives,
+              function (item) {
+                if (isFunction(item.directive[type])) {
+                  item.directive[type]({
+                    el: vnode.elm,
+                    node: item.node,
+                    name: item.name,
+                    component,
+                    directives,
+                  })
+                }
               }
-            })
+            )
           }
 
           data.hook = {
@@ -175,5 +185,5 @@ export function create(node, component) {
 }
 
 export function patch(oldNode, newNode) {
-  return applyPatch(oldNode, newNode)
+  return innerPatch(oldNode, newNode)
 }

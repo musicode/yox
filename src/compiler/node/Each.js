@@ -31,8 +31,8 @@ import {
  */
 module.exports = class Each extends Node {
 
-  constructor(parent, name, index) {
-    super(parent)
+  constructor(name, index) {
+    super()
     this.type = EACH
     this.name = name
     this.index = index

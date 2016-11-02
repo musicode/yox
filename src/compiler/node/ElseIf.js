@@ -12,8 +12,8 @@ import Node from './Node'
  */
 module.exports = class ElseIf extends Node {
 
-  constructor(parent, expr) {
-    super(parent)
+  constructor(expr) {
+    super()
     this.type = ELSE_IF
     this.expr = expr
   }

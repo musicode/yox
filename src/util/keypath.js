@@ -1,4 +1,10 @@
 
+import * as cache from '../config/cache'
+
+import {
+  each,
+} from './array'
+
 import {
   parse as parseExpression,
   LITERAL,
@@ -6,12 +12,9 @@ import {
 } from './expression'
 
 import {
-  escape as escapePattern,
   parse as parsePattern,
+  escape as escapePattern,
 } from './pattern'
-
-let normalizeCache = { }
-let wildcardMatchesCache = { }
 
 /**
  * 把 obj['name'] 的形式转成 obj.name
@@ -21,13 +24,15 @@ let wildcardMatchesCache = { }
  */
 export function normalize(keypath) {
 
-  if (!normalizeCache[keypath]) {
-    normalizeCache[keypath] = keypath.indexOf('[') < 0
+  let { keypathNormalizeCache } = cache
+
+  if (!keypathNormalizeCache[keypath]) {
+    keypathNormalizeCache[keypath] = keypath.indexOf('[') < 0
       ? keypath
       : stringify(parseExpression(keypath))
   }
 
-  return normalizeCache[keypath]
+  return keypathNormalizeCache[keypath]
 
 }
 
@@ -59,22 +64,26 @@ export function stringify(node) {
  */
 export function getWildcardMatches(keypath) {
 
-  if (!wildcardMatchesCache[keypath]) {
+  let { keypathWildcardMatchesCache } = cache
+
+  if (!keypathWildcardMatchesCache[keypath]) {
     let result = [ ]
     let terms = normalize(keypath).split('.')
     let toWildcard = function (isTrue, index) {
       return isTrue ? '*' : terms[index]
     }
-    let boolCombinations = getBoolCombinations(terms.length)
-    boolCombinations.forEach(function (items) {
-      result.push(
-        items.map(toWildcard).join('.')
-      )
-    })
-    wildcardMatchesCache[keypath] = result
+    each(
+      getBoolCombinations(terms.length),
+      function (items) {
+        result.push(
+          items.map(toWildcard).join('.')
+        )
+      }
+    )
+    keypathWildcardMatchesCache[keypath] = result
   }
 
-  return wildcardMatchesCache[keypath]
+  return keypathWildcardMatchesCache[keypath]
 
 }
 
@@ -93,11 +102,14 @@ export function getWildcardNames(keypath, wildcardKeypath) {
   }
 
   let list = keypath.split('.')
-  wildcardKeypath.split('.').forEach(function (name, index) {
-    if (name === '*') {
-      result.push(list[index])
+  each(
+    wildcardKeypath.split('.'),
+    function (name, index) {
+      if (name === '*') {
+        result.push(list[index])
+      }
     }
-  })
+  )
 
   return result
 

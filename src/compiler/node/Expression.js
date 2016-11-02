@@ -6,6 +6,10 @@ import {
 import Node from './Node'
 import Text from './Text'
 
+import {
+  each,
+} from '../../util/array'
+
 const elementPattern = /<[^>]+>/
 
 /**
@@ -16,8 +20,8 @@ const elementPattern = /<[^>]+>/
  */
 module.exports = class Expression extends Node {
 
-  constructor(parent, expr, safe) {
-    super(parent, false)
+  constructor(expr, safe) {
+    super(false)
     this.type = EXPRESSION
     this.expr = expr
     this.safe = safe
@@ -31,11 +35,12 @@ module.exports = class Expression extends Node {
     }
 
     if (this.safe || !elementPattern.test(content)) {
-      let node = new Text(parent, content)
+      let node = new Text(content)
       node.render(parent, context, keys)
     }
     else {
-      parseTemplate(content).forEach(
+      each(
+        parseTemplate(content),
         function (node) {
           node.render(parent, context, keys, parseTemplate)
         }

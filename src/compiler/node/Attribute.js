@@ -13,8 +13,8 @@ import Node from './Node'
  */
 module.exports = class Attribute extends Node {
 
-  constructor(parent, name) {
-    super(parent)
+  constructor(name) {
+    super()
     this.type = ATTRIBUTE
     this.name = name
   }
@@ -26,7 +26,7 @@ module.exports = class Attribute extends Node {
       name = name.execute(context)
     }
 
-    let node = new Attribute(parent, name)
+    let node = new Attribute(name)
     node.keypath = keys.join('.')
     parent.addAttr(node)
 

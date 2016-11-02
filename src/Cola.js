@@ -1,10 +1,10 @@
 
+import * as lifecycle from './config/lifecycle'
+
 import {
   parse as parseTemplate,
   render as renderTemplate,
 } from './compiler/parser/mustache'
-
-import * as lifecycle from './config/lifecycle'
 
 import {
   Emitter,
@@ -51,8 +51,8 @@ import {
 } from './native/dom/helper'
 
 import {
-  create,
   patch,
+  create,
 } from './native/dom/vdom'
 
 // 5 个内建指令，其他指令通过扩展实现
@@ -564,7 +564,7 @@ module.exports = class Cola {
  * 1. snabbdom prop 和 attr 的区分
  * 2. 组件之间的事件传递
  * 3. Emitter 的事件广播、冒泡
- * 4. 组件属性的组织形式（进行中）
+ * 4. 组件属性的组织形式（解决）
  * 5. 计算属性是否可以 watch
  * 6. 需要转义的文本节点如果出现在属性值里，是否需要 encode
  * 7. 数组方法的劫持（不需要劫持，改完再 set 即可）

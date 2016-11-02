@@ -137,18 +137,21 @@ export function parseStyle(str) {
     let name
     let value
 
-    str.split(';').forEach(function (term) {
-      if (term && term.trim()) {
-        pairs = term.split(':')
-        if (pairs.length === 2) {
-          name = pairs[0].trim()
-          value = pairs[1].trim()
-          if (name) {
-            result[camelCase(name)] = value
+    each(
+      str.split(';'),
+      function (term) {
+        if (term && term.trim()) {
+          pairs = term.split(':')
+          if (pairs.length === 2) {
+            name = pairs[0].trim()
+            value = pairs[1].trim()
+            if (name) {
+              result[camelCase(name)] = value
+            }
           }
         }
       }
-    })
+    )
 
   }
 

@@ -14,15 +14,15 @@ import Node from './Node'
  */
 module.exports = class Directive extends Node {
 
-  constructor(parent, name) {
-    super(parent)
+  constructor(name) {
+    super()
     this.type = DIRECTIVE
     this.name = name
   }
 
   render(parent, context, keys, parseTemplate) {
 
-    let node = new Directive(parent, this.name)
+    let node = new Directive(this.name)
     node.keypath = keys.join('.')
     parent.addDirective(node)
 

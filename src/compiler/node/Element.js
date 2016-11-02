@@ -5,6 +5,10 @@ import {
 
 import Node from './Node'
 
+import {
+  each,
+} from '../../util/array'
+
 /**
  * 元素节点
  *
@@ -12,8 +16,8 @@ import Node from './Node'
  */
 module.exports = class Element extends Node {
 
-  constructor(parent, name, create) {
-    super(parent)
+  constructor(name, create) {
+    super()
     this.type = ELEMENT
     this.name = name
     this.create = create
@@ -31,15 +35,18 @@ module.exports = class Element extends Node {
 
   getAttributes() {
     let result = { }
-    this.attrs.forEach(function (node) {
-      result[node.name] = node.getValue()
-    })
+    each(
+      this.attrs,
+      function (node) {
+        result[node.name] = node.getValue()
+      }
+    )
     return result
   }
 
   render(parent, context, keys, parseTemplate) {
 
-    let node = new Element(parent, this.name, this.create)
+    let node = new Element(this.name, this.create)
     node.keypath = keys.join('.')
     parent.addChild(node)
 

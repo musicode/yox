@@ -18,8 +18,7 @@ import {
  */
 module.exports = class Node {
 
-  constructor(parent, hasChildren = true) {
-    // this.parent = parent
+  constructor(hasChildren = true) {
     if (hasChildren) {
       this.children = []
     }

@@ -12,14 +12,14 @@ import Node from './Node'
  */
 module.exports = class Text extends Node {
 
-  constructor(parent, content) {
-    super(parent, false)
+  constructor(content) {
+    super(false)
     this.type = TEXT
     this.content = content
   }
 
   render(parent, context, keys) {
-    let node = new Text(parent, this.content)
+    let node = new Text(this.content)
     node.keypath = keys.join('.')
     parent.addChild(node)
   }

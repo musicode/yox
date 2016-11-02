@@ -11,8 +11,8 @@ import Node from './Node'
  * @param {string} name
  */
 module.exports = class Partial extends Node {
-  constructor(parent, name) {
-    super(parent)
+  constructor(name) {
+    super()
     this.type = PARTIAL
     this.name = name
   }

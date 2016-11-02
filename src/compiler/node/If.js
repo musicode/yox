@@ -12,8 +12,8 @@ import Node from './Node'
  */
 module.exports = class If extends Node {
 
-  constructor(parent, expr) {
-    super(parent)
+  constructor(expr) {
+    super()
     this.type = IF
     this.expr = expr
   }

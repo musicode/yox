@@ -5,3 +5,6 @@
 export let templateParseCache = {}
 export let expressionParseCache = {}
 export let expressionCompileCache = {}
+
+export let keypathNormalizeCache = {}
+export let keypathWildcardMatchesCache = {}

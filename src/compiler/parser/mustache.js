@@ -9,8 +9,6 @@ import * as syntax from '../../config/syntax'
 
 import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
-import print from '../../function/print'
-import getLocationByIndex from '../../function/getLocationByIndex'
 
 import Attribute from '../node/Attribute'
 import Directive from '../node/Directive'
@@ -40,6 +38,7 @@ import {
 
 import {
   isArray,
+  isString,
   isFunction,
 } from '../../util/is'
 
@@ -47,6 +46,12 @@ import {
   each,
   lastItem,
 } from '../../util/array'
+
+import {
+  parseError,
+  isBreakLine,
+  trimBreakline,
+} from '../../util/string'
 
 import {
   parse as parseExpression,
@@ -61,37 +66,34 @@ const elementEndPattern = /(?:\/)?>/
 const selfClosingTagPattern = /input|img|br/i
 
 const attributeSuffixPattern = /^([^"']*)["']/
-const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]+))?)/i
+const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]*))?)/i
 const attributeValueStartPattern = /^=["']/
 
 const componentPattern = /[-A-Z]/
-
-const breaklinePrefixPattern = /^[ \t]*\n/
-const breaklineSuffixPattern = /\n[ \t]*$/
 
 const parsers = [
   {
     test: function (source) {
       return source.startsWith(syntax.EACH)
     },
-    create: function (source, currentNode) {
+    create: function (source) {
       let terms = source.substr(syntax.EACH.length).trim().split(':')
       let name = terms[0].trim()
       let index
       if (terms[1]) {
         index = terms[1].trim()
       }
-      return new Each(currentNode, name, index)
+      return new Each(name, index)
     }
   },
   {
     test: function (source) {
        return source.startsWith(syntax.IMPORT)
     },
-    create: function (source, currentNode) {
+    create: function (source) {
       let name = source.substr(syntax.IMPORT.length).trim()
       if (name) {
-        return new Import(currentNode, name)
+        return new Import(name)
       }
     }
   },
@@ -99,10 +101,10 @@ const parsers = [
     test: function (source) {
        return source.startsWith(syntax.PARTIAL)
     },
-    create: function (source, currentNode) {
+    create: function (source) {
       let name = source.substr(syntax.PARTIAL.length).trim()
       if (name) {
-        return new Partial(currentNode, name)
+        return new Partial(name)
       }
       throw new Error('模板片段缺少名称')
     }
@@ -111,10 +113,10 @@ const parsers = [
     test: function (source) {
        return source.startsWith(syntax.IF)
     },
-    create: function (source, currentNode) {
+    create: function (source) {
       let expr = source.substr(syntax.IF.length).trim()
       if (expr) {
-        return new If(currentNode, parseExpression(expr))
+        return new If(parseExpression(expr))
       }
       throw new Error('if 缺少条件')
     }
@@ -123,10 +125,11 @@ const parsers = [
     test: function (source) {
       return source.startsWith(syntax.ELSE_IF)
     },
-    create: function (source, currentNode, popStack) {
+    create: function (source, popStack) {
       let expr = source.substr(syntax.ELSE_IF.length)
       if (expr) {
-        return new ElseIf(popStack(), parseExpression(expr))
+        popStack()
+        return new ElseIf(parseExpression(expr))
       }
       throw new Error('else if 缺少条件')
     }
@@ -135,21 +138,22 @@ const parsers = [
     test: function (source) {
       return source.startsWith(syntax.ELSE)
     },
-    create: function (source, currentNode, popStack) {
-      return new Else(popStack())
+    create: function (source, popStack) {
+      popStack()
+      return new Else()
     }
   },
   {
     test: function (source) {
       return true
     },
-    create: function (source, currentNode) {
+    create: function (source) {
       let safe = true
       if (source.startsWith('{')) {
         safe = false
         source = source.substr(1)
       }
-      return new Expression(currentNode, parseExpression(source), safe)
+      return new Expression(parseExpression(source), safe)
     }
   }
 ]
@@ -165,7 +169,7 @@ const rootName = 'root'
  */
 export function render(ast, data) {
 
-  let rootElement = new Element(null, rootName)
+  let rootElement = new Element(rootName)
   let rootContext = new Context(data)
   let keys = []
 
@@ -204,17 +208,20 @@ export function render(ast, data) {
  * 把模板解析为抽象语法树
  *
  * @param {string} template
+ * @param {Function} getComponent
  * @param {Function} getPartial 当解析到 IMPORT 节点时，需要获取模板片段
  * @param {Function} setPartial 当解析到 PARTIAL 节点时，需要注册模板片段
  * @return {Object}
  */
 export function parse(template, getComponent, getPartial, setPartial) {
 
-  if (cache.templateParseCache[template]) {
-    return cache.templateParseCache[template]
+  let { templateParseCache } = cache
+
+  if (templateParseCache[template]) {
+    return templateParseCache[template]
   }
 
-  let rootNode = new Element(null, rootName)
+  let rootNode = new Element(rootName)
 
   let currentNode = rootNode
   let lastNode
@@ -245,81 +252,59 @@ export function parse(template, getComponent, getPartial, setPartial) {
     return currentNode
   }
 
-  let isBreakLine = function (content) {
-    return content.indexOf('\n') >= 0 && !content.trim()
-  }
-  let trimBreakline = function (content) {
-    return content
-    .replace(breaklinePrefixPattern, '')
-    .replace(breaklineSuffixPattern, '')
-  }
-
   let addChild = function (node) {
 
-    lastNode = lastItem(currentNode.children)
-    if (lastNode) {
-      if (node.type === TEXT) {
-        if (isBreakLine(node.content)) {
+    let { name, type, content, children } = node
+
+    switch (type) {
+      case TEXT:
+        if (isBreakLine(content)) {
           return
         }
-      }
-      else if (lastNode.type === TEXT) {
-        if (isBreakLine(lastNode.content)) {
-          currentNode.children.pop()
+        if (content = trimBreakline(content)) {
+          node.content = content
         }
-      }
-    }
+        else {
+          return
+        }
+        break
 
-    if (node.type === TEXT
-      && !(node.content = trimBreakline(node.content))
-    ) {
-      return
-    }
+      case EXPRESSION:
+        if (isAttributesParsing && currentNode.type !== ATTRIBUTE) {
+          addChild(
+            new Attribute(node)
+          )
+          return
+        }
+        break
 
-    if (node.type === IMPORT) {
-      node = getPartial(node.name)
-      if (node) {
-        each(node.children, addChild)
+      case IMPORT:
+        each(
+          getPartial(name).children,
+          addChild
+        )
         return
-      }
-      else {
-        return throwError(`找不到模板片段：${node.name}`)
-      }
-    }
-    else if (node.type === PARTIAL) {
-      setPartial(node.name, node)
-      return
+
+      case PARTIAL:
+        setPartial(name, node)
+        return
+
     }
 
     let action = 'addChild'
-    if (currentNode.type === ELEMENT) {
+    if (currentNode.type === ELEMENT && isAttributesParsing) {
       if (node.type === DIRECTIVE) {
         action = 'addDirective'
       }
       else if (node.type === ATTRIBUTE) {
         action = 'addAttr'
       }
-      else if (isAttributesParsing) {
-        action = 'addAttr'
-      }
     }
 
     currentNode[action](node)
 
-    if (node.children) {
+    if (children) {
       pushStack(node)
-    }
-  }
-
-  let throwError = function (msg) {
-    if (errorPos != null) {
-      msg += '，位置 line %d, col %d。'
-      let { line, col } = getLocationByIndex(template, errorPos)
-      return warn(msg, line, col)
-    }
-    else {
-      msg += '。'
-      return warn(msg)
     }
   }
 
@@ -359,7 +344,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
               if (match = content.match(attributeSuffixPattern)) {
                 if (match[1]) {
                   addChild(
-                    new Text(currentNode, match[1])
+                    new Text(match[1])
                   )
                 }
                 content = content.replace(attributeSuffixPattern, '')
@@ -384,23 +369,25 @@ export function parse(template, getComponent, getPartial, setPartial) {
             while (match = attributePattern.exec(content)) {
               content = content.substr(match.index + match[0].length)
 
-              isDirective = match[1].startsWith(syntax.DIRECTIVE_PREFIX)
-                || match[1].startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
+              name = match[1]
+              isDirective = name.startsWith(syntax.DIRECTIVE_PREFIX)
+                || name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
 
               addChild(
                 isDirective
-                ? new Directive(currentNode, match[1])
-                : new Attribute(currentNode, match[1])
+                ? new Directive(name)
+                : new Attribute(name)
               )
 
-              if (match[3]) {
+              if (isString(match[3])) {
                 addChild(
-                  new Text(currentNode, match[3])
+                  new Text(match[3])
                 )
                 // 剩下的只可能是引号了
                 if (content) {
                   popStack()
                 }
+                // else 可能跟了一个表达式
               }
               // 如 checked、disabled
               else {
@@ -413,7 +400,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
 
         if (content) {
           addChild(
-            new Text(currentNode, content)
+            new Text(content)
           )
         }
       }
@@ -430,17 +417,17 @@ export function parse(template, getComponent, getPartial, setPartial) {
           if (content.charAt(0) === '{' && helperScanner.charAt(0) === '}') {
             helperScanner.forward(1)
           }
-          each(parsers, function (parser) {
-            if (parser.test(content)) {
-              node = parser.create(content, currentNode, popStack)
-              // 表达式是属性名称
-              if (isAttributesParsing && node.type === EXPRESSION && currentNode.type !== ATTRIBUTE) {
-                node = new Attribute(currentNode, node)
+          each(
+            parsers,
+            function (parser) {
+              if (parser.test(content)) {
+                addChild(
+                  parser.create(content, popStack)
+                )
+                return false
               }
-              addChild(node)
-              return false
             }
-          })
+          )
         }
       }
 
@@ -469,10 +456,10 @@ export function parse(template, getComponent, getPartial, setPartial) {
       name = content.substr(2)
 
       if (mainScanner.charAt(0) !== '>') {
-        return throwError('结束标签缺少 >')
+        return parseError('结束标签缺少 >')
       }
       else if (name !== currentNode.name) {
-        return throwError('开始标签和结束标签匹配失败')
+        return parseError('开始标签和结束标签匹配失败')
       }
 
       popStack()
@@ -485,7 +472,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
       isComponent = componentPattern.test(name)
 
       addChild(
-        new Element(currentNode, isComponent ? 'div' : name, isComponent && getComponent(name))
+        new Element(isComponent ? 'div' : name, isComponent && getComponent(name))
       )
 
       // 截取 <name 和 > 之间的内容
@@ -499,7 +486,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
 
       content = mainScanner.nextAfter(elementEndPattern)
       if (!content) {
-        return throwError('标签缺少 >')
+        return parseError('标签缺少 >')
       }
 
       if (isComponent || selfClosingTagPattern.test(name)) {
@@ -509,10 +496,10 @@ export function parse(template, getComponent, getPartial, setPartial) {
   }
 
   if (nodeStack.length) {
-    return throwError('节点没有正确的结束')
+    return parseError('节点没有正确的结束')
   }
 
-  cache.templateParseCache[template] = rootNode
+  templateParseCache[template] = rootNode
 
   return rootNode
 
