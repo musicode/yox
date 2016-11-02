@@ -4,7 +4,7 @@ import * as lifecycle from '../config/lifecycle'
 module.exports = {
 
   attach: function ({ el, name, node, component, directives }) {
-    el.$component = node.create({ el, props: node.getAttributes() })
+    el.$component = node.create({ el, props: node.getAttributes(), replace: true })
   },
 
   update: function ({ el, name, node }) {

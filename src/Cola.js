@@ -1,5 +1,8 @@
 
-import Mustache from './compiler/parser/Mustache'
+import {
+  parse as parseTemplate,
+  render as renderTemplate,
+} from './compiler/parser/Mustache'
 
 import * as lifecycle from './config/lifecycle'
 
@@ -22,6 +25,7 @@ import {
 } from './util/object'
 
 import {
+  each,
   merge,
   hasItem,
   lastItem,
@@ -34,6 +38,13 @@ import {
   isObject,
   isFunction,
 } from './util/is'
+
+import {
+  get as componentGet,
+  set as componentSet,
+  bind as componentBind,
+  magic as componentMagic,
+} from './util/component'
 
 import {
   find,
@@ -51,88 +62,97 @@ import event from './directive/event'
 import model from './directive/model'
 import component from './directive/component'
 
-function bindFunctions(functions, thisArg) {
-  let result = { }
-  objectEach(functions, function (fn, name) {
-    result[name] = fn.bind(thisArg)
-  })
-  return result
-}
 
-function magic(object, name, value) {
-  return function (name, value) {
-    if (value) {
-      object[name] = value
-    }
-    else {
-      if (isObject(name)) {
-        objectEach(name, function (value, name) {
-          object[name] = value
-        })
-      }
-      else {
-        return object[name]
-      }
-    }
-  }
-}
+let globalComponents = { }
+let globalDirectives = { ref, lazy, event, model, component }
+let globalFilters = { }
+let globalPartials = { }
 
 module.exports = class Cola {
+
+  /**
+   * 全局组件
+   *
+   * @type {Object}
+   */
+  static components = globalComponents
 
   /**
    * 全局指令
    *
    * @type {Object}
    */
-  static directives = { ref, lazy, event, model, component }
+  static directives = globalDirectives
 
   /**
    * 全局过滤器
    *
    * @type {Object}
    */
-  static filters = { }
+  static filters = globalFilters
 
   /**
    * 全局模板片段
    *
    * @type {Object}
    */
-  static partials = { }
+  static partials = globalPartials
 
-  static directive = magic(Cola.directives)
-  static filter = magic(Cola.filters)
-  static partial = magic(Cola.partials)
+  static component = componentMagic(globalComponents)
+  static directive = componentMagic(globalDirectives)
+  static filter = componentMagic(globalFilters)
+  static partial = componentMagic(globalPartials)
 
   /**
    * 配置项
    *
    * @constructor
    * @param {Object} options
-   * @property {string|HTMLElement} options.el
-   * @property {string} options.template
-   * @property {Object|Function} options.data
    */
   constructor(options) {
-
-    let instance = this
 
     let {
       el,
       data,
       props,
+      replace,
       computed,
       template,
+      watchers,
+      components,
       directives,
       filters,
       partials,
-    } = instance
+    } = options
+
+    // el 和 template 都可以传选择器
+    template = template.indexOf(' ') < 0
+      ? find(template).innerHTML
+      : template
+
+    el = isString(el) ? find(el) : el
 
     if (__DEBUG__) {
-      if (el && isObject(object)) {
-        throw new Error('组件 data 必须是 function.')
+      if (!el || el.nodeType !== 1) {
+        throw new Error('el must be a html element.')
+      }
+      if (props && isObject(data)) {
+        throw new Error('component data must be a function.')
       }
     }
+
+    if (!replace) {
+      el.innerHTML = '<div></div>'
+      el = el.firstChild
+    }
+
+    let instance = this
+
+    objectEach(options, function (value, key) {
+      if (isFunction (value)) {
+        instance[key] = value
+      }
+    })
 
     data = isFunction(data) ? data.call(instance) : data
     if (isObject(props)) {
@@ -140,34 +160,43 @@ module.exports = class Cola {
     }
     instance.$data = data
 
-    // 这里貌似不应该 copy 到实例，否则后续内容占用会很大？
-    instance.$directives = objectExtend({}, Cola.directives, directives)
-    instance.$filters = bindFunctions(objectExtend({}, Cola.filters, filters), instance)
-    instance.$partials = objectExtend({}, Cola.partials, partials)
-
-    // 把计算属性拆为 getter 和 setter
-    let $computedGetters =
-    instance.$computedGetters = { }
-
-    let $computedSetters =
-    instance.$computedSetters = { }
-
-    // 存储计算属性的值，提升性能
-    let $computedCache =
-    instance.$computedCache = { }
-
-    // 辅助获取计算属性的依赖
-    let $computedStack =
-    instance.$computedStack = [ ]
-    // 计算属性的依赖关系
-    // dep => [ computed1, computed2, ... ]
-    let $computedWatchers =
-    instance.$computedWatchers = { }
-    // computed => [ dep1, dep2, ... ]
-    let $computedDeps =
-    instance.$computedDeps = { }
+    if (isObject(components)) {
+      instance.$components = components
+    }
+    if (isObject(directives)) {
+      instance.$directives = directives
+    }
+    if (isObject(filters)) {
+      instance.$filters = componentBind(instance, filters)
+    }
+    if (isObject(partials)) {
+      instance.$partials = partials
+    }
 
     if (isObject(computed)) {
+
+      // 把计算属性拆为 getter 和 setter
+      let $computedGetters =
+      instance.$computedGetters = { }
+
+      let $computedSetters =
+      instance.$computedSetters = { }
+
+      // 存储计算属性的值，提升性能
+      let $computedCache =
+      instance.$computedCache = { }
+
+      // 辅助获取计算属性的依赖
+      let $computedStack =
+      instance.$computedStack = [ ]
+      // 计算属性的依赖关系
+      // dep => [ computed1, computed2, ... ]
+      let $computedWatchers =
+      instance.$computedWatchers = { }
+      // computed => [ dep1, dep2, ... ]
+      let $computedDeps =
+      instance.$computedDeps = { }
+
       objectEach(
         computed,
         function (item, keypath) {
@@ -195,7 +224,7 @@ module.exports = class Cola {
               }
 
               // 新推一个依赖收集数组
-              $computedStack.push([])
+              $computedStack.push([ ])
               let result = get.call(instance)
 
               // 处理收集好的依赖
@@ -204,35 +233,43 @@ module.exports = class Cola {
               $computedDeps[keypath] = newDeps
 
               // 增加了哪些依赖，删除了哪些依赖
-              let addedDeps = []
-              let removedDeps = []
+              let addedDeps = [ ]
+              let removedDeps = [ ]
               if (isArray(oldDeps)) {
-                merge(oldDeps, newDeps)
-                .forEach(function (dep) {
-                  let oldExisted = hasItem(oldDeps, dep)
-                  let newExisted = hasItem(newDeps, dep)
-                  if (oldExisted && !newExisted) {
-                    removedDeps.push(dep)
+                each(
+                  merge(oldDeps, newDeps),
+                  function (dep) {
+                    let oldExisted = hasItem(oldDeps, dep)
+                    let newExisted = hasItem(newDeps, dep)
+                    if (oldExisted && !newExisted) {
+                      removedDeps.push(dep)
+                    }
+                    else if (!oldExisted && newExisted) {
+                      addedDeps.push(dep)
+                    }
                   }
-                  else if (!oldExisted && newExisted) {
-                    addedDeps.push(dep)
-                  }
-                })
+                )
               }
               else {
                 addedDeps = newDeps
               }
 
-              addedDeps.forEach(function (dep) {
-                if (!isArray($computedWatchers[dep])) {
-                  $computedWatchers[dep] = []
+              each(
+                addedDeps,
+                function (dep) {
+                  if (!isArray($computedWatchers[dep])) {
+                    $computedWatchers[dep] = []
+                  }
+                  $computedWatchers[dep].push(keypath)
                 }
-                $computedWatchers[dep].push(keypath)
-              })
+              )
 
-              removedDeps.forEach(function (dep) {
-                removeItem($computedWatchers[dep], keypath)
-              })
+              each(
+                removedDeps,
+                function (dep) {
+                  removeItem($computedWatchers[dep], keypath)
+                }
+              )
 
               // 不论是否开启 computed cache，获取 oldValue 时还有用
               // 因此要存一下
@@ -270,9 +307,9 @@ module.exports = class Cola {
     // 监听数据变化
     instance.$watchEmitter = new Emitter()
 
-    if (isObject(options.watchers)) {
+    if (isObject(watchers)) {
       objectEach(
-        options.watchers,
+        watchers,
         (watcher, keypath) => {
           instance.watch(keypath, watcher)
         }
@@ -282,51 +319,38 @@ module.exports = class Cola {
     // 准备就绪
     instance.fire(lifecycle.CREATE)
 
-    // 编译模板
-    instance.$parser = new Mustache()
-    instance.$templateAst = instance.$parser.parse(
-      options.template.startsWith('#')
-      ? find(options.template).innerHTML
-      : options.template,
+    // 编译结果
+    instance.$template = parseTemplate(
+      template,
       name => {
-        let config = components[name]
-        if (!config) {
-          throw new Error(`${name} component is not existed.`)
+        let component = componentGet(instance, 'component', name)
+        if (__DEBUG__) {
+          if (!component) {
+            throw new Error(`${name} component is not existed.`)
+          }
         }
         return function (extra) {
           return new Cola({
-            ...config,
+            ...component,
             ...extra,
-            replace: true,
           })
         }
       },
       name => {
-        let partial = instance.$partials[name]
-        if (!partial) {
-          throw new Error(`${name} partial is not existed.`)
+        let partial = componentGet(instance, 'partial', name)
+        if (__DEBUG__) {
+          if (!partial) {
+            throw new Error(`${name} partial is not existed.`)
+          }
         }
         return partial
       },
       (name, node) => {
-        instance.$partials[name] = node
+        componentSet(instance, 'partial', name, node)
       }
     )
 
     instance.fire(lifecycle.COMPILE)
-
-
-    let el = isString(options.el) ? find(options.el) : options.el
-    if (!el || el.nodeType !== 1) {
-      throw new Error('el is not a element.')
-    }
-
-    // 触发 compile 事件之后再给 $el 赋值
-    // 避免有些人在 oncompile 就误以为可以操作 el 了
-    if (!options.replace) {
-      el.innerHTML = '<div></div>'
-      el = el.firstChild
-    }
 
     instance.updateView(el)
 
@@ -334,28 +358,36 @@ module.exports = class Cola {
 
   get(keypath) {
 
-    // 计算属性的依赖追踪
-    let { $data, $computedGetters, $computedStack } = this
-    let deps = lastItem($computedStack)
-    if (deps) {
-      deps.push(keypath)
+    let {
+      $data,
+      $computedStack,
+      $computedGetters,
+    } = this
+
+    if (isArray($computedStack)) {
+
+      let deps = lastItem($computedStack)
+      if (deps) {
+        deps.push(keypath)
+      }
+
+      let getter = $computedGetters[keypath]
+      if (getter) {
+        return getter()
+      }
     }
 
-    let getter = $computedGetters[keypath]
-    if (isFunction(getter)) {
-      return getter()
-    }
     return objectGet($data, keypath)
 
   }
 
   set(keypath, value) {
+    let model = keypath
     if (isString(keypath)) {
-      keypath = {
-        [keypath]: value,
-      }
+      model = { }
+      model[keypath] = value
     }
-    if (this.updateModel(keypath)) {
+    if (this.updateModel(model)) {
       this.updateView()
     }
   }
@@ -393,11 +425,6 @@ module.exports = class Cola {
 
   updateModel(model) {
 
-    let changes = { }
-
-    let setter
-    let oldValue
-
     let instance = this
 
     let {
@@ -408,36 +435,60 @@ module.exports = class Cola {
       $computedSetters,
     } = instance
 
-    objectEach(model, function (value, keypath) {
-      oldValue = instance.get(keypath)
-      if (value !== oldValue) {
-        changes[keypath] = [ value, oldValue ]
-        setter = $computedSetters[keypath]
-        if (isFunction(setter)) {
-          setter(value)
-        }
-        else {
-          objectSet($data, keypath, value)
-        }
-        if (isArray($computedWatchers[keypath])) {
-          $computedWatchers[keypath].forEach(function (watcher) {
-            if (watcher in $computedCache) {
-              delete $computedCache[watcher]
-            }
+    let hasComputed = isObject($computedWatchers)
+
+    let changes = [ ]
+    let setter
+    let oldValue
+
+    objectEach(
+      model,
+      function (value, keypath) {
+        oldValue = instance.get(keypath)
+        if (value !== oldValue) {
+
+          changes.push({
+            keypath,
+            data: [ value, oldValue ]
           })
+
+          if (hasComputed && isArray($computedWatchers[keypath])) {
+            each(
+              $computedWatchers[keypath],
+              function (watcher) {
+                if (objectHas($computedCache, watcher)) {
+                  delete $computedCache[watcher]
+                }
+              }
+            )
+          }
+
+          // 计算属性优先
+          if (hasComputed) {
+            setter = $computedSetters[keypath]
+            if (setter) {
+              setter(value)
+              return
+            }
+          }
+
+          objectSet($data, keypath, value)
+
         }
       }
-    })
+    )
 
-    if (objectCount(changes)) {
-      objectEach(
+    if (changes.length) {
+      each(
         changes,
-        function (args, keypath) {
-          getWildcardMatches(keypath).forEach(
-            wildcardKeypath => {
+        function (item) {
+          let { keypath, data } = item
+          each(
+            getWildcardMatches(keypath),
+            function (wildcardKeypath) {
               $watchEmitter.fire(
                 wildcardKeypath,
-                merge(args, getWildcardNames(keypath, wildcardKeypath)),
+                merge(data, getWildcardNames(keypath, wildcardKeypath)),
                 instance
               )
             }
@@ -456,18 +507,23 @@ module.exports = class Cola {
     let {
       $data,
       $filters,
-      $parser,
-      $templateAst,
+      $template,
       $currentNode,
       $computedGetters,
     } = instance
 
+    let context = { }
+    each(
+      [ $data, $filters, $computedGetters ],
+      function (item) {
+        if (isObject(item)) {
+          objectExtend(context, item)
+        }
+      }
+    )
+
     let newNode = create(
-      $parser.render($templateAst, {
-        ...$data,
-        ...$filters,
-        ...$computedGetters,
-      }),
+      renderTemplate($template, context),
       instance
     )
 
@@ -496,7 +552,7 @@ module.exports = class Cola {
  * 1. snabbdom prop 和 attr 的区分
  * 2. 组件之间的事件传递
  * 3. Emitter 的事件广播、冒泡
- * 4. 组件属性的组织形式
+ * 4. 组件属性的组织形式（进行中）
  * 5. 计算属性是否可以 watch
  * 6. 需要转义的文本节点如果出现在属性值里，是否需要 encode
  * 7. 数组方法的劫持（不需要劫持，改完再 set 即可）

@@ -16,6 +16,10 @@ import {
 } from '../../util/object'
 
 import {
+  get,
+} from '../../util/component'
+
+import {
   isArray,
   isFunction,
 } from '../../util/is'
@@ -33,8 +37,6 @@ import * as lifecycle from '../../config/lifecycle'
 export function create(node, component) {
 
   let counter = 0
-
-  let { $directives } = component
 
   let traverse = function (node, enter, leave) {
 
@@ -86,7 +88,7 @@ export function create(node, component) {
           directives.push({
             name: 'component',
             node,
-            directive: $directives.component,
+            directive: get(component, 'directive', 'component'),
           })
         }
         else {
@@ -116,7 +118,7 @@ export function create(node, component) {
             directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
           }
 
-          let directive = $directives[directiveName]
+          let directive = get(component, 'directive', directiveName)
           if (!directive) {
             throw new Error(`${directiveName} directive is not existed.`)
           }

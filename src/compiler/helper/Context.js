@@ -7,6 +7,10 @@ import {
 
 module.exports = class Context {
 
+  /**
+   * @param {Object} data
+   * @param {?Context} parent
+   */
   constructor(data, parent) {
     this.data = data
     this.parent = parent
@@ -27,7 +31,7 @@ module.exports = class Context {
     if (keypath.indexOf('.') > 0) {
       let terms = keypath.split('.')
       let prop = terms.pop()
-      let context = find(data, terms.join('.'))
+      let context = get(data, terms.join('.'))
       if (context != null) {
         context[prop] = value
       }

@@ -20,13 +20,17 @@ export function reduce(array, callback, initialValue = null) {
   return array.reduce(callback, initialValue)
 }
 
-export function merge(array1, array2) {
+export function merge() {
   let result = [ ]
   let push = function (item) {
     result.push(item)
   }
-  each(array1, push)
-  each(array2, push)
+  each(
+    arguments,
+    function (array) {
+      each(array, push)
+    }
+  )
   return result
 }
 
