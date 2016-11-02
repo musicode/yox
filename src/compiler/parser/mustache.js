@@ -163,7 +163,7 @@ export function render(ast, data) {
 
   let rootElement = new Element(rootName)
   let rootContext = new Context(data)
-  let keys = []
+  let keys = [ ]
 
   // 在渲染语法树的过程中，如果发现 Element 节点是一个组件
   // 则在节点上绑定一个 create 函数
@@ -171,7 +171,7 @@ export function render(ast, data) {
   // 当组件元素销毁时，连带销毁组件实例
 
   // 非转义插值需要解析模板字符串
-  let parseTemplate = template => {
+  let parseTemplate = function (template) {
     return parse(template).children
   }
 

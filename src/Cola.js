@@ -132,7 +132,9 @@ module.exports = class Cola {
       ? template
       : find(template).innerHTML
 
-    el = isString(el) ? find(el) : el
+    el = isString(el)
+      ? find(el)
+      : el
 
     if (__DEBUG__) {
       if (!el || el.nodeType !== 1) {

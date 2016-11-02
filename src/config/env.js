@@ -37,13 +37,6 @@ export const win = inBrowser ? window : null
 export const doc = inBrowser ? document : null
 
 /**
- * 支持的所有厂商前缀
- *
- * @type {Array.<string>}
- */
-export const venders = [ 'o', 'ms', 'moz', 'webkit' ]
-
-/**
  * 全局使用的空函数
  *
  * @return {Function}
