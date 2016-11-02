@@ -133,9 +133,7 @@ export function parseStyle(str) {
 
   if (isString(str)) {
 
-    let pairs
-    let name
-    let value
+    let pairs, name, value
 
     each(
       str.split(';'),

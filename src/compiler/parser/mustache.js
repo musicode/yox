@@ -1,11 +1,7 @@
 
-import {
-  log,
-  warn,
-} from '../../config/env'
-
 import * as cache from '../../config/cache'
 import * as syntax from '../../config/syntax'
+import * as pattern from '../../config/pattern'
 
 import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
@@ -63,13 +59,9 @@ const closingDelimiterPattern = /\s*\}\}/
 const elementPattern = /<(?:\/)?[a-z]\w*/i
 const elementEndPattern = /(?:\/)?>/
 
-const selfClosingTagPattern = /input|img|br/i
-
 const attributeSuffixPattern = /^([^"']*)["']/
 const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]*))?)/i
 const attributeValueStartPattern = /^=["']/
-
-const componentPattern = /[-A-Z]/
 
 const parsers = [
   {
@@ -469,7 +461,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
     else {
       content = mainScanner.nextAfter(elementPattern)
       name = content.substr(1)
-      isComponent = componentPattern.test(name)
+      isComponent = pattern.componentName.test(name)
 
       addChild(
         new Element(isComponent ? 'div' : name, isComponent && getComponent(name))
@@ -489,7 +481,7 @@ export function parse(template, getComponent, getPartial, setPartial) {
         return parseError('标签缺少 >')
       }
 
-      if (isComponent || selfClosingTagPattern.test(name)) {
+      if (isComponent || pattern.selfClosingTagName.test(name)) {
         popStack()
       }
     }

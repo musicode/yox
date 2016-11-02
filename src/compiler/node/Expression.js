@@ -6,11 +6,11 @@ import {
 import Node from './Node'
 import Text from './Text'
 
+import * as pattern from '../../config/pattern'
+
 import {
   each,
 } from '../../util/array'
-
-const elementPattern = /<[^>]+>/
 
 /**
  * 表达式节点
@@ -34,7 +34,7 @@ module.exports = class Expression extends Node {
       content = ''
     }
 
-    if (this.safe || !elementPattern.test(content)) {
+    if (this.safe || !pattern.tag.test(content)) {
       let node = new Text(content)
       node.render(parent, context, keys)
     }

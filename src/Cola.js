@@ -1,4 +1,5 @@
 
+import * as pattern from './config/pattern'
 import * as lifecycle from './config/lifecycle'
 
 import {
@@ -126,9 +127,9 @@ module.exports = class Cola {
     } = options
 
     // el 和 template 都可以传选择器
-    template = template.indexOf(' ') < 0
-      ? find(template).innerHTML
-      : template
+    template = pattern.tag.test(template)
+      ? template
+      : find(template).innerHTML
 
     el = isString(el) ? find(el) : el
 
