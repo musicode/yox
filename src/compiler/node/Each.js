@@ -40,7 +40,8 @@ module.exports = class Each extends Node {
 
   render(parent, context, keys, parseTemplate) {
 
-    let { name, index } = this
+    let instance = this
+    let { name, index } = instance
     let data = context.get(name)
 
     let each
@@ -53,15 +54,18 @@ module.exports = class Each extends Node {
 
     if (each) {
       keys.push(name)
-      each(data, (item, i) => {
-        if (index) {
-          context.set(index, i)
+      each(
+        data,
+        function (item, i) {
+          if (index) {
+            context.set(index, i)
+          }
+          keys.push(i)
+          context.set(SPECIAL_KEYPATH, keys.join('.'))
+          instance.renderChildren(parent, context.push(item), keys, parseTemplate)
+          keys.pop()
         }
-        keys.push(i)
-        context.set(SPECIAL_KEYPATH, keys.join('.'))
-        this.renderChildren(parent, context.push(item), keys, parseTemplate)
-        keys.pop()
-      })
+      )
       keys.pop()
     }
 

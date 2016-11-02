@@ -46,13 +46,14 @@ module.exports = class Element extends Node {
 
   render(parent, context, keys, parseTemplate) {
 
-    let node = new Element(this.name, this.custom)
+    let instance = this
+    let node = new Element(instance.name, instance.custom)
     node.keypath = keys.join('.')
     parent.addChild(node)
 
-    this.renderChildren(node, context, keys, parseTemplate, this.attrs)
-    this.renderChildren(node, context, keys, parseTemplate, this.directives)
-    this.renderChildren(node, context, keys, parseTemplate)
+    instance.renderChildren(node, context, keys, parseTemplate, instance.attrs)
+    instance.renderChildren(node, context, keys, parseTemplate, instance.directives)
+    instance.renderChildren(node, context, keys, parseTemplate)
 
   }
 
