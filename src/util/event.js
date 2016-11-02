@@ -6,13 +6,13 @@ import {
 } from './is'
 
 import {
-  each as eachArray,
+  each,
   hasItem,
   removeItem,
 } from './array'
 
 import {
-  each as eachObject
+  each as objectEach
 } from './object'
 
 export class Event {
@@ -25,26 +25,25 @@ export class Event {
     else {
       this.type = event
     }
-    this.timestamp = Date.now()
   }
 
-  preventDefault() {
-    if (!this.isDefaultPrevented) {
+  prevent() {
+    if (!this.isPrevented) {
       let { originalEvent } = this
-      if (originalEvent && isFunction(originalEvent.preventDefault)) {
-        originalEvent.preventDefault()
+      if (originalEvent && isFunction(originalEvent.prevent)) {
+        originalEvent.prevent()
       }
-      this.isDefaultPrevented = true
+      this.isPrevented = true
     }
   }
 
-  stopPropagation() {
-    if (!this.isPropagationStoped) {
+  stop() {
+    if (!this.isStoped) {
       let { originalEvent } = this
-      if (originalEvent && isFunction(originalEvent.stopPropagation)) {
-        originalEvent.stopPropagation()
+      if (originalEvent && isFunction(originalEvent.stop)) {
+        originalEvent.stop()
       }
-      this.isPropagationStoped = true
+      this.isStoped = true
     }
   }
 
@@ -63,18 +62,18 @@ export class Emitter {
   }
 
   once(type, listener) {
-    let me = this
+    let instance = this
     listener.$once = function () {
-      me.off(type, listener)
+      instance.off(type, listener)
       delete listener.$once
     }
-    me.on(type, listener)
+    instance.on(type, listener)
   }
 
   off(type, listener) {
     let { listeners } = this
     if (type == null) {
-      eachObject(listeners, function (list, type) {
+      objectEach(listeners, function (list, type) {
         if (isArray(listeners[type])) {
           listeners[type].length = 0
         }
@@ -97,7 +96,7 @@ export class Emitter {
 
     let list = this.listeners[type]
     if (isArray(list)) {
-      eachArray(list, function (listener) {
+      each(list, function (listener) {
         let result = listener.apply(context, data)
 
         let { $once } = listener
@@ -105,14 +104,14 @@ export class Emitter {
           $once()
         }
 
-        // 如果没有返回 false，而是调用了 event.stopPropagation 也算是返回 false
+        // 如果没有返回 false，而是调用了 event.stop 也算是返回 false
         let event = data[0]
         if (event && event instanceof Event) {
           if (result === false) {
-            event.preventDefault()
-            event.stopPropagation()
+            event.prevent()
+            event.stop()
           }
-          else if (event.isPropagationStoped) {
+          else if (event.isStoped) {
             result = false
           }
         }
@@ -126,15 +125,9 @@ export class Emitter {
   }
 
   has(type, listener) {
-
     let list = this.listeners[type]
-    if (listener == null) {
-      return isArray(list) && list.length > 0
-    }
-
     return isArray(list)
       ? hasItem(list, listener)
       : false
-
   }
 }

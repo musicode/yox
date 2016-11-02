@@ -5,7 +5,6 @@ import {
   extend,
 } from './object'
 
-
 export function bind(instance, functions) {
   let result = { }
   each(functions, function (fn, name) {
