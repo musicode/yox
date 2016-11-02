@@ -116,6 +116,7 @@ module.exports = class Cola {
       el,
       data,
       props,
+      parent,
       replace,
       computed,
       template,
@@ -148,6 +149,10 @@ module.exports = class Cola {
     }
 
     let instance = this
+
+    if (parent) {
+      instance.$parent = parent
+    }
 
     // 拆分实例方法和生命周期函数
     let hooks = { }
@@ -538,6 +543,12 @@ module.exports = class Cola {
 
     instance.$currentNode = $currentNode
 
+  }
+
+  create(options, extra) {
+    options = objectExtend({ }, options, extra)
+    options.parent = this
+    return new Cola(options)
   }
 
   detach() {

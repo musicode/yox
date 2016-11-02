@@ -3,14 +3,12 @@ import * as lifecycle from '../config/lifecycle'
 
 import {
   get,
-  create,
 } from '../util/component'
 
 module.exports = {
 
   attach: function ({ el, name, node, instance, directives }) {
-    el.$component = create(
-      instance,
+    el.$component = instance.create(
       get(instance, 'component', node.custom),
       {
         el,

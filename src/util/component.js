@@ -14,12 +14,6 @@ export function bind(instance, functions) {
   return result
 }
 
-export function create(instance, options, extra) {
-  return new instance.constructor(
-    extend({}, options, extra)
-  )
-}
-
 export function magic(object, name, value) {
   return function (name, value) {
     if (value) {
