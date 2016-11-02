@@ -13,10 +13,16 @@ import {
 } from '../../util/array'
 
 import {
+  each as objectEach,
+} from '../../util/object'
+
+import {
   isString,
 } from '../../util/is'
 
 import camelCase from '../../function/camelCase'
+
+import * as oldInputEvent from './oldInputEvent'
 
 let isModernBrowser = doc.addEventListener
 
@@ -26,7 +32,12 @@ let nativeAddEventListener = isModernBrowser
    element.addEventListener(type, listener, false)
  }
  : function (element, type, listener) {
-   element.attachEvent(`on$(type)`, listener)
+   if (type === 'input') {
+     oldInputEvent.on(element, listener)
+   }
+   else {
+     element.attachEvent(`on$(type)`, listener)
+   }
  }
 
 let nativeRemoveEventListener = isModernBrowser
@@ -34,7 +45,12 @@ let nativeRemoveEventListener = isModernBrowser
    element.removeEventListener(type, listener, false)
  }
  : function (element, type, listener) {
-   element.detachEvent(`on$(type)`, listener)
+   if (type === 'input') {
+     oldInputEvent.off(element, listener)
+   }
+   else {
+     element.detachEvent(`on$(type)`, listener)
+   }
  }
 
 class IEEvent {
@@ -68,7 +84,6 @@ let createEvent = isModernBrowser
     return IEEvent(event, element)
   }
 
-
 /**
  * 绑定事件
  *
@@ -98,17 +113,19 @@ export function on(element, type, listener) {
  */
 export function off(element, type, listener) {
   let { $emitter } = element
-  if (!$emitter) {
-    return
-  }
-  let types = Object.keys(emitters.listeners)
+  let types = Object.keys($emitter.listeners)
+  // emitter 会根据 type 和 listener 参数进行适当的删除
   $emitter.off(type, listener)
-  each(types, function (type) {
-    if ($emitter[type] && !$emitter.has(type)) {
-      nativeRemoveEventListener(element, type, $emitter[type])
-      delete $emitter[type]
+  // 根据 emitter 的删除结果来操作这里的事件 listener
+  each(
+    types,
+    function (type) {
+      if ($emitter[type] && !$emitter.has(type)) {
+        nativeRemoveEventListener(element, type, $emitter[type])
+        delete $emitter[type]
+      }
     }
-  })
+  )
 }
 
 /**
@@ -132,7 +149,6 @@ export function parseStyle(str) {
   let result = { }
 
   if (isString(str)) {
-
     let pairs, name, value
 
     each(
@@ -150,7 +166,6 @@ export function parseStyle(str) {
         }
       }
     )
-
   }
 
   return result

@@ -30,8 +30,8 @@ export class Event {
   prevent() {
     if (!this.isPrevented) {
       let { originalEvent } = this
-      if (originalEvent && isFunction(originalEvent.prevent)) {
-        originalEvent.prevent()
+      if (originalEvent && isFunction(originalEvent.preventDefault)) {
+        originalEvent.preventDefault()
       }
       this.isPrevented = true
     }
@@ -40,8 +40,8 @@ export class Event {
   stop() {
     if (!this.isStoped) {
       let { originalEvent } = this
-      if (originalEvent && isFunction(originalEvent.stop)) {
-        originalEvent.stop()
+      if (originalEvent && isFunction(originalEvent.stopPropagation)) {
+        originalEvent.stopPropagation()
       }
       this.isStoped = true
     }
@@ -73,11 +73,14 @@ export class Emitter {
   off(type, listener) {
     let { listeners } = this
     if (type == null) {
-      objectEach(listeners, function (list, type) {
-        if (isArray(listeners[type])) {
-          listeners[type].length = 0
+      objectEach(
+        listeners,
+        function (list, type) {
+          if (isArray(listeners[type])) {
+            listeners[type].length = 0
+          }
         }
-      })
+      )
     }
     else {
       let list = listeners[type]
@@ -126,6 +129,10 @@ export class Emitter {
 
   has(type, listener) {
     let list = this.listeners[type]
+    if (listener == null) {
+      // 是否注册过 type 事件
+      return isArray(list) && list.length > 0
+    }
     return isArray(list)
       ? hasItem(list, listener)
       : false
