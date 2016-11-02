@@ -2,7 +2,7 @@
 import {
   parse as parseTemplate,
   render as renderTemplate,
-} from './compiler/parser/Mustache'
+} from './compiler/parser/mustache'
 
 import * as lifecycle from './config/lifecycle'
 
