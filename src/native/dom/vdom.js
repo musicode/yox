@@ -37,10 +37,7 @@ import {
 } from '../../compiler/nodeType'
 
 
-
 export let patch = snabbdom.init([ props, attributes, style ])
-
-
 
 export function create(node, instance) {
 
@@ -128,15 +125,10 @@ export function create(node, instance) {
               directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
             }
 
-            let directive = get(instance, 'directive', directiveName)
-            if (!directive) {
-              throw new Error(`${directiveName} directive is not existed.`)
-            }
-
             directives.push({
               name,
               node,
-              directive,
+              directive: get(instance, 'directive', directiveName),
             })
           }
         )

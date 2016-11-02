@@ -324,6 +324,8 @@ module.exports = class Cola {
       }
     )
 
+    hooks = null
+
     // 监听数据变化
     instance.$watchEmitter = new Emitter()
 
@@ -343,13 +345,7 @@ module.exports = class Cola {
     instance.$template = parseTemplate(
       template,
       function (name) {
-        let partial = componentGet(instance, 'partial', name)
-        if (__DEBUG__) {
-          if (!partial) {
-            throw new Error(`${name} partial is not existed.`)
-          }
-        }
-        return partial
+        return componentGet(instance, 'partial', name)
       },
       function (name, node) {
         componentSet(instance, 'partial', name, node)

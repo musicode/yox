@@ -33,8 +33,8 @@ export function magic(object, name, value) {
 }
 
 export function get(instance, type, name) {
-  let staticProp = type + 's'
-  let instanceProp = '$' + staticProp
+  let staticProp = `${type}s`
+  let instanceProp = `$${staticProp}`
   let value
   if (instance[instanceProp] && has(instance[instanceProp], name)) {
     return instance[instanceProp][name]
@@ -43,7 +43,7 @@ export function get(instance, type, name) {
 }
 
 export function set(instance, type, name, value) {
-  let prop = '$' + type + 's'
+  let prop = `$${type}s`
   if (!instance[prop]) {
     instance[prop] = { }
   }
