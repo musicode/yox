@@ -208,10 +208,17 @@ export function parse(template, getPartial, setPartial) {
     return templateParseCache[template]
   }
 
-  let mainScanner = new Scanner(template), helperScanner = new Scanner()
-  let rootNode = new Element(rootName), currentNode = rootNode, lastNode, node
-  let name, value, content, isComponent, isDirective, isAttributesParsing, match, errorPos
-  let nodeStack = []
+  let mainScanner = new Scanner(template),
+    helperScanner = new Scanner(),
+    rootNode = new Element(rootName),
+    currentNode = rootNode,
+    nodeStack = [ ],
+    node,
+    name,
+    content,
+    isComponent,
+    match,
+    errorIndex
 
   let pushStack = function (node) {
     nodeStack.push(currentNode)
@@ -223,7 +230,7 @@ export function parse(template, getPartial, setPartial) {
     return currentNode
   }
 
-  let addChild = function (node) {
+  let addChild = function (node, action = 'addChild') {
 
     let { name, type, content, children } = node
 
@@ -240,12 +247,15 @@ export function parse(template, getPartial, setPartial) {
         }
         break
 
-      case EXPRESSION:
-        if (isAttributesParsing && currentNode.type !== ATTRIBUTE) {
-          addChild(
-            new Attribute(node)
-          )
-          return
+      case ATTRIBUTE:
+        if (currentNode.attrs) {
+          action = 'addAttr'
+        }
+        break
+
+      case DIRECTIVE:
+        if (currentNode.directives) {
+          action = 'addDirective'
         }
         break
 
@@ -262,16 +272,6 @@ export function parse(template, getPartial, setPartial) {
 
     }
 
-    let action = 'addChild'
-    if (currentNode.type === ELEMENT && isAttributesParsing) {
-      if (node.type === DIRECTIVE) {
-        action = 'addDirective'
-      }
-      else if (node.type === ATTRIBUTE) {
-        action = 'addAttr'
-      }
-    }
-
     currentNode[action](node)
 
     if (children) {
@@ -281,7 +281,7 @@ export function parse(template, getPartial, setPartial) {
 
   // 这个函数涉及分隔符和普通模板的深度解析
   // 是最核心的函数
-  let parseContent = function (content) {
+  let parseContent = function (content, isAttributesParsing) {
 
     helperScanner.reset(content)
 
@@ -313,10 +313,9 @@ export function parse(template, getPartial, setPartial) {
             // 当前属性的属性值是字面量结尾
             if (currentNode.children.length) {
               if (match = content.match(attributeSuffixPattern)) {
-                value = match[1]
-                if (value) {
+                if (match[1]) {
                   addChild(
-                    new Text(value)
+                    new Text(match[1])
                   )
                 }
                 content = content.replace(attributeSuffixPattern, '')
@@ -342,20 +341,17 @@ export function parse(template, getPartial, setPartial) {
               content = content.substr(match.index + match[0].length)
 
               name = match[1]
-              value = match[3]
-
-              isDirective = name.startsWith(syntax.DIRECTIVE_PREFIX)
-                || name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
 
               addChild(
-                isDirective
+                name.startsWith(syntax.DIRECTIVE_PREFIX)
+                  || name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)
                 ? new Directive(name)
                 : new Attribute(name)
               )
 
-              if (isString(value)) {
+              if (isString(match[3])) {
                 addChild(
-                  new Text(value)
+                  new Text(match[3])
                 )
                 // 剩下的只可能是引号了
                 if (content) {
@@ -395,9 +391,14 @@ export function parse(template, getPartial, setPartial) {
             parsers,
             function (parser) {
               if (parser.test(content)) {
-                addChild(
-                  parser.create(content, popStack)
-                )
+                node = parser.create(content, popStack)
+                if (isAttributesParsing
+                  && node.type === EXPRESSION
+                  && currentNode.type !== ATTRIBUTE
+                ) {
+                  node = new Attribute(node)
+                }
+                addChild(node)
                 return false
               }
             }
@@ -422,7 +423,7 @@ export function parse(template, getPartial, setPartial) {
       break
     }
 
-    errorPos = mainScanner.pos
+    errorIndex = mainScanner.pos
 
     // 结束标签
     if (mainScanner.charAt(1) === '/') {
@@ -457,9 +458,7 @@ export function parse(template, getPartial, setPartial) {
       // 用于提取 attribute
       content = mainScanner.nextBefore(elementEndPattern)
       if (content) {
-        isAttributesParsing = true
-        parseContent(content)
-        isAttributesParsing = false
+        parseContent(content, true)
       }
 
       content = mainScanner.nextAfter(elementEndPattern)
