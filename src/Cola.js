@@ -148,11 +148,23 @@ module.exports = class Cola {
 
     let instance = this
 
-    objectEach(options, function (value, key) {
-      if (isFunction (value)) {
-        instance[key] = value
+    // 拆分实例方法和生命周期函数
+    let hooks = { }
+    objectEach(
+      lifecycle,
+      name => {
+        hooks[`on${name}`] = name
       }
-    })
+    )
+
+    objectEach(
+      options,
+      function (value, key) {
+        if (isFunction(value) && !hooks[key]) {
+          instance[key] = value
+        }
+      }
+    )
 
     data = isFunction(data) ? data.call(instance) : data
     if (isObject(props)) {
@@ -291,15 +303,15 @@ module.exports = class Cola {
       )
     }
 
+
     // 监听各种事件
     instance.$eventEmitter = new Emitter()
 
     objectEach(
-      lifecycle,
-      name => {
-        let listener = options[`on${name}`]
-        if (isFunction(listener)) {
-          instance.on(name, listener)
+      hooks,
+      function (value, key) {
+        if (isFunction(options[key])) {
+          instance.on(value, options[key])
         }
       }
     )
@@ -310,7 +322,7 @@ module.exports = class Cola {
     if (isObject(watchers)) {
       objectEach(
         watchers,
-        (watcher, keypath) => {
+        function (watcher, keypath) {
           instance.watch(keypath, watcher)
         }
       )

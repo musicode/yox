@@ -29,7 +29,6 @@ plugins.push(
 );
 
 module.exports = {
-    devtool: 'eval-source-map',
 
     entry: __dirname + '/src/' + libraryName + '.js',
     output: {
