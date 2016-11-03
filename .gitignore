@@ -1,7 +1,6 @@
 doc
 tool
 dep
-dist
 edp-*
 node_modules
 .*

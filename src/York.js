@@ -69,7 +69,7 @@ let globalDirectives = { ref, lazy, event, model, component }
 let globalFilters = { }
 let globalPartials = { }
 
-module.exports = class Cola {
+module.exports = class York {
 
   /**
    * 全局组件
@@ -168,7 +168,7 @@ module.exports = class Cola {
     objectEach(
       options,
       function (value, key) {
-        if (isFunction(value) && !hooks[key]) {
+        if (isFunction(value) && !hooks[key] && key !== 'data') {
           instance[key] = value
         }
       }
@@ -546,7 +546,7 @@ module.exports = class Cola {
   create(options, extra) {
     options = objectExtend({ }, options, extra)
     options.parent = this
-    return new Cola(options)
+    return new York(options)
   }
 
   detach() {

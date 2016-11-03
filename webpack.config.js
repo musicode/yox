@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 var env = process.env.WEBPACK_ENV;
 
-var libraryName = 'Cola';
+var libraryName = 'York';
 
 var plugins = [ ];
 var outputFilename = '.js';
@@ -35,7 +35,7 @@ module.exports = {
     entry: __dirname + '/src/' + libraryName + '.js',
     output: {
         path: __dirname + '/dist',
-        filename: '[name]' + outputFilename,
+        filename: libraryName.toLowerCase() + outputFilename,
         library: libraryName,
         libraryTarget: 'umd',
         umdNamedDefine: true
