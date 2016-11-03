@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "2d52284aba482337ee5b"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "02e672d429b2332d4af3"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -921,7 +921,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	      if ((0, _is.isArray)($computedStack)) {
-
 	        var deps = (0, _array.lastItem)($computedStack);
 	        if (deps) {
 	          deps.push(keypath);
@@ -933,7 +932,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 
-	      return (0, _object.get)($data, keypath);
+	      var result = (0, _object.get)($data, keypath);
+	      if (result) {
+	        return result.value;
+	      }
 	    }
 	  }, {
 	    key: 'set',
@@ -1107,6 +1109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 10. SEO友好
 	 * 11. 计算属性的观测用 Emitter 是否更好？
 	 * 12. 新增 events
+	 * 13. keypath 还原
 	 */
 
 /***/ },
@@ -1744,9 +1747,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (keypath.indexOf('.') > 0) {
 	        var terms = keypath.split('.');
 	        var prop = terms.pop();
-	        var context = (0, _object.get)(data, terms.join('.'));
-	        if (context != null) {
-	          context[prop] = value;
+	        var result = (0, _object.get)(data, terms.join('.'));
+	        if (result) {
+	          result.value[prop] = value;
 	        }
 	      } else {
 	        data[keypath] = value;
@@ -1760,22 +1763,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _context = context,
 	          cache = _context.cache;
 
-	      if ((0, _object.has)(cache, keypath)) {
-	        return cache[keypath];
-	      }
-
-	      var value = void 0;
-	      while (context) {
-	        value = (0, _object.get)(context.data, keypath);
-	        if (typeof value !== 'undefined') {
-	          cache[keypath] = value;
-	          break;
-	        } else {
-	          context = context.parent;
+	      if (!(0, _object.has)(cache, keypath)) {
+	        var result = void 0;
+	        while (context) {
+	          result = (0, _object.get)(context.data, keypath);
+	          if (result) {
+	            cache[keypath] = result.value;
+	            break;
+	          } else {
+	            context = context.parent;
+	          }
 	        }
 	      }
 
-	      return value;
+	      return cache[keypath];
 	    }
 	  }]);
 
@@ -1835,13 +1836,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return result;
 	}
 
+	/**
+	 * 返回需要区分是找不到还是值是 undefined
+	 */
 	function get(object, keypath) {
 	  keypath = (0, _toString2.default)(keypath);
 
 	  // object 的 key 可能是 'a.b.c' 这样的
 	  // 如 data['a.b.c'] = 1 是一个合法赋值
 	  if (has(object, keypath)) {
-	    return object[keypath];
+	    return {
+	      value: object[keypath]
+	    };
 	  }
 	  // 不能以 . 开头
 	  if (keypath.indexOf('.') > 0) {
@@ -1850,7 +1856,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (i < len - 1) {
 	        object = object[list[i]];
 	      } else if (has(object, list[i])) {
-	        return object[list[i]];
+	        return {
+	          value: object[list[i]]
+	        };
 	      }
 	    }
 	  }
@@ -4090,6 +4098,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.bind = bind;
 	exports.magic = magic;
+	exports.testKeypath = testKeypath;
 	exports.get = get;
 	exports.set = set;
 
@@ -4109,13 +4118,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	      object[name] = value;
 	    } else {
 	      if (isObject(name)) {
-	        objectEach(name, function (value, name) {
+	        (0, _object.each)(name, function (value, name) {
 	          object[name] = value;
 	        });
 	      } else {
 	        return object[name];
 	      }
 	    }
+	  };
+	}
+
+	function testKeypath(instance, keypath) {
+	  var tokens = void 0;
+	  var value = instance.get(keypath);
+	  while (typeof value === 'undefined') {
+	    if (!tokens) {
+	      tokens = keypath.split('.');
+	    }
+	    if (tokens.length) {
+	      tokens.pop();
+	      if (!tokens.length) {
+	        break;
+	      }
+	    }
+	    keypath = tokens.join('.');
+	    value = instance.get(keypath);
+	  }
+	  return {
+	    keypath: keypath,
+	    value: value
 	  };
 	}
 
@@ -5406,6 +5437,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _helper = __webpack_require__(33);
 
+	var _component = __webpack_require__(32);
+
 	var _array = __webpack_require__(10);
 
 	var _is = __webpack_require__(9);
@@ -5429,7 +5462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          keypath = _ref.keypath,
 	          instance = _ref.instance;
 
-	      el.value = instance.get(keypath);
+	      el.value = (0, _component.testKeypath)(instance, keypath);
 	    },
 	    sync: function sync(_ref2) {
 	      var el = _ref2.el,
@@ -5516,6 +5549,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    value = node.getValue();
 	    var keypath = node.keypath ? node.keypath + '.' + value : value;
+	    keypath = (0, _component.testKeypath)(instance, keypath).keypath;
 
 	    var controller = controlTypes[el.type] || controlTypes.normal;
 	    var data = {

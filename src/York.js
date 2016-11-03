@@ -380,7 +380,6 @@ module.exports = class York {
     } = this
 
     if (isArray($computedStack)) {
-
       let deps = lastItem($computedStack)
       if (deps) {
         deps.push(keypath)
@@ -392,7 +391,10 @@ module.exports = class York {
       }
     }
 
-    return objectGet($data, keypath)
+    let result = objectGet($data, keypath)
+    if (result) {
+      return result.value
+    }
 
   }
 
@@ -582,4 +584,5 @@ module.exports = class York {
  * 10. SEO友好
  * 11. 计算属性的观测用 Emitter 是否更好？
  * 12. 新增 events
+ * 13. keypath 还原
  */

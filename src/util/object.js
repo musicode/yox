@@ -31,21 +31,29 @@ export function extend() {
   let result = args[0]
   for (let i = 1, len = args.length; i < len; i++) {
     if (isObject(args[i])) {
-      each(args[i], function (value, key) {
-        result[key] = value
-      })
+      each(
+        args[i],
+        function (value, key) {
+          result[key] = value
+        }
+      )
     }
   }
   return result
 }
 
+/**
+ * 返回需要区分是找不到还是值是 undefined
+ */
 export function get(object, keypath) {
   keypath = toString(keypath)
 
   // object 的 key 可能是 'a.b.c' 这样的
   // 如 data['a.b.c'] = 1 是一个合法赋值
   if (has(object, keypath)) {
-    return object[keypath]
+    return {
+      value: object[keypath],
+    }
   }
   // 不能以 . 开头
   if (keypath.indexOf('.') > 0) {
@@ -55,7 +63,9 @@ export function get(object, keypath) {
         object = object[list[i]]
       }
       else if (has(object, list[i])) {
-        return object[list[i]]
+        return {
+          value: object[list[i]],
+        }
       }
     }
   }
@@ -67,18 +77,21 @@ export function set(object, keypath, value, autoFill = true) {
     let originalObject = object
     let list = keypath.split('.')
     let prop = list.pop()
-    arrayEach(list, function (item, index) {
-      if (object[item]) {
-        object = object[item]
+    arrayEach(
+      list,
+      function (item, index) {
+        if (object[item]) {
+          object = object[item]
+        }
+        else if (autoFill) {
+          object = object[item] = {}
+        }
+        else {
+          object = null
+          return false
+        }
       }
-      else if (autoFill) {
-        object = object[item] = {}
-      }
-      else {
-        object = null
-        return false
-      }
-    })
+    )
     if (object && object !== originalObject) {
       object[prop] = value
     }

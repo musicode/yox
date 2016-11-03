@@ -31,9 +31,9 @@ module.exports = class Context {
     if (keypath.indexOf('.') > 0) {
       let terms = keypath.split('.')
       let prop = terms.pop()
-      let context = get(data, terms.join('.'))
-      if (context != null) {
-        context[prop] = value
+      let result = get(data, terms.join('.'))
+      if (result) {
+        result.value[prop] = value
       }
     }
     else {
@@ -45,23 +45,21 @@ module.exports = class Context {
 
     let context = this
     let { cache } = context
-    if (has(cache, keypath)) {
-      return cache[keypath]
-    }
-
-    let value
-    while (context) {
-      value = get(context.data, keypath)
-      if (typeof value !== 'undefined') {
-        cache[keypath] = value
-        break
-      }
-      else {
-        context = context.parent
+    if (!has(cache, keypath)) {
+      let result
+      while (context) {
+        result = get(context.data, keypath)
+        if (result) {
+          cache[keypath] = result.value
+          break
+        }
+        else {
+          context = context.parent
+        }
       }
     }
 
-    return value
+    return cache[keypath]
 
   }
 }
