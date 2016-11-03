@@ -188,7 +188,7 @@ module.exports = class York {
       instance.$directives = directives
     }
     if (isObject(filters)) {
-      instance.$filters = componentBind(instance, filters)
+      instance.$filters = filters
     }
     if (isObject(partials)) {
       instance.$partials = partials
@@ -466,7 +466,7 @@ module.exports = class York {
 
           changes.push({
             keypath,
-            data: [ value, oldValue ]
+            args: [ value, oldValue ]
           })
 
           if (hasComputed && isArray($computedWatchers[keypath])) {
@@ -499,13 +499,13 @@ module.exports = class York {
       each(
         changes,
         function (item) {
-          let { keypath, data } = item
+          let { keypath, args } = item
           each(
             getWildcardMatches(keypath),
             function (wildcardKeypath) {
               $watchEmitter.fire(
                 wildcardKeypath,
-                merge(data, getWildcardNames(keypath, wildcardKeypath)),
+                merge(args, getWildcardNames(keypath, wildcardKeypath)),
                 instance
               )
             }
@@ -530,8 +530,21 @@ module.exports = class York {
     } = instance
 
     let context = { }
+
     each(
-      [ $data, $filters, $computedGetters ],
+      [ globalFilters, $filters ],
+      function (item) {
+        if (isObject(item)) {
+          objectExtend(
+            context,
+            componentBind(instance, item)
+          )
+        }
+      }
+    )
+
+    each(
+      [ $data, $computedGetters ],
       function (item) {
         if (isObject(item)) {
           objectExtend(context, item)

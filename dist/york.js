@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "2f040069bf4ebe2a28ef"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "8bf0b06c04f2ed9bd4b1"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -747,7 +747,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      instance.$directives = directives;
 	    }
 	    if ((0, _is.isObject)(filters)) {
-	      instance.$filters = (0, _component.bind)(instance, filters);
+	      instance.$filters = filters;
 	    }
 	    if ((0, _is.isObject)(partials)) {
 	      instance.$partials = partials;
@@ -1009,7 +1009,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	          changes.push({
 	            keypath: keypath,
-	            data: [value, oldValue]
+	            args: [value, oldValue]
 	          });
 
 	          if (hasComputed && (0, _is.isArray)($computedWatchers[keypath])) {
@@ -1036,10 +1036,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (changes.length) {
 	        (0, _array.each)(changes, function (item) {
 	          var keypath = item.keypath,
-	              data = item.data;
+	              args = item.args;
 
 	          (0, _array.each)((0, _keypath.getWildcardMatches)(keypath), function (wildcardKeypath) {
-	            $watchEmitter.fire(wildcardKeypath, (0, _array.merge)(data, (0, _keypath.getWildcardNames)(keypath, wildcardKeypath)), instance);
+	            $watchEmitter.fire(wildcardKeypath, (0, _array.merge)(args, (0, _keypath.getWildcardNames)(keypath, wildcardKeypath)), instance);
 	          });
 	        });
 	        return true;
@@ -1059,7 +1059,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	      var context = {};
-	      (0, _array.each)([$data, $filters, $computedGetters], function (item) {
+
+	      (0, _array.each)([globalFilters, $filters], function (item) {
+	        if ((0, _is.isObject)(item)) {
+	          (0, _object.extend)(context, (0, _component.bind)(instance, item));
+	        }
+	      });
+
+	      (0, _array.each)([$data, $computedGetters], function (item) {
 	        if ((0, _is.isObject)(item)) {
 	          (0, _object.extend)(context, item);
 	        }
