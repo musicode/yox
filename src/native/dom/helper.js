@@ -36,7 +36,7 @@ let nativeAddEventListener = isModernBrowser
      oldInputEvent.on(element, listener)
    }
    else {
-     element.attachEvent(`on$(type)`, listener)
+     element.attachEvent(`on${type}`, listener)
    }
  }
 
@@ -49,7 +49,7 @@ let nativeRemoveEventListener = isModernBrowser
      oldInputEvent.off(element, listener)
    }
    else {
-     element.detachEvent(`on$(type)`, listener)
+     element.detachEvent(`on${type}`, listener)
    }
  }
 
