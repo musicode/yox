@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "4d9414a3887cd541be80"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "e2a31b808db994f29ee4"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -1108,8 +1108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 9. 报错信息完善
 	 * 10. SEO友好
 	 * 11. 计算属性的观测用 Emitter 是否更好？
-	 * 12. 新增 events
-	 * 13. keypath 还原
+	 * 12. keypath 还原
 	 */
 
 /***/ },
@@ -4128,13 +4127,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	}
 
-	function testKeypath(instance, keypath) {
+	function testKeypath(instance, keypath, name) {
+
+	  var terms = keypath.split('.');
+	  if (!name) {
+	    name = terms.pop();
+	  }
+
 	  var data = instance.$data;
-	  var terms = void 0,
-	      target = void 0,
-	      result = void 0;
+	  var result = void 0;
 
 	  do {
+	    terms.push(name);
+	    keypath = terms.join('.');
 	    result = (0, _object.get)(data, keypath);
 	    if (result) {
 	      return {
@@ -4142,24 +4147,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: result.value
 	      };
 	    }
-	    if (!terms) {
-	      terms = keypath.split('.');
-	    }
-	    target = terms.pop();
-	    terms.pop();
-	    terms.push(target);
-	    keypath = terms.join('.');
+	    terms.splice(-2);
 	  } while (terms.length);
 	}
 
 	function get(instance, type, name) {
 	  var staticProp = type + 's';
 	  var instanceProp = '$' + staticProp;
-	  var value = void 0;
 	  if (instance[instanceProp] && (0, _object.has)(instance[instanceProp], name)) {
 	    return instance[instanceProp][name];
+	  } else if ((0, _object.has)(instance.constructor[staticProp], name)) {
+	    return instance.constructor[staticProp][name];
+	  } else {
+	    throw new Error(name + ' ' + type + ' is not found.');
 	  }
-	  return instance.constructor[staticProp][name];
 	}
 
 	function set(instance, type, name, value) {
@@ -5369,40 +5370,45 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    var listener = void 0;
-	    var ast = (0, _expression.parse)(node.getValue());
+	    var value = node.getValue().trim();
 
-	    if (ast.type === _expression.CALL) {
-	      listener = function listener(e) {
-	        var args = [].concat(_toConsumableArray(ast.arguments));
-	        if (!args.length) {
-	          args.push(e);
-	        } else {
-	          args = args.map(function (item) {
-	            var name = item.name,
-	                type = item.type;
+	    if (value.indexOf('(') > 0) {
+	      (function () {
+	        var ast = (0, _expression.parse)(value);
+	        if (ast.type === _expression.CALL) {
+	          listener = function listener(e) {
+	            var args = [].concat(_toConsumableArray(ast.arguments));
+	            if (!args.length) {
+	              args.push(e);
+	            } else {
+	              args = args.map(function (item) {
+	                var name = item.name,
+	                    type = item.type;
 
-	            if (type === _expression.LITERAL) {
-	              return item.value;
-	            }
-	            if (type === _expression.IDENTIFIER) {
-	              if (name === syntax.SPECIAL_EVENT) {
-	                return e;
-	              }
-	            } else if (type === _expression.MEMBER) {
-	              name = (0, _keypath.stringify)(item);
-	            }
+	                if (type === _expression.LITERAL) {
+	                  return item.value;
+	                }
+	                if (type === _expression.IDENTIFIER) {
+	                  if (name === syntax.SPECIAL_EVENT) {
+	                    return e;
+	                  }
+	                } else if (type === _expression.MEMBER) {
+	                  name = (0, _keypath.stringify)(item);
+	                }
 
-	            var result = (0, _component.testKeypath)(instance, node.keypath ? node.keypath + '.' + name : name);
-	            if (result) {
-	              return result.value;
+	                var result = (0, _component.testKeypath)(instance, node.keypath, name);
+	                if (result) {
+	                  return result.value;
+	                }
+	              });
 	            }
-	          });
+	            instance[ast.callee.name].apply(instance, args);
+	          };
 	        }
-	        instance[ast.callee.name].apply(instance, args);
-	      };
-	    } else if (ast.type === _expression.IDENTIFIER) {
+	      })();
+	    } else {
 	      listener = function listener() {
-	        instance.fire(ast.name);
+	        instance.fire(value);
 	      };
 	    }
 
@@ -5557,13 +5563,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    value = node.getValue();
 
-	    var keypath = node.keypath ? node.keypath + '.' + value : value;
-	    var result = (0, _component.testKeypath)(instance, keypath);
+	    var result = (0, _component.testKeypath)(instance, node.keypath, value);
 	    if (!result) {
 	      throw new Error('\u4E0D\u80FD\u53CC\u5411\u7ED1\u5B9A\u5230 ' + keypath);
 	    }
 
-	    keypath = result.keypath;
+	    var keypath = result.keypath;
+
 
 	    var controller = controlTypes[el.type] || controlTypes.normal;
 	    var data = {

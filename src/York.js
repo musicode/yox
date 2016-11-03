@@ -583,6 +583,5 @@ module.exports = class York {
  * 9. 报错信息完善
  * 10. SEO友好
  * 11. 计算属性的观测用 Emitter 是否更好？
- * 12. 新增 events
- * 13. keypath 还原
+ * 12. keypath 还原
  */

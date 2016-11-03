@@ -96,13 +96,12 @@ module.exports = {
 
     value = node.getValue()
 
-    let keypath = node.keypath ? `${node.keypath}.${value}` : value
-    let result = testKeypath(instance, keypath)
+    let result = testKeypath(instance, node.keypath, value)
     if (!result) {
       throw new Error(`不能双向绑定到 ${keypath}`)
     }
 
-    keypath = result.keypath
+    let { keypath } = result
 
     let controller = controlTypes[el.type] || controlTypes.normal
     let data = {

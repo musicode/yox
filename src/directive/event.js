@@ -32,45 +32,48 @@ module.exports = {
   attach: function({ el, name, node, instance }) {
 
     let listener
-    let ast = parse(node.getValue())
+    let value = node.getValue().trim()
 
-    if (ast.type === CALL) {
-      listener = function (e) {
-        let args = [
-          ...ast.arguments,
-        ]
-        if (!args.length) {
-          args.push(e)
-        }
-        else {
-          args = args.map(
-            function (item) {
-              let { name, type } = item
-              if (type === LITERAL) {
-                return item.value
-              }
-              if (type === IDENTIFIER) {
-                if (name === syntax.SPECIAL_EVENT) {
-                  return e
+    if (value.indexOf('(') > 0) {
+      let ast = parse(value)
+      if (ast.type === CALL) {
+        listener = function (e) {
+          let args = [
+            ...ast.arguments,
+          ]
+          if (!args.length) {
+            args.push(e)
+          }
+          else {
+            args = args.map(
+              function (item) {
+                let { name, type } = item
+                if (type === LITERAL) {
+                  return item.value
+                }
+                if (type === IDENTIFIER) {
+                  if (name === syntax.SPECIAL_EVENT) {
+                    return e
+                  }
+                }
+                else if (type === MEMBER) {
+                  name = stringify(item)
+                }
+
+                let result = testKeypath(instance, node.keypath, name)
+                if (result) {
+                  return result.value
                 }
               }
-              else if (type === MEMBER) {
-                name = stringify(item)
-              }
-
-              let result = testKeypath(instance, node.keypath ? `${node.keypath}.${name}` : name)
-              if (result) {
-                return result.value
-              }
-            }
-          )
+            )
+          }
+          instance[ast.callee.name].apply(instance, args)
         }
-        instance[ast.callee.name].apply(instance, args)
       }
     }
-    else if (ast.type === IDENTIFIER) {
+    else {
       listener = function () {
-        instance.fire(ast.name)
+        instance.fire(value)
       }
     }
 

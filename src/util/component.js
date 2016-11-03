@@ -38,11 +38,19 @@ export function magic(object, name, value) {
   }
 }
 
-export function testKeypath(instance, keypath) {
+export function testKeypath(instance, keypath, name) {
+
+  let terms = keypath.split('.')
+  if (!name) {
+    name = terms.pop()
+  }
+
   let data = instance.$data
-  let terms, target, result
+  let result
 
   do {
+    terms.push(name)
+    keypath = terms.join('.')
     result = objectGet(data, keypath)
     if (result) {
       return {
@@ -50,13 +58,7 @@ export function testKeypath(instance, keypath) {
         value: result.value,
       }
     }
-    if (!terms) {
-      terms = keypath.split('.')
-    }
-    target = terms.pop()
-    terms.pop()
-    terms.push(target)
-    keypath = terms.join('.')
+    terms.splice(-2)
   }
   while (terms.length)
 
@@ -65,11 +67,15 @@ export function testKeypath(instance, keypath) {
 export function get(instance, type, name) {
   let staticProp = `${type}s`
   let instanceProp = `$${staticProp}`
-  let value
   if (instance[instanceProp] && has(instance[instanceProp], name)) {
     return instance[instanceProp][name]
   }
-  return instance.constructor[staticProp][name]
+  else if (has(instance.constructor[staticProp], name)) {
+    return instance.constructor[staticProp][name]
+  }
+  else {
+    throw new Error(`${name} ${type} is not found.`)
+  }
 }
 
 export function set(instance, type, name, value) {
