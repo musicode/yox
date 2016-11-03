@@ -22,7 +22,6 @@ import {
   LITERAL,
   IDENTIFIER,
   parse,
-  compile,
 } from '../util/expression'
 
 import * as syntax from '../config/syntax'

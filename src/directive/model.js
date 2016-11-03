@@ -51,15 +51,15 @@ const controlTypes = {
         : !!value
     },
     sync: function ({ el, keypath, instance }) {
-      let value = instance.get(keypath)
-      if (isArray(value)) {
+      let array = instance.get(keypath)
+      if (isArray(array)) {
         if (el.checked) {
-          value.push(el.value)
+          array.push(el.value)
         }
         else {
-          removeItem(value, el.value, false)
+          removeItem(array, el.value, false)
         }
-        instance.set(keypath, [ ...value ])
+        instance.set(keypath, [ ...array ])
       }
       else {
         instance.set(keypath, el.checked)
@@ -72,25 +72,23 @@ module.exports = {
 
   attach: function ({ el, node, instance, directives }) {
 
-    let type = 'change', interval, value
+    let eventName = 'change', eventInterval, value
 
-    if (el.tagName === 'INPUT' && hasItem(supportInputTypes, el.type)
-      || el.tagName === 'TEXTAREA'
+    let { type, tagName } = el
+
+    if (tagName === 'INPUT' && hasItem(supportInputTypes, type)
+      || tagName === 'TEXTAREA'
     ) {
-      let lazyDirective = directives.filter(
-        function (item) {
-          return item.name === 'lazy'
-        }
-      )[0]
+      let lazyDirective = directives.lazy
       if (lazyDirective) {
         value = lazyDirective.node.getValue()
         if (isNumeric(value) && value >= 0) {
-          type = 'input'
-          interval = value
+          eventName = 'input'
+          eventInterval = value
         }
       }
       else {
-        type = 'input'
+        eventName = 'input'
       }
     }
 
@@ -103,41 +101,41 @@ module.exports = {
 
     let { keypath } = result
 
-    let controller = controlTypes[el.type] || controlTypes.normal
+    let target = controlTypes[type] || controlTypes.normal
     let data = {
       el,
       keypath,
       instance,
     }
-    controller.set(data)
+    target.set(data)
 
     instance.watch(
       keypath,
       function () {
-        controller.set(data)
+        target.set(data)
       }
     )
 
-    let listener = function () {
-      controller.sync(data)
+    let eventListener = function () {
+      target.sync(data)
     }
 
-    if (interval != null) {
-      listener = debounce(listener, interval)
+    if (eventInterval) {
+      eventListener = debounce(eventListener, eventInterval)
     }
 
     el.$model = {
-      type,
-      listener,
+      eventName,
+      eventListener,
     }
 
-    on(el, type, listener)
+    on(el, eventName, eventListener)
 
   },
 
   detach: function ({ el }) {
     let { $model } = el
-    off(el, $model.type, $model.listener)
+    off(el, $model.eventName, $model.eventListener)
     el.$model = null
   }
 

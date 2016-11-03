@@ -1,7 +1,6 @@
 import snabbdom from 'snabbdom'
 
 import h from 'snabbdom/h'
-import props from 'snabbdom/modules/props'
 import style from 'snabbdom/modules/style'
 import attributes from 'snabbdom/modules/attributes'
 
@@ -14,6 +13,7 @@ import {
 
 import {
   each,
+  toObject,
 } from '../../util/array'
 
 import {
@@ -37,11 +37,16 @@ import {
 } from '../../compiler/nodeType'
 
 
-export let patch = snabbdom.init([ props, attributes, style ])
+export let patch = snabbdom.init([ attributes, style ])
 
 export function create(node, instance) {
 
   let counter = 0
+
+  let {
+    DIRECTIVE_PREFIX,
+    DIRECTIVE_EVENT_PREFIX,
+  } = syntax
 
   let traverse = function (node, enter, leave) {
 
@@ -78,10 +83,7 @@ export function create(node, instance) {
       counter--
       if (node.type === ELEMENT) {
 
-        let attrs = { }
-        let styles
-
-        let directives = [ ]
+        let attrs = { }, directives = [ ], styles
 
         // 指令的创建要确保顺序
         // 组件必须第一个执行
@@ -116,13 +118,13 @@ export function create(node, instance) {
             let { name } = node
 
             let directiveName
-            if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
-              name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length)
+            if (name.startsWith(DIRECTIVE_EVENT_PREFIX)) {
+              name = name.substr(DIRECTIVE_EVENT_PREFIX.length)
               directiveName = 'event'
             }
             else {
               name =
-              directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length)
+              directiveName = name.substr(DIRECTIVE_PREFIX.length)
             }
 
             directives.push({
@@ -140,6 +142,10 @@ export function create(node, instance) {
         }
 
         if (!counter || directives.length) {
+
+          // 方便指令内查询
+          let map = toObject(directives, 'name')
+
           let notify = function (vnode, type) {
             each(
               directives,
@@ -149,8 +155,8 @@ export function create(node, instance) {
                     el: vnode.elm,
                     node: item.node,
                     name: item.name,
+                    directives: map,
                     instance,
-                    directives,
                   })
                 }
               }

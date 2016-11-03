@@ -1,13 +1,11 @@
 
-import * as lifecycle from '../config/lifecycle'
-
 import {
   get,
 } from '../util/component'
 
 module.exports = {
 
-  attach: function ({ el, name, node, instance, directives }) {
+  attach: function ({ el, node, instance }) {
     el.$component = instance.create(
       get(instance, 'component', node.custom),
       {

@@ -44,6 +44,16 @@ export function toArray(array) {
   return isArray(array) ? array : slice.call(array)
 }
 
+export function toObject(array, key) {
+  let result = { }
+  each(
+    array,
+    function (item) {
+      result[item[key]] = item
+    }
+  )
+  return result
+}
 
 export function indexOf(array, item, strict = true) {
   if (strict) {

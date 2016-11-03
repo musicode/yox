@@ -40,13 +40,12 @@ export function magic(object, name, value) {
 
 export function testKeypath(instance, keypath, name) {
 
-  let terms = keypath.split('.')
+  let terms = keypath ? keypath.split('.') : [ ]
   if (!name) {
     name = terms.pop()
   }
 
-  let data = instance.$data
-  let result
+  let data = instance.$data, result
 
   do {
     terms.push(name)
@@ -65,8 +64,7 @@ export function testKeypath(instance, keypath, name) {
 }
 
 export function get(instance, type, name) {
-  let staticProp = `${type}s`
-  let instanceProp = `$${staticProp}`
+  let staticProp = `${type}s`, instanceProp = `$${staticProp}`
   if (instance[instanceProp] && has(instance[instanceProp], name)) {
     return instance[instanceProp][name]
   }

@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "e2a31b808db994f29ee4"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "2f040069bf4ebe2a28ef"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -1981,6 +1981,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.reduce = reduce;
 	exports.merge = merge;
 	exports.toArray = toArray;
+	exports.toObject = toObject;
 	exports.indexOf = indexOf;
 	exports.hasItem = hasItem;
 	exports.lastItem = lastItem;
@@ -2022,6 +2023,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return [];
 	  }
 	  return (0, _is.isArray)(array) ? array : slice.call(array);
+	}
+
+	function toObject(array, key) {
+	  var result = {};
+	  each(array, function (item) {
+	    result[item[key]] = item;
+	  });
+	  return result;
 	}
 
 	function indexOf(array, item) {
@@ -4129,13 +4138,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function testKeypath(instance, keypath, name) {
 
-	  var terms = keypath.split('.');
+	  var terms = keypath ? keypath.split('.') : [];
 	  if (!name) {
 	    name = terms.pop();
 	  }
 
-	  var data = instance.$data;
-	  var result = void 0;
+	  var data = instance.$data,
+	      result = void 0;
 
 	  do {
 	    terms.push(name);
@@ -4152,8 +4161,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function get(instance, type, name) {
-	  var staticProp = type + 's';
-	  var instanceProp = '$' + staticProp;
+	  var staticProp = type + 's',
+	      instanceProp = '$' + staticProp;
 	  if (instance[instanceProp] && (0, _object.has)(instance[instanceProp], name)) {
 	    return instance[instanceProp][name];
 	  } else if ((0, _object.has)(instance.constructor[staticProp], name)) {
@@ -4507,10 +4516,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _h2 = _interopRequireDefault(_h);
 
-	var _props = __webpack_require__(43);
-
-	var _props2 = _interopRequireDefault(_props);
-
 	var _style = __webpack_require__(44);
 
 	var _style2 = _interopRequireDefault(_style);
@@ -4543,11 +4548,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var patch = exports.patch = _snabbdom2.default.init([_props2.default, _attributes2.default, _style2.default]);
+	var patch = exports.patch = _snabbdom2.default.init([_attributes2.default, _style2.default]);
 
 	function create(node, instance) {
 
 	  var counter = 0;
+
+	  var DIRECTIVE_PREFIX = syntax.DIRECTIVE_PREFIX,
+	      DIRECTIVE_EVENT_PREFIX = syntax.DIRECTIVE_EVENT_PREFIX;
+
 
 	  var traverse = function traverse(node, enter, leave) {
 
@@ -4578,10 +4587,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (node.type === _nodeType.ELEMENT) {
 	      var _ret = function () {
 
-	        var attrs = {};
-	        var styles = void 0;
-
-	        var directives = [];
+	        var attrs = {},
+	            directives = [],
+	            styles = void 0;
 
 	        // 指令的创建要确保顺序
 	        // 组件必须第一个执行
@@ -4610,11 +4618,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	          var directiveName = void 0;
-	          if (name.startsWith(syntax.DIRECTIVE_EVENT_PREFIX)) {
-	            name = name.substr(syntax.DIRECTIVE_EVENT_PREFIX.length);
+	          if (name.startsWith(DIRECTIVE_EVENT_PREFIX)) {
+	            name = name.substr(DIRECTIVE_EVENT_PREFIX.length);
 	            directiveName = 'event';
 	          } else {
-	            name = directiveName = name.substr(syntax.DIRECTIVE_PREFIX.length);
+	            name = directiveName = name.substr(DIRECTIVE_PREFIX.length);
 	          }
 
 	          directives.push({
@@ -4632,6 +4640,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if (!counter || directives.length) {
 	          (function () {
+
+	            // 方便指令内查询
+	            var map = (0, _array.toObject)(directives, 'name');
+
 	            var notify = function notify(vnode, type) {
 	              (0, _array.each)(directives, function (item) {
 	                if ((0, _is.isFunction)(item.directive[type])) {
@@ -4639,8 +4651,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    el: vnode.elm,
 	                    node: item.node,
 	                    name: item.name,
-	                    instance: instance,
-	                    directives: directives
+	                    directives: map,
+	                    instance: instance
 	                  });
 	                }
 	              });
@@ -5100,40 +5112,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 43 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	function updateProps(oldVnode, vnode) {
-	  var key,
-	      cur,
-	      old,
-	      elm = vnode.elm,
-	      oldProps = oldVnode.data.props,
-	      props = vnode.data.props;
-
-	  if (!oldProps && !props) return;
-	  oldProps = oldProps || {};
-	  props = props || {};
-
-	  for (key in oldProps) {
-	    if (!props[key]) {
-	      delete elm[key];
-	    }
-	  }
-	  for (key in props) {
-	    cur = props[key];
-	    old = oldProps[key];
-	    if (old !== cur && (key !== 'value' || elm[key] !== cur)) {
-	      elm[key] = cur;
-	    }
-	  }
-	}
-
-	module.exports = { create: updateProps, update: updateProps };
-
-/***/ },
+/* 43 */,
 /* 44 */
 /***/ function(module, exports) {
 
@@ -5518,14 +5497,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          keypath = _ref6.keypath,
 	          instance = _ref6.instance;
 
-	      var value = instance.get(keypath);
-	      if ((0, _is.isArray)(value)) {
+	      var array = instance.get(keypath);
+	      if ((0, _is.isArray)(array)) {
 	        if (el.checked) {
-	          value.push(el.value);
+	          array.push(el.value);
 	        } else {
-	          (0, _array.removeItem)(value, el.value, false);
+	          (0, _array.removeItem)(array, el.value, false);
 	        }
-	        instance.set(keypath, [].concat(_toConsumableArray(value)));
+	        instance.set(keypath, [].concat(_toConsumableArray(array)));
 	      } else {
 	        instance.set(keypath, el.checked);
 	      }
@@ -5542,22 +5521,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        directives = _ref7.directives;
 
 
-	    var type = 'change',
-	        interval = void 0,
+	    var eventName = 'change',
+	        eventInterval = void 0,
 	        value = void 0;
 
-	    if (el.tagName === 'INPUT' && (0, _array.hasItem)(supportInputTypes, el.type) || el.tagName === 'TEXTAREA') {
-	      var lazyDirective = directives.filter(function (item) {
-	        return item.name === 'lazy';
-	      })[0];
+	    var type = el.type,
+	        tagName = el.tagName;
+
+
+	    if (tagName === 'INPUT' && (0, _array.hasItem)(supportInputTypes, type) || tagName === 'TEXTAREA') {
+	      var lazyDirective = directives.lazy;
 	      if (lazyDirective) {
 	        value = lazyDirective.node.getValue();
 	        if ((0, _is.isNumeric)(value) && value >= 0) {
-	          type = 'input';
-	          interval = value;
+	          eventName = 'input';
+	          eventInterval = value;
 	        }
 	      } else {
-	        type = 'input';
+	        eventName = 'input';
 	      }
 	    }
 
@@ -5571,39 +5552,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var keypath = result.keypath;
 
 
-	    var controller = controlTypes[el.type] || controlTypes.normal;
+	    var target = controlTypes[type] || controlTypes.normal;
 	    var data = {
 	      el: el,
 	      keypath: keypath,
 	      instance: instance
 	    };
-	    controller.set(data);
+	    target.set(data);
 
 	    instance.watch(keypath, function () {
-	      controller.set(data);
+	      target.set(data);
 	    });
 
-	    var listener = function listener() {
-	      controller.sync(data);
+	    var eventListener = function eventListener() {
+	      target.sync(data);
 	    };
 
-	    if (interval != null) {
-	      listener = (0, _debounce2.default)(listener, interval);
+	    if (eventInterval) {
+	      eventListener = (0, _debounce2.default)(eventListener, eventInterval);
 	    }
 
 	    el.$model = {
-	      type: type,
-	      listener: listener
+	      eventName: eventName,
+	      eventListener: eventListener
 	    };
 
-	    (0, _helper.on)(el, type, listener);
+	    (0, _helper.on)(el, eventName, eventListener);
 	  },
 
 	  detach: function detach(_ref8) {
 	    var el = _ref8.el;
 	    var $model = el.$model;
 
-	    (0, _helper.off)(el, $model.type, $model.listener);
+	    (0, _helper.off)(el, $model.eventName, $model.eventListener);
 	    el.$model = null;
 	  }
 
@@ -5657,22 +5638,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _lifecycle = __webpack_require__(2);
-
-	var lifecycle = _interopRequireWildcard(_lifecycle);
-
 	var _component = __webpack_require__(32);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	module.exports = {
 
 	  attach: function attach(_ref) {
 	    var el = _ref.el,
-	        name = _ref.name,
 	        node = _ref.node,
-	        instance = _ref.instance,
-	        directives = _ref.directives;
+	        instance = _ref.instance;
 
 	    el.$component = instance.create((0, _component.get)(instance, 'component', node.custom), {
 	      el: el,
