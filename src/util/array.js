@@ -44,16 +44,36 @@ export function toArray(array) {
   return isArray(array) ? array : slice.call(array)
 }
 
-export function hasItem(array, item) {
-  return array.indexOf(item) >= 0
+
+export function indexOf(array, item, strict = true) {
+  if (strict) {
+    return array.indexOf(item)
+  }
+  else {
+    let index = -1
+    each(
+      array,
+      function (value, i) {
+        if (item == value) {
+          index = i
+          return false
+        }
+      }
+    )
+    return index
+  }
+}
+
+export function hasItem(array, item, strict = true) {
+  return indexOf(array, item, strict) >= 0
 }
 
 export function lastItem(array) {
   return array[array.length - 1]
 }
 
-export function removeItem(array, item) {
-  let index = array.indexOf(item)
+export function removeItem(array, item, strict = true) {
+  let index = indexOf(array, item, strict)
   if (index >= 0) {
     array.splice(index, 1)
   }

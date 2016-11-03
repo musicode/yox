@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "ce84295455e6c2cc7811"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "2d52284aba482337ee5b"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -692,6 +692,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        watchers = options.watchers,
 	        components = options.components,
 	        directives = options.directives,
+	        events = options.events,
 	        filters = options.filters,
 	        partials = options.partials;
 
@@ -862,6 +863,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 
 	    hooks = null;
+
+	    instance.fire(lifecycle.INIT);
+
+	    if ((0, _is.isObject)(events)) {
+	      (0, _object.each)(events, function (listener, type) {
+	        if ((0, _is.isFunction)(listener)) {
+	          instance.on(type, listener);
+	        }
+	      });
+	    }
 
 	    // 监听数据变化
 	    instance.$watchEmitter = new _event.Emitter();
@@ -1094,6 +1105,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 8. 属性延展（用 #each 遍历数据）
 	 * 9. 报错信息完善
 	 * 10. SEO友好
+	 * 11. 计算属性的观测用 Emitter 是否更好？
+	 * 12. 新增 events
 	 */
 
 /***/ },
@@ -1136,8 +1149,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	/**
+	 * 数据观测、事件和 watcher 都尚未初始化
+	 *
+	 * @type {string}
+	 */
+	var INIT = exports.INIT = 'init';
+
+	/**
+	 * 已创建数据绑定，计算属性，方法，watcher/事件回调。
+	 * 但是还没有开始 DOM 编译，$el 还不存在。
+	 *
+	 * @type {string}
+	 */
 	var CREATE = exports.CREATE = 'create';
+
+	/**
+	 * 在编译结束后调用。此时所有的指令已生效，因而数据的变化将触发 DOM 更新
+	 *
+	 * @type {string}
+	 */
 	var COMPILE = exports.COMPILE = 'compile';
+
 	var ATTACH = exports.ATTACH = 'attach';
 	var UPDATE = exports.UPDATE = 'update';
 	var DETACH = exports.DETACH = 'detach';
@@ -1384,6 +1418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      name = void 0,
 	      content = void 0,
 	      isComponent = void 0,
+	      isSelfClosingTag = void 0,
 	      match = void 0,
 	      errorIndex = void 0;
 
@@ -1577,9 +1612,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      name = content.substr(2);
 
 	      if (mainScanner.charAt(0) !== '>') {
-	        return (0, _string.parseError)('结束标签缺少 >');
+	        return (0, _string.parseError)(template, '结束标签缺少 >', errorIndex);
 	      } else if (name !== currentNode.name) {
-	        return (0, _string.parseError)('开始标签和结束标签匹配失败');
+	        return (0, _string.parseError)(template, '开始标签和结束标签匹配失败', errorIndex);
 	      }
 
 	      popStack();
@@ -1590,6 +1625,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        content = mainScanner.nextAfter(elementPattern);
 	        name = content.substr(1);
 	        isComponent = pattern.componentName.test(name);
+	        isSelfClosingTag = isComponent || pattern.selfClosingTagName.test(name);
 
 	        // 低版本浏览器不支持自定义标签，因此需要转成 div
 	        addChild(new _Element2.default(isComponent ? 'div' : name, isComponent ? name : ''));
@@ -1603,17 +1639,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        content = mainScanner.nextAfter(elementEndPattern);
 	        if (!content) {
-	          return (0, _string.parseError)('标签缺少 >');
+	          return (0, _string.parseError)(template, '标签缺少 >', errorIndex);
 	        }
 
-	        if (isComponent || pattern.selfClosingTagName.test(name)) {
+	        if (isComponent || isSelfClosingTag) {
 	          popStack();
 	        }
 	      }
 	  }
 
 	  if (nodeStack.length) {
-	    return (0, _string.parseError)('节点没有正确的结束');
+	    return (0, _string.parseError)(template, '节点没有正确的结束', errorIndex);
 	  }
 
 	  templateParseCache[template] = rootNode;
@@ -1938,6 +1974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.reduce = reduce;
 	exports.merge = merge;
 	exports.toArray = toArray;
+	exports.indexOf = indexOf;
 	exports.hasItem = hasItem;
 	exports.lastItem = lastItem;
 	exports.removeItem = removeItem;
@@ -1980,8 +2017,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return (0, _is.isArray)(array) ? array : slice.call(array);
 	}
 
+	function indexOf(array, item) {
+	  var strict = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+	  if (strict) {
+	    return array.indexOf(item);
+	  } else {
+	    var index = -1;
+	    each(array, function (value, i) {
+	      if (item == value) {
+	        index = i;
+	        return false;
+	      }
+	    });
+	    return index;
+	  }
+	}
+
 	function hasItem(array, item) {
-	  return array.indexOf(item) >= 0;
+	  var strict = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+	  return indexOf(array, item, strict) >= 0;
 	}
 
 	function lastItem(array) {
@@ -1989,7 +2045,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function removeItem(array, item) {
-	  var index = array.indexOf(item);
+	  var strict = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+	  var index = indexOf(array, item, strict);
 	  if (index >= 0) {
 	    array.splice(index, 1);
 	  }
@@ -5348,49 +5406,131 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _helper = __webpack_require__(33);
 
+	var _array = __webpack_require__(10);
+
+	var _is = __webpack_require__(9);
+
 	var _debounce = __webpack_require__(50);
 
 	var _debounce2 = _interopRequireDefault(_debounce);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	// 支持 input 事件的控件
+	var supportInputTypes = ['text', 'number', 'url', 'email', 'search'];
+
+	// 特殊的双向绑定逻辑
+	var controlTypes = {
+	  normal: {
+	    set: function set(_ref) {
+	      var el = _ref.el,
+	          keypath = _ref.keypath,
+	          instance = _ref.instance;
+
+	      el.value = instance.get(keypath);
+	    },
+	    sync: function sync(_ref2) {
+	      var el = _ref2.el,
+	          keypath = _ref2.keypath,
+	          instance = _ref2.instance;
+
+	      instance.set(keypath, el.value);
+	    }
+	  },
+	  radio: {
+	    set: function set(_ref3) {
+	      var el = _ref3.el,
+	          keypath = _ref3.keypath,
+	          instance = _ref3.instance;
+
+	      el.checked = el.value == instance.get(keypath);
+	    },
+	    sync: function sync(_ref4) {
+	      var el = _ref4.el,
+	          keypath = _ref4.keypath,
+	          instance = _ref4.instance;
+
+	      if (el.checked) {
+	        instance.set(keypath, el.value);
+	      }
+	    }
+	  },
+	  checkbox: {
+	    set: function set(_ref5) {
+	      var el = _ref5.el,
+	          keypath = _ref5.keypath,
+	          instance = _ref5.instance;
+
+	      var value = instance.get(keypath);
+	      el.checked = (0, _is.isArray)(value) ? (0, _array.hasItem)(value, el.value, false) : !!value;
+	    },
+	    sync: function sync(_ref6) {
+	      var el = _ref6.el,
+	          keypath = _ref6.keypath,
+	          instance = _ref6.instance;
+
+	      var value = instance.get(keypath);
+	      if ((0, _is.isArray)(value)) {
+	        if (el.checked) {
+	          value.push(el.value);
+	        } else {
+	          (0, _array.removeItem)(value, el.value, false);
+	        }
+	        instance.set(keypath, [].concat(_toConsumableArray(value)));
+	      } else {
+	        instance.set(keypath, el.checked);
+	      }
+	    }
+	  }
+	};
+
 	module.exports = {
 
-	  attach: function attach(_ref) {
-	    var el = _ref.el,
-	        node = _ref.node,
-	        instance = _ref.instance,
-	        directives = _ref.directives;
+	  attach: function attach(_ref7) {
+	    var el = _ref7.el,
+	        node = _ref7.node,
+	        instance = _ref7.instance,
+	        directives = _ref7.directives;
 
 
-	    var type = 'input',
+	    var type = 'change',
 	        interval = void 0,
 	        value = void 0;
 
-	    var lazyDirective = directives.filter(function (item) {
-	      return item.name === 'lazy';
-	    })[0];
-
-	    if (lazyDirective) {
-	      value = lazyDirective.node.getValue();
-	      if (value === true) {
-	        type = 'change';
-	      } else if (value >= 0) {
-	        interval = value;
+	    if (el.tagName === 'INPUT' && supportInputTypes[el.type] || el.tagName === 'TEXTAREA') {
+	      var lazyDirective = directives.filter(function (item) {
+	        return item.name === 'lazy';
+	      })[0];
+	      if (lazyDirective) {
+	        value = lazyDirective.node.getValue();
+	        if ((0, _is.isNumeric)(value) && value >= 0) {
+	          type = 'input';
+	          interval = value;
+	        }
+	      } else {
+	        type = 'input';
 	      }
 	    }
 
 	    value = node.getValue();
-
 	    var keypath = node.keypath ? node.keypath + '.' + value : value;
-	    el.value = instance.get(keypath);
 
-	    instance.watch(keypath, function (value) {
-	      el.value = value || '';
+	    var controller = controlTypes[el.type] || controlTypes.normal;
+	    var data = {
+	      el: el,
+	      keypath: keypath,
+	      instance: instance
+	    };
+	    controller.set(data);
+
+	    instance.watch(keypath, function () {
+	      controller.set(data);
 	    });
 
-	    var listener = function listener(e) {
-	      instance.set(keypath, el.value);
+	    var listener = function listener() {
+	      controller.sync(data);
 	    };
 
 	    if (interval != null) {
@@ -5405,8 +5545,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    (0, _helper.on)(el, type, listener);
 	  },
 
-	  detach: function detach(_ref2) {
-	    var el = _ref2.el;
+	  detach: function detach(_ref8) {
+	    var el = _ref8.el;
 	    var $model = el.$model;
 
 	    (0, _helper.off)(el, $model.type, $model.listener);

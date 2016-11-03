@@ -123,6 +123,7 @@ module.exports = class York {
       watchers,
       components,
       directives,
+      events,
       filters,
       partials,
     } = options
@@ -311,7 +312,6 @@ module.exports = class York {
       )
     }
 
-
     // 监听各种事件
     instance.$eventEmitter = new Emitter()
 
@@ -325,6 +325,19 @@ module.exports = class York {
     )
 
     hooks = null
+
+    instance.fire(lifecycle.INIT)
+
+    if (isObject(events)) {
+      objectEach(
+        events,
+        function (listener, type) {
+          if (isFunction(listener)) {
+            instance.on(type, listener)
+          }
+        }
+      )
+    }
 
     // 监听数据变化
     instance.$watchEmitter = new Emitter()
@@ -567,4 +580,6 @@ module.exports = class York {
  * 8. 属性延展（用 #each 遍历数据）
  * 9. 报错信息完善
  * 10. SEO友好
+ * 11. 计算属性的观测用 Emitter 是否更好？
+ * 12. 新增 events
  */

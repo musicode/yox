@@ -4,3 +4,5 @@ dep
 edp-*
 node_modules
 .*
+*update.json
+*update.js

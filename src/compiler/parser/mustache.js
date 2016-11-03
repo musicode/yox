@@ -217,6 +217,7 @@ export function parse(template, getPartial, setPartial) {
     name,
     content,
     isComponent,
+    isSelfClosingTag,
     match,
     errorIndex
 
@@ -431,10 +432,10 @@ export function parse(template, getPartial, setPartial) {
       name = content.substr(2)
 
       if (mainScanner.charAt(0) !== '>') {
-        return parseError('结束标签缺少 >')
+        return parseError(template, '结束标签缺少 >', errorIndex)
       }
       else if (name !== currentNode.name) {
-        return parseError('开始标签和结束标签匹配失败')
+        return parseError(template, '开始标签和结束标签匹配失败', errorIndex)
       }
 
       popStack()
@@ -445,6 +446,7 @@ export function parse(template, getPartial, setPartial) {
       content = mainScanner.nextAfter(elementPattern)
       name = content.substr(1)
       isComponent = pattern.componentName.test(name)
+      isSelfClosingTag = isComponent || pattern.selfClosingTagName.test(name)
 
       // 低版本浏览器不支持自定义标签，因此需要转成 div
       addChild(
@@ -463,17 +465,17 @@ export function parse(template, getPartial, setPartial) {
 
       content = mainScanner.nextAfter(elementEndPattern)
       if (!content) {
-        return parseError('标签缺少 >')
+        return parseError(template, '标签缺少 >', errorIndex)
       }
 
-      if (isComponent || pattern.selfClosingTagName.test(name)) {
+      if (isComponent || isSelfClosingTag) {
         popStack()
       }
     }
   }
 
   if (nodeStack.length) {
-    return parseError('节点没有正确的结束')
+    return parseError(template, '节点没有正确的结束', errorIndex)
   }
 
   templateParseCache[template] = rootNode
