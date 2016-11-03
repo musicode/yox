@@ -1,5 +1,6 @@
 
 import {
+  get as objectGet,
   has,
   each,
   extend,
@@ -7,9 +8,12 @@ import {
 
 export function bind(instance, functions) {
   let result = { }
-  each(functions, function (fn, name) {
-    result[name] = fn.bind(instance)
-  })
+  each(
+    functions,
+    function (fn, name) {
+      result[name] = fn.bind(instance)
+    }
+  )
   return result
 }
 
@@ -20,15 +24,42 @@ export function magic(object, name, value) {
     }
     else {
       if (isObject(name)) {
-        objectEach(name, function (value, name) {
-          object[name] = value
-        })
+        each(
+          name,
+          function (value, name) {
+            object[name] = value
+          }
+        )
       }
       else {
         return object[name]
       }
     }
   }
+}
+
+export function testKeypath(instance, keypath) {
+  let data = instance.$data
+  let terms, target, result
+
+  do {
+    result = objectGet(data, keypath)
+    if (result) {
+      return {
+        keypath,
+        value: result.value,
+      }
+    }
+    if (!terms) {
+      terms = keypath.split('.')
+    }
+    target = terms.pop()
+    terms.pop()
+    terms.push(target)
+    keypath = terms.join('.')
+  }
+  while (terms.length)
+
 }
 
 export function get(instance, type, name) {

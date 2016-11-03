@@ -60,7 +60,7 @@ const elementPattern = /<(?:\/)?[a-z]\w*/i
 const elementEndPattern = /(?:\/)?>/
 
 const attributeSuffixPattern = /^([^"']*)["']/
-const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]*))?)/i
+const attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]*))?)?/i
 const attributeValueStartPattern = /^=["']/
 
 const parsers = [
@@ -360,8 +360,8 @@ export function parse(template, getPartial, setPartial) {
                 }
                 // else 可能跟了一个表达式
               }
-              // 如 checked、disabled
-              else {
+              // 没有引号，即 checked、disabled 等
+              else if (!match[2]) {
                 popStack()
               }
             }

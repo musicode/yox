@@ -9,15 +9,108 @@
     <script id="template" type="plain/text">
 
         <div>
+
+            <h1>
+                input
+            </h1>
+            <input type="text" @model="title">
+            <div>
+                title：{{title}}
+            </div>
+
+            <h1>
+                input 延时
+            </h1>
+            <input type="text" @model="title" @lazy="200">
+            <div>
+                title：{{title}}
+            </div>
+
+            <h1>
+                input lazy
+            </h1>
+            <input type="text" @model="title" @lazy>
+            <div>
+                title：{{title}}
+            </div>
+
+
+            <h1>
+                textarea
+            </h1>
+            <textarea @model="title"></textarea>
+            <div>
+                title：{{title}}
+            </div>
+
+            <h1>
+                textarea 延时
+            </h1>
+            <textarea @model="title" @lazy="200"></textarea>
+            <div>
+                title：{{title}}
+            </div>
+
+            <h1>
+                textarea lazy
+            </h1>
+            <textarea @model="title" @lazy></textarea>
+            <div>
+                title：{{title}}
+            </div>
+
+            <h1>
+                多个 radio
+            </h1>
             <ul>
             {{#each users}}
                 <li>
-                    {{name}}:<input type="checkbox" @model="selectedNames">
+                    {{name}}:<input type="radio" @model="selectedUser" value="{{name}}">
+                </li>
+            {{/each}}
+            </ul>
+            <div>
+                选中的用户：{{selectedUser}}
+            </div>
+
+
+            <h1>
+                单个 checkbox
+            </h1>
+            <div>
+                <input type="checkbox" @model="checkboxSelected">
+            </div>
+            <div>
+                是否选中：{{checkboxSelected ? '是' : '否'}}
+            </div>
+
+            <h1>
+                多个 checkbox
+            </h1>
+            <ul>
+            {{#each users}}
+                <li>
+                    {{name}}:<input type="checkbox" @model="selectedNames" value="{{name}}">
                 </li>
             {{/each}}
             </ul>
             <div>
                 选中的用户：{{formatSelectedNames(selectedNames)}}
+            </div>
+
+
+            <h1>
+                select
+            </h1>
+            <select @model="selectedUser">
+            {{#each users}}
+                <option>
+                    {{name}}
+                </option>
+            {{/each}}
+            </select>
+            <div>
+                选中的用户：{{selectedUser}}
             </div>
         </div>
 
@@ -29,6 +122,9 @@
             template: '#template',
             data: {
                 title: 'yorkjs',
+                selectedUser: '',
+                checkboxSelected: false,
+
                 selectedNames: [],
 
                 users: [

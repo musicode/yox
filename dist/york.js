@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "02e672d429b2332d4af3"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "4d9414a3887cd541be80"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -1276,7 +1276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var elementEndPattern = /(?:\/)?>/;
 
 	var attributeSuffixPattern = /^([^"']*)["']/;
-	var attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]*))?)/i;
+	var attributePattern = /([-:@a-z0-9]+)(?:=(["'])(?:([^'"]*))?)?/i;
 	var attributeValueStartPattern = /^=["']/;
 
 	var parsers = [{
@@ -1553,8 +1553,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	                // else 可能跟了一个表达式
 	              }
-	              // 如 checked、disabled
-	              else {
+	              // 没有引号，即 checked、disabled 等
+	              else if (!match[2]) {
 	                  popStack();
 	                }
 	            }
@@ -4129,25 +4129,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function testKeypath(instance, keypath) {
-	  var tokens = void 0;
-	  var value = instance.get(keypath);
-	  while (typeof value === 'undefined') {
-	    if (!tokens) {
-	      tokens = keypath.split('.');
+	  var data = instance.$data;
+	  var terms = void 0,
+	      target = void 0,
+	      result = void 0;
+
+	  do {
+	    result = (0, _object.get)(data, keypath);
+	    if (result) {
+	      return {
+	        keypath: keypath,
+	        value: result.value
+	      };
 	    }
-	    if (tokens.length) {
-	      tokens.pop();
-	      if (!tokens.length) {
-	        break;
-	      }
+	    if (!terms) {
+	      terms = keypath.split('.');
 	    }
-	    keypath = tokens.join('.');
-	    value = instance.get(keypath);
-	  }
-	  return {
-	    keypath: keypath,
-	    value: value
-	  };
+	    target = terms.pop();
+	    terms.pop();
+	    terms.push(target);
+	    keypath = terms.join('.');
+	  } while (terms.length);
 	}
 
 	function get(instance, type, name) {
@@ -5345,6 +5347,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _keypath = __webpack_require__(30);
 
+	var _component = __webpack_require__(32);
+
 	var _expression = __webpack_require__(15);
 
 	var _syntax = __webpack_require__(5);
@@ -5387,7 +5391,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            } else if (type === _expression.MEMBER) {
 	              name = (0, _keypath.stringify)(item);
 	            }
-	            return instance.get(node.keypath ? node.keypath + '.' + name : name);
+
+	            var result = (0, _component.testKeypath)(instance, node.keypath ? node.keypath + '.' + name : name);
+	            if (result) {
+	              return result.value;
+	            }
 	          });
 	        }
 	        instance[ast.callee.name].apply(instance, args);
@@ -5462,7 +5470,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          keypath = _ref.keypath,
 	          instance = _ref.instance;
 
-	      el.value = (0, _component.testKeypath)(instance, keypath);
+	      el.value = instance.get(keypath);
 	    },
 	    sync: function sync(_ref2) {
 	      var el = _ref2.el,
@@ -5532,7 +5540,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        interval = void 0,
 	        value = void 0;
 
-	    if (el.tagName === 'INPUT' && supportInputTypes[el.type] || el.tagName === 'TEXTAREA') {
+	    if (el.tagName === 'INPUT' && (0, _array.hasItem)(supportInputTypes, el.type) || el.tagName === 'TEXTAREA') {
 	      var lazyDirective = directives.filter(function (item) {
 	        return item.name === 'lazy';
 	      })[0];
@@ -5548,8 +5556,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    value = node.getValue();
+
 	    var keypath = node.keypath ? node.keypath + '.' + value : value;
-	    keypath = (0, _component.testKeypath)(instance, keypath).keypath;
+	    var result = (0, _component.testKeypath)(instance, keypath);
+	    if (!result) {
+	      throw new Error('\u4E0D\u80FD\u53CC\u5411\u7ED1\u5B9A\u5230 ' + keypath);
+	    }
+
+	    keypath = result.keypath;
 
 	    var controller = controlTypes[el.type] || controlTypes.normal;
 	    var data = {

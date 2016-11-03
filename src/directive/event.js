@@ -13,6 +13,10 @@ import {
 } from '../util/keypath'
 
 import {
+  testKeypath,
+} from '../util/component'
+
+import {
   CALL,
   MEMBER,
   LITERAL,
@@ -53,7 +57,11 @@ module.exports = {
               else if (type === MEMBER) {
                 name = stringify(item)
               }
-              return instance.get(node.keypath ? `${node.keypath}.${name}` : name)
+
+              let result = testKeypath(instance, node.keypath ? `${node.keypath}.${name}` : name)
+              if (result) {
+                return result.value
+              }
             }
           )
         }

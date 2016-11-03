@@ -5,6 +5,10 @@ import {
 } from '../native/dom/helper'
 
 import {
+  testKeypath,
+} from '../util/component'
+
+import {
   hasItem,
   removeItem,
 } from '../util/array'
@@ -70,7 +74,7 @@ module.exports = {
 
     let type = 'change', interval, value
 
-    if (el.tagName === 'INPUT' && supportInputTypes[el.type]
+    if (el.tagName === 'INPUT' && hasItem(supportInputTypes, el.type)
       || el.tagName === 'TEXTAREA'
     ) {
       let lazyDirective = directives.filter(
@@ -91,7 +95,14 @@ module.exports = {
     }
 
     value = node.getValue()
+
     let keypath = node.keypath ? `${node.keypath}.${value}` : value
+    let result = testKeypath(instance, keypath)
+    if (!result) {
+      throw new Error(`不能双向绑定到 ${keypath}`)
+    }
+
+    keypath = result.keypath
 
     let controller = controlTypes[el.type] || controlTypes.normal
     let data = {
