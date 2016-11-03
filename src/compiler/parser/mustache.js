@@ -263,12 +263,15 @@ export function parse(template, getPartial, setPartial) {
       case IMPORT:
         each(
           getPartial(name).children,
-          addChild
+          function (node) {
+            addChild(node)
+          }
         )
         return
 
       case PARTIAL:
         setPartial(name, node)
+        pushStack(node)
         return
 
     }

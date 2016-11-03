@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "db276265680f35e3b5a9"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "bd6e59768cde0affac23"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -1474,11 +1474,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        break;
 
 	      case _nodeType.IMPORT:
-	        (0, _array.each)(getPartial(name).children, addChild);
+	        (0, _array.each)(getPartial(name).children, function (node) {
+	          addChild(node);
+	        });
 	        return;
 
 	      case _nodeType.PARTIAL:
 	        setPartial(name, node);
+	        pushStack(node);
 	        return;
 
 	    }
