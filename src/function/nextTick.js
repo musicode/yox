@@ -1,9 +1,14 @@
+
+import {
+  doc,
+} from '../config/env'
+
 let nextTick
 
 if (typeof MutationObserver === 'function') {
   nextTick = function (fn) {
     let observer = new MutationObserver(fn)
-    let textNode = document.createTextNode('')
+    let textNode = doc.createTextNode('')
     observer.observe(textNode, {
       characterData: true,
     })

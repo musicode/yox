@@ -21,7 +21,7 @@ module.exports = {
   },
 
   detach: function ({ el }) {
-    el.$component.detach()
+    el.$component.dispose()
     el.$component = null
   }
 

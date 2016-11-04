@@ -591,7 +591,7 @@ module.exports = class York {
     return new York(options)
   }
 
-  detach() {
+  dispose() {
     this.fire(lifecycle.DETACH)
   }
 

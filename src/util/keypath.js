@@ -11,11 +11,6 @@ import {
   IDENTIFIER,
 } from './expression'
 
-import {
-  parse as parsePattern,
-  escape as escapePattern,
-} from './pattern'
-
 /**
  * 把 obj['name'] 的形式转成 obj.name
  *
@@ -45,11 +40,12 @@ export function normalize(keypath) {
 export function stringify(node) {
   let result = [ ]
   do {
-    if (node.property) {
-      result.push(node.property.value)
+    let { name, property } = node
+    if (property) {
+      result.push(property.value)
     }
-    else if (node.name) {
-      result.push(node.name)
+    else if (name) {
+      result.push(name)
     }
   }
   while (node = node.object)
