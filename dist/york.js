@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "fa73e2c48bb776ad8470"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "39ca6f015c59db96f8b5"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -1865,6 +1865,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.keys = keys;
 	exports.each = each;
 	exports.count = count;
 	exports.has = has;
@@ -1884,14 +1885,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	function keys(object) {
+	  return Object.keys(object);
+	}
+
 	function each(object, callback) {
-	  (0, _array.each)(Object.keys(object), function (key) {
+	  (0, _array.each)(keys(object), function (key) {
 	    return callback(object[key], key);
 	  });
 	}
 
 	function count(object) {
-	  return Object.keys(object).length;
+	  return keys(object).length;
 	}
 
 	function has(object, name) {
@@ -1899,8 +1904,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function extend() {
-	  var args = arguments;
-	  var result = args[0];
+	  var args = arguments,
+	      result = args[0];
 	  for (var i = 1, len = args.length; i < len; i++) {
 	    if ((0, _is.isObject)(args[i])) {
 	      each(args[i], function (value, key) {
@@ -1944,9 +1949,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  keypath = (0, _toString2.default)(keypath);
 	  if (keypath.indexOf('.') > 0) {
-	    var originalObject = object;
-	    var list = keypath.split('.');
-	    var prop = list.pop();
+	    var originalObject = object,
+	        list = keypath.split('.'),
+	        prop = list.pop();
 	    (0, _array.each)(list, function (item, index) {
 	      if (object[item]) {
 	        object = object[item];
@@ -2502,6 +2507,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _array = __webpack_require__(11);
 
+	var _object = __webpack_require__(8);
+
 	var _is = __webpack_require__(10);
 
 	/**
@@ -2540,7 +2547,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @return {Array.<string>}
 	 */
 	function sortKeys(obj) {
-	  return Object.keys(obj).sort(function (a, b) {
+	  return (0, _object.keys)(obj).sort(function (a, b) {
 	    return b.length - a.length;
 	  });
 	}
@@ -4290,6 +4297,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _array = __webpack_require__(11);
 
+	var _object = __webpack_require__(8);
+
 	var _is = __webpack_require__(10);
 
 	var _camelCase = __webpack_require__(34);
@@ -4353,7 +4362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function off(element, type, listener) {
 	  var $emitter = element.$emitter;
 
-	  var types = Object.keys($emitter.listeners);
+	  var types = (0, _object.keys)($emitter.listeners);
 	  // emitter 会根据 type 和 listener 参数进行适当的删除
 	  $emitter.off(type, listener);
 	  // 根据 emitter 的删除结果来操作这里的事件 listener

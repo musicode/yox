@@ -15,9 +15,13 @@ import {
   each as arrayEach,
 } from './array'
 
+export function keys(object) {
+  return Object.keys(object)
+}
+
 export function each(object, callback) {
   arrayEach(
-    Object.keys(object),
+    keys(object),
     function (key) {
       return callback(object[key], key)
     }
@@ -25,7 +29,7 @@ export function each(object, callback) {
 }
 
 export function count(object) {
-  return Object.keys(object).length
+  return keys(object).length
 }
 
 export function has(object, name) {
@@ -33,8 +37,7 @@ export function has(object, name) {
 }
 
 export function extend() {
-  let args = arguments
-  let result = args[0]
+  let args = arguments, result = args[0]
   for (let i = 1, len = args.length; i < len; i++) {
     if (isObject(args[i])) {
       each(
@@ -80,9 +83,9 @@ export function get(object, keypath) {
 export function set(object, keypath, value, autoFill = TRUE) {
   keypath = toString(keypath)
   if (keypath.indexOf('.') > 0) {
-    let originalObject = object
-    let list = keypath.split('.')
-    let prop = list.pop()
+    let originalObject = object,
+      list = keypath.split('.'),
+      prop = list.pop()
     arrayEach(
       list,
       function (item, index) {

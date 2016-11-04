@@ -11,10 +11,10 @@ import {
 function bindInput(element, listener) {
   let oldValue = element.value
   listener.$listener = function (e) {
-    if (e.originalEvent.propertyName === 'value') {
+    if (e.originalEvent.originalEvent.propertyName === 'value') {
       let newValue = element.value
       if (newValue !== oldValue) {
-        let result = listener.call(this, e)
+        let result = listener.apply(this, arguments)
         oldValue = newValue
         return result
       }

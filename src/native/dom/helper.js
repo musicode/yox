@@ -14,6 +14,10 @@ import {
 } from '../../util/array'
 
 import {
+  keys,
+} from '../../util/object'
+
+import {
   isString,
 } from '../../util/is'
 
@@ -71,7 +75,7 @@ export function on(element, type, listener) {
  */
 export function off(element, type, listener) {
   let { $emitter } = element
-  let types = Object.keys($emitter.listeners)
+  let types = keys($emitter.listeners)
   // emitter 会根据 type 和 listener 参数进行适当的删除
   $emitter.off(type, listener)
   // 根据 emitter 的删除结果来操作这里的事件 listener

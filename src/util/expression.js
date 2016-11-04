@@ -11,8 +11,12 @@ import {
 } from '../config/cache'
 
 import {
-  each as arrayEach,
+  each,
 } from './array'
+
+import {
+  keys,
+} from './object'
 
 import {
   isString,
@@ -55,7 +59,7 @@ const COLON  = 58 // :
  * @return {Array.<string>}
  */
 function sortKeys(obj) {
-  return Object.keys(obj).sort(
+  return keys(obj).sort(
     function (a, b) {
       return b.length - a.length
     }
@@ -167,7 +171,7 @@ function isIdentifierPart(charCode) {
  */
 function matchBestToken(content, sortedTokens) {
   let result
-  arrayEach(sortedTokens, function (token) {
+  each(sortedTokens, function (token) {
     if (content.startsWith(token)) {
       result = token
       return FALSE
@@ -685,13 +689,13 @@ export function traverse(ast, options = {}) {
 
     case CALL:
       traverse(ast.callee, options)
-      arrayEach(ast.arguments, function (arg) {
+      each(ast.arguments, function (arg) {
         traverse(arg, options)
       })
       break
 
     case ARRAY:
-      arrayEach(ast.elements, function (element) {
+      each(ast.elements, function (element) {
         traverse(element, options)
       })
       break
