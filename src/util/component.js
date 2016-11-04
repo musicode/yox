@@ -59,7 +59,7 @@ export function testKeypath(instance, keypath, name) {
     }
     terms.splice(-2)
   }
-  while (terms.length)
+  while (terms.length || keypath.indexOf('.') > 0)
 
 }
 

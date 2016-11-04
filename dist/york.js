@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "b2ce05dab6d12795ebbe"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "10c4845d565028d5bb73"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -4176,7 +4176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    }
 	    terms.splice(-2);
-	  } while (terms.length);
+	  } while (terms.length || keypath.indexOf('.') > 0);
 	}
 
 	function get(instance, type, name) {
