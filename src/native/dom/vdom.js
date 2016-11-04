@@ -8,6 +8,11 @@ import * as syntax from '../../config/syntax'
 import * as lifecycle from '../../config/lifecycle'
 
 import {
+  NULL,
+  FALSE,
+} from '../../config/env'
+
+import {
   parseStyle,
 } from './helper'
 
@@ -50,7 +55,7 @@ export function create(node, instance) {
 
   let traverse = function (node, enter, leave) {
 
-    if (enter(node) === false) {
+    if (enter(node) === FALSE) {
       return
     }
 
@@ -60,7 +65,7 @@ export function create(node, instance) {
         node.children,
         function (item) {
           item = traverse(item, enter, leave)
-          if (item != null) {
+          if (item != NULL) {
             children.push(item)
           }
         }
@@ -76,7 +81,7 @@ export function create(node, instance) {
     function (node) {
       counter++
       if (node.type === ATTRIBUTE || node.type === DIRECTIVE) {
-        return false
+        return FALSE
       }
     },
     function (node, children) {

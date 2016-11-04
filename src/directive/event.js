@@ -5,6 +5,10 @@ import {
 } from '../native/dom/helper'
 
 import {
+  NULL,
+} from '../config/env'
+
+import {
   each,
   toArray,
 } from '../util/array'
@@ -77,7 +81,7 @@ module.exports = {
     else {
       listener = function () {
         let args = arguments
-        instance.fire(value, args.length ? toArray(args) : null)
+        instance.fire(value, args.length ? toArray(args) : NULL)
       }
     }
 
@@ -104,7 +108,7 @@ module.exports = {
       else {
         off(el, name, el[listener])
       }
-      el[listener] = null
+      el[listener] = NULL
     }
   }
 }

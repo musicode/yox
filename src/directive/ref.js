@@ -6,6 +6,10 @@
  */
 
 import {
+  NULL,
+} from '../config/env'
+
+import {
   set,
 } from '../util/component'
 
@@ -26,7 +30,7 @@ module.exports = {
 
     if (el.$ref) {
       delete instance.$refs[el.$ref]
-      el.$ref = null
+      el.$ref = NULL
     }
 
   }

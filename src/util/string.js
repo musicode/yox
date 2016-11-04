@@ -1,4 +1,8 @@
 
+import {
+  NULL,
+} from '../config/env'
+
 import print from '../function/print'
 import getLocationByIndex from '../function/getLocationByIndex'
 
@@ -16,7 +20,7 @@ export function trimBreakline(str) {
 }
 
 export function parseError(str, errorMsg, errorIndex) {
-  if (errorIndex == null) {
+  if (errorIndex == NULL) {
     errorMsg += '.'
   }
   else {

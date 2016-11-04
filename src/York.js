@@ -3,6 +3,11 @@ import * as pattern from './config/pattern'
 import * as lifecycle from './config/lifecycle'
 
 import {
+  TRUE,
+  NULL,
+} from './config/env'
+
+import {
   parse as parseTemplate,
   render as renderTemplate,
 } from './compiler/parser/mustache'
@@ -226,7 +231,7 @@ module.exports = class York {
       objectEach(
         computed,
         function (item, keypath) {
-          let get, set, cache = true
+          let get, set, cache = TRUE
           if (isFunction(item)) {
             get = item
           }
@@ -303,7 +308,7 @@ module.exports = class York {
 
               return result
             }
-            getter.computed = true
+            getter.computed = TRUE
             $computedGetters[keypath] = getter
           }
 
@@ -327,7 +332,7 @@ module.exports = class York {
       }
     )
 
-    hooks = null
+    hooks = NULL
 
     instance.fire(lifecycle.INIT)
 
@@ -425,9 +430,9 @@ module.exports = class York {
   }
 
   fire(type, data, bubble) {
-    if (arguments.length === 2 && data === true) {
+    if (arguments.length === 2 && data === TRUE) {
       bubble = data
-      data = null
+      data = NULL
     }
     let instance = this
     let { parent, $eventEmitter } = instance
@@ -526,7 +531,7 @@ module.exports = class York {
           )
         }
       )
-      return true
+      return TRUE
     }
 
   }

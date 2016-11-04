@@ -1,5 +1,9 @@
 
 import {
+  NULL,
+} from '../config/env'
+
+import {
   toArray,
 } from '../util/array'
 
@@ -13,15 +17,14 @@ import {
  */
 module.exports = function debounce (fn, delay, lazy) {
 
-  let prevTime
-  let timer
+  let prevTime, timer
 
   function createTimer(args) {
     timer = setTimeout(
       function () {
-        timer = null
+        timer = NULL
         prevTime = Date.now()
-        fn.apply(null, toArray(args))
+        fn.apply(NULL, toArray(args))
       },
       delay
     )
@@ -34,7 +37,7 @@ module.exports = function debounce (fn, delay, lazy) {
       && Date.now() - prevTime < delay
     ) {
       clearTimeout(timer)
-      timer = null
+      timer = NULL
     }
 
     if (!timer) {

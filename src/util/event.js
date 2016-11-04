@@ -1,5 +1,11 @@
 
 import {
+  TRUE,
+  FALSE,
+  NULL,
+} from '../config/env'
+
+import {
   isArray,
   isString,
   isFunction,
@@ -33,7 +39,7 @@ export class Event {
       if (originalEvent && isFunction(originalEvent.preventDefault)) {
         originalEvent.preventDefault()
       }
-      this.isPrevented = true
+      this.isPrevented = TRUE
     }
   }
 
@@ -43,7 +49,7 @@ export class Event {
       if (originalEvent && isFunction(originalEvent.stopPropagation)) {
         originalEvent.stopPropagation()
       }
-      this.isStoped = true
+      this.isStoped = TRUE
     }
   }
 
@@ -72,7 +78,7 @@ export class Emitter {
 
   off(type, listener) {
     let { listeners } = this
-    if (type == null) {
+    if (type == NULL) {
       objectEach(
         listeners,
         function (list, type) {
@@ -85,7 +91,7 @@ export class Emitter {
     else {
       let list = listeners[type]
       if (isArray(list)) {
-        if (listener == null) {
+        if (listener == NULL) {
           list.length = 0
         }
         else {
@@ -95,10 +101,9 @@ export class Emitter {
     }
   }
 
-  fire(type, data, context = null) {
+  fire(type, data, context = NULL) {
 
-    let list = this.listeners[type]
-    let isStoped
+    let list = this.listeners[type], isStoped
 
     if (isArray(list)) {
       each(list, function (listener) {
@@ -107,7 +112,7 @@ export class Emitter {
           result = listener.apply(context, data)
         }
         else {
-          result = data != null
+          result = data != NULL
             ? listener.call(context, data)
             : listener.call(context)
         }
@@ -119,17 +124,17 @@ export class Emitter {
         // 如果没有返回 false，而是调用了 event.stop 也算是返回 false
         let event = data && data[0]
         if (event && event instanceof Event) {
-          if (result === false) {
+          if (result === FALSE) {
             event.prevent()
             event.stop()
           }
           else if (event.isStoped) {
-            result = false
+            result = FALSE
           }
         }
 
-        if (result === false) {
-          isStoped = true
+        if (result === FALSE) {
+          isStoped = TRUE
           return result
         }
       })
@@ -141,12 +146,12 @@ export class Emitter {
 
   has(type, listener) {
     let list = this.listeners[type]
-    if (listener == null) {
+    if (listener == NULL) {
       // 是否注册过 type 事件
       return isArray(list) && list.length > 0
     }
     return isArray(list)
       ? hasItem(list, listener)
-      : false
+      : FALSE
   }
 }

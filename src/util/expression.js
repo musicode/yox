@@ -1,5 +1,11 @@
 
 import {
+  TRUE,
+  FALSE,
+  NULL,
+} from '../config/env'
+
+import {
   expressionParseCache,
   expressionCompileCache,
 } from '../config/cache'
@@ -9,8 +15,8 @@ import {
 } from './array'
 
 import {
-  isFunction,
   isString,
+  isFunction,
 } from './is'
 
 /**
@@ -40,10 +46,6 @@ const OBRACK = 91 // [
 const CBRACK = 93 // ]
 const QUMARK = 63 // ?
 const COLON  = 58 // :
-
-const TRUE = true
-const FALSE = false
-const NULL = null
 
 /**
  * 倒排对象的 key

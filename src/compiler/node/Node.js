@@ -1,5 +1,9 @@
 
 import {
+  TRUE,
+} from '../../config/env'
+
+import {
   reduce,
   lastItem,
 } from '../../util/array'
@@ -18,7 +22,7 @@ import {
  */
 module.exports = class Node {
 
-  constructor(hasChildren = true) {
+  constructor(hasChildren = TRUE) {
     if (hasChildren) {
       this.children = []
     }
@@ -38,7 +42,7 @@ module.exports = class Node {
 
   getValue() {
     let { children } = this
-    return children[0] ? children[0].content : true
+    return children[0] ? children[0].content : TRUE
   }
 
   execute(context) {

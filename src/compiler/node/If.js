@@ -1,5 +1,9 @@
 
 import {
+  TRUE,
+} from '../../config/env'
+
+import {
   IF,
 } from '../nodeType'
 
@@ -28,7 +32,7 @@ module.exports = class If extends Node {
       this.renderChildren(parent, context, keys, parseTemplate)
     }
     else {
-      return true
+      return TRUE
     }
 
   }

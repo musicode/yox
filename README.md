@@ -2,6 +2,6 @@
 
 [![Build Status](https://travis-ci.org/musicode/cola.svg?branch=master)](https://travis-ci.org/musicode/cola) [![Coverage Status](https://coveralls.io/repos/github/musicode/cola/badge.svg)](https://coveralls.io/github/musicode/cola)
 
-全新的 **跨浏览器** 的 MVVM 框架。
+全新的 MVVM 框架
 
-[文档](https://musicode.gitbooks.io/york)
+技术预览版 - [文档](https://musicode.gitbooks.io/york)

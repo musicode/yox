@@ -2,6 +2,7 @@
 import {
   win,
   noop,
+  NULL,
 } from '../config/env'
 
 import {
@@ -68,10 +69,10 @@ if (win) {
   }
 }
 
-if (requestAnimationFrame == null) {
+if (requestAnimationFrame == NULL) {
   requestAnimationFrame = noop
 }
-if (cancelAnimationFrame == null) {
+if (cancelAnimationFrame == NULL) {
   cancelAnimationFrame = noop
 }
 

@@ -1,4 +1,8 @@
 
+import {
+  FALSE,
+} from '../config/env'
+
 const toString = Object.prototype.toString
 
 function is(arg, type) {
@@ -15,7 +19,7 @@ export function isArray(arg) {
 
 export function isObject(arg) {
   if (!arg) {
-    return false
+    return FALSE
   }
   // new String() 算 object
   // 因此这里不能用 is 函数

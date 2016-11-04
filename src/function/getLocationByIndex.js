@@ -1,27 +1,31 @@
 
 import {
+  FALSE,
+} from '../config/env'
+
+import {
   each,
 } from '../util/array'
 
 module.exports = function getLocationByIndex(str, index) {
 
-  let line = 0
-  let col = 0
+  let line = 0, col = 0, pos = 0
 
-  let pos = 0
+  each(
+    str.split('\n'),
+    function (lineStr) {
+      line++
+      col = 0
 
-  each(str.split('\n'), function (lineStr) {
-    line++
-    col = 0
+      let { length } = lineStr
+      if (index >= pos && index <= (pos + length)) {
+        col = index - pos
+        return FALSE
+      }
 
-    let { length } = lineStr
-    if (index >= pos && index <= (pos + length)) {
-      col = index - pos
-      return false
+      pos += length
     }
-
-    pos += length
-  })
+  )
 
   return {
     line,

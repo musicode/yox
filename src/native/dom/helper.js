@@ -1,6 +1,8 @@
 
 import {
   doc,
+  TRUE,
+  FALSE,
 } from '../../config/env'
 
 import {
@@ -29,7 +31,7 @@ let isModernBrowser = doc.addEventListener
 // 处理底层的事件函数
 let nativeAddEventListener = isModernBrowser
  ? function (element, type, listener) {
-   element.addEventListener(type, listener, false)
+   element.addEventListener(type, listener, FALSE)
  }
  : function (element, type, listener) {
    if (type === 'input') {
@@ -42,7 +44,7 @@ let nativeAddEventListener = isModernBrowser
 
 let nativeRemoveEventListener = isModernBrowser
  ? function (element, type, listener) {
-   element.removeEventListener(type, listener, false)
+   element.removeEventListener(type, listener, FALSE)
  }
  : function (element, type, listener) {
    if (type === 'input') {
@@ -66,11 +68,11 @@ class IEEvent {
   }
 
   preventDefault() {
-   this.originalEvent.returnValue = false
+   this.originalEvent.returnValue = FALSE
   }
 
   stopPropagation() {
-    this.originalEvent.cancelBubble = true
+    this.originalEvent.cancelBubble = TRUE
   }
 
 }

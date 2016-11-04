@@ -3,6 +3,12 @@ import * as cache from '../../config/cache'
 import * as syntax from '../../config/syntax'
 import * as pattern from '../../config/pattern'
 
+import {
+  TRUE,
+  FALSE,
+} from '../../config/env'
+
+
 import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
 
@@ -137,12 +143,12 @@ const parsers = [
   },
   {
     test: function (source) {
-      return true
+      return TRUE
     },
     create: function (source) {
-      let safe = true
+      let safe = TRUE
       if (source.startsWith('{')) {
-        safe = false
+        safe = FALSE
         source = source.substr(1)
       }
       return new Expression(parseExpression(source), safe)
@@ -403,7 +409,7 @@ export function parse(template, getPartial, setPartial) {
                   node = new Attribute(node)
                 }
                 addChild(node)
-                return false
+                return FALSE
               }
             }
           )
@@ -463,7 +469,7 @@ export function parse(template, getPartial, setPartial) {
       // 用于提取 attribute
       content = mainScanner.nextBefore(elementEndPattern)
       if (content) {
-        parseContent(content, true)
+        parseContent(content, TRUE)
       }
 
       content = mainScanner.nextAfter(elementEndPattern)

@@ -2,6 +2,12 @@
 import toString from '../function/toString'
 
 import {
+  TRUE,
+  FALSE,
+  NULL,
+} from '../config/env'
+
+import {
   isObject,
 } from './is'
 
@@ -71,7 +77,7 @@ export function get(object, keypath) {
   }
 }
 
-export function set(object, keypath, value, autoFill = true) {
+export function set(object, keypath, value, autoFill = TRUE) {
   keypath = toString(keypath)
   if (keypath.indexOf('.') > 0) {
     let originalObject = object
@@ -87,8 +93,8 @@ export function set(object, keypath, value, autoFill = true) {
           object = object[item] = {}
         }
         else {
-          object = null
-          return false
+          object = NULL
+          return FALSE
         }
       }
     )

@@ -1,5 +1,11 @@
 
 import {
+  TRUE,
+  FALSE,
+  NULL,
+} from '../config/env'
+
+import {
   isArray,
 } from './is'
 
@@ -9,14 +15,14 @@ let {
 
 export function each(array, callback) {
   for (let i = 0, len = array.length; i < len; i++) {
-    if (callback(array[i], i) === false) {
+    if (callback(array[i], i) === FALSE) {
       break
     }
   }
 }
 
 // array.reduce 如果是空数组，不传 initialValue 居然会报错，所以封装一下
-export function reduce(array, callback, initialValue = null) {
+export function reduce(array, callback, initialValue = NULL) {
   return array.reduce(callback, initialValue)
 }
 
@@ -55,7 +61,7 @@ export function toObject(array, key) {
   return result
 }
 
-export function indexOf(array, item, strict = true) {
+export function indexOf(array, item, strict = TRUE) {
   if (strict) {
     return array.indexOf(item)
   }
@@ -66,7 +72,7 @@ export function indexOf(array, item, strict = true) {
       function (value, i) {
         if (item == value) {
           index = i
-          return false
+          return FALSE
         }
       }
     )
@@ -74,7 +80,7 @@ export function indexOf(array, item, strict = true) {
   }
 }
 
-export function hasItem(array, item, strict = true) {
+export function hasItem(array, item, strict = TRUE) {
   return indexOf(array, item, strict) >= 0
 }
 
@@ -82,7 +88,7 @@ export function lastItem(array) {
   return array[array.length - 1]
 }
 
-export function removeItem(array, item, strict = true) {
+export function removeItem(array, item, strict = TRUE) {
   let index = indexOf(array, item, strict)
   if (index >= 0) {
     array.splice(index, 1)

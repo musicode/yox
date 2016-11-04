@@ -5,6 +5,11 @@ import {
 } from '../native/dom/helper'
 
 import {
+  NULL,
+  FALSE,
+} from '../config/env'
+
+import {
   testKeypath,
 } from '../util/component'
 
@@ -47,7 +52,7 @@ const controlTypes = {
     set: function ({ el, keypath, instance }) {
       let value = instance.get(keypath)
       el.checked = isArray(value)
-        ? hasItem(value, el.value, false)
+        ? hasItem(value, el.value, FALSE)
         : !!value
     },
     sync: function ({ el, keypath, instance }) {
@@ -57,7 +62,7 @@ const controlTypes = {
           array.push(el.value)
         }
         else {
-          removeItem(array, el.value, false)
+          removeItem(array, el.value, FALSE)
         }
         instance.set(keypath, [ ...array ])
       }
@@ -136,7 +141,7 @@ module.exports = {
   detach: function ({ el }) {
     let { $model } = el
     off(el, $model.eventName, $model.eventListener)
-    el.$model = null
+    el.$model = NULL
   }
 
 }

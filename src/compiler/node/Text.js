@@ -5,6 +5,11 @@ import {
 
 import Node from './Node'
 
+import {
+  FALSE,
+} from '../../config/env'
+
+
 /**
  * 文本节点
  *
@@ -13,7 +18,7 @@ import Node from './Node'
 module.exports = class Text extends Node {
 
   constructor(content) {
-    super(false)
+    super(FALSE)
     this.type = TEXT
     this.content = content
   }

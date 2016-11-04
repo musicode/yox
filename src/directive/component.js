@@ -1,5 +1,10 @@
 
 import {
+  TRUE,
+  NULL,
+} from '../config/env'
+
+import {
   get,
 } from '../util/component'
 
@@ -11,7 +16,7 @@ module.exports = {
       {
         el,
         props: node.getAttributes(),
-        replace: true,
+        replace: TRUE,
       }
     )
   },
@@ -22,7 +27,7 @@ module.exports = {
 
   detach: function ({ el }) {
     el.$component.dispose()
-    el.$component = null
+    el.$component = NULL
   }
 
 }

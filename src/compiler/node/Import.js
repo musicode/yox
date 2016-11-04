@@ -5,6 +5,11 @@ import {
 
 import Node from './Node'
 
+import {
+  FALSE,
+} from '../../config/env'
+
+
 /**
  * import 节点
  *
@@ -12,7 +17,7 @@ import Node from './Node'
  */
 module.exports = class Import extends Node {
   constructor(name) {
-    super(false)
+    super(FALSE)
     this.type = IMPORT
     this.name = name
   }

@@ -9,6 +9,11 @@ import Text from './Text'
 import * as pattern from '../../config/pattern'
 
 import {
+  NULL,
+  FALSE,
+} from '../../config/env'
+
+import {
   each,
 } from '../../util/array'
 
@@ -26,7 +31,7 @@ import {
 module.exports = class Expression extends Node {
 
   constructor(expr, safe) {
-    super(false)
+    super(FALSE)
     this.type = EXPRESSION
     this.expr = expr
     this.safe = safe
@@ -35,7 +40,7 @@ module.exports = class Expression extends Node {
   render(parent, context, keys, parseTemplate) {
 
     let content = this.execute(context)
-    if (content == null) {
+    if (content == NULL) {
       content = ''
     }
 

@@ -1,6 +1,7 @@
 
 import {
   doc,
+  TRUE,
 } from '../config/env'
 
 let nextTick
@@ -10,7 +11,7 @@ if (typeof MutationObserver === 'function') {
     let observer = new MutationObserver(fn)
     let textNode = doc.createTextNode('')
     observer.observe(textNode, {
-      characterData: true,
+      characterData: TRUE,
     })
     textNode.data = ' '
   }
