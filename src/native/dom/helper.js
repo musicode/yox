@@ -1,7 +1,6 @@
 
 import {
   doc,
-  TRUE,
   FALSE,
 } from '../../config/env'
 
@@ -15,76 +14,33 @@ import {
 } from '../../util/array'
 
 import {
-  each as objectEach,
-} from '../../util/object'
-
-import {
   isString,
 } from '../../util/is'
 
 import camelCase from '../../function/camelCase'
 
-import * as oldInputEvent from './oldInputEvent'
-
-let isModernBrowser = doc.addEventListener
-
-// 处理底层的事件函数
-let nativeAddEventListener = isModernBrowser
- ? function (element, type, listener) {
-   element.addEventListener(type, listener, FALSE)
- }
- : function (element, type, listener) {
-   if (type === 'input') {
-     oldInputEvent.on(element, listener)
-   }
-   else {
-     element.attachEvent(`on${type}`, listener)
-   }
- }
-
-let nativeRemoveEventListener = isModernBrowser
- ? function (element, type, listener) {
-   element.removeEventListener(type, listener, FALSE)
- }
- : function (element, type, listener) {
-   if (type === 'input') {
-     oldInputEvent.off(element, listener)
-   }
-   else {
-     element.detachEvent(`on${type}`, listener)
-   }
- }
-
-class IEEvent {
-
-  constructor(event, element) {
-
-    Object.assign(this, event)
-
-    this.currentTarget = element
-    this.target = event.srcElement || element
-    this.originalEvent = event
-
-  }
-
-  preventDefault() {
-   this.originalEvent.returnValue = FALSE
-  }
-
-  stopPropagation() {
-    this.originalEvent.cancelBubble = TRUE
-  }
-
+export function nativeAddEventListener(element, type, listener) {
+  element.addEventListener(type, listener, FALSE)
 }
 
-// 把 IE 事件模拟成标准事件
-let createEvent = isModernBrowser
-  ? function (event) {
-    return event
-  }
-  : function (event, element) {
-    return IEEvent(event, element)
-  }
+export function nativeRemoveEventListener(element, type, listener) {
+  element.removeEventListener(type, listener, FALSE)
+}
+
+export function createEvent(nativeEvent) {
+  return nativeEvent
+}
+
+/**
+ * 通过选择器查找元素
+ *
+ * @param {string} selector
+ * @param {?HTMLElement} context
+ * @return {?HTMLElement}
+ */
+export function find(selector, context = doc) {
+  return context.querySelector(selector)
+}
 
 /**
  * 绑定事件
@@ -128,17 +84,6 @@ export function off(element, type, listener) {
       }
     }
   )
-}
-
-/**
- * 通过选择器查找元素
- *
- * @param {string} selector
- * @param {?HTMLElement} context
- * @return {?HTMLElement}
- */
-export function find(selector, context = doc) {
-  return context.querySelector(selector)
 }
 
 /**
