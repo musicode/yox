@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "290c64a07d63428c4d6f"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "252b68b2beea4ede734b"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -1122,10 +1122,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * [TODO]
 	 * 1. snabbdom prop 和 attr 的区分
-	 * 2. 组件之间的事件传递
-	 * 3. Emitter 的事件广播、冒泡
+	 * 2. 组件之间的事件传递（解决）
+	 * 3. Emitter 的事件广播、冒泡（解决）
 	 * 4. 组件属性的组织形式（解决）
-	 * 5. 计算属性是否可以 watch
+	 * 5. 计算属性是否可以 watch（不可以）
 	 * 6. 需要转义的文本节点如果出现在属性值里，是否需要 encode
 	 * 7. 数组方法的劫持（不需要劫持，改完再 set 即可）
 	 * 8. 属性延展（用 #each 遍历数据）
@@ -1133,7 +1133,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 10. SEO友好
 	 * 11. 计算属性的观测用 Emitter 是否更好？
 	 * 12. keypath 还原
-	 * 13. 对象属性传递到组件
 	 */
 
 /***/ },
