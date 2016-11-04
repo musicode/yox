@@ -42,17 +42,14 @@ module.exports = class Node {
   }
 
   execute(context) {
-    let content = execute(
+    // 这里可能是任何类型的结果
+    return execute(
       compile(this.expr),
       context.data,
       function (name) {
         return context.get(name)
       }
     )
-    if (content && content.toString) {
-      content = content.toString()
-    }
-    return content
   }
 
   render() {

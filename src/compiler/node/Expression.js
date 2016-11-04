@@ -12,6 +12,11 @@ import {
   each,
 } from '../../util/array'
 
+import {
+  isString,
+  isFunction,
+} from '../../util/is'
+
 /**
  * 表达式节点
  *
@@ -34,17 +39,22 @@ module.exports = class Expression extends Node {
       content = ''
     }
 
-    if (this.safe || !pattern.tag.test(content)) {
-      let node = new Text(content)
-      node.render(parent, context, keys)
+    if (isFunction(content) && content.computed) {
+      content = content()
     }
-    else {
+
+    // 处理需要不转义的
+    if (!this.safe && isString(content) && pattern.tag.test(content)) {
       each(
         parseTemplate(content),
         function (node) {
           node.render(parent, context, keys, parseTemplate)
         }
       )
+    }
+    else {
+      let node = new Text(content)
+      node.render(parent, context, keys)
     }
 
   }

@@ -303,9 +303,7 @@ module.exports = class York {
 
               return result
             }
-            // 当模板读取计算属性时，可通过 toString 求值
-            // 省的写一堆乱七八糟的判断逻辑
-            getter.toString = getter
+            getter.computed = true
             $computedGetters[keypath] = getter
           }
 
@@ -426,8 +424,19 @@ module.exports = class York {
     this.$eventEmitter.off(type, listener)
   }
 
-  fire(type, data) {
-    this.$eventEmitter.fire(type, data, this)
+  fire(type, data, bubble) {
+    if (arguments.length === 2 && data === true) {
+      bubble = data
+      data = null
+    }
+    let instance = this
+    let { parent, $eventEmitter } = instance
+    if (!$eventEmitter.fire(type, data, instance)) {
+      let { parent } = instance
+      if (bubble && parent) {
+        parent.fire(type, data, bubble)
+      }
+    }
   }
 
   watch(keypath, watcher) {
@@ -602,4 +611,5 @@ module.exports = class York {
  * 10. SEO友好
  * 11. 计算属性的观测用 Emitter 是否更好？
  * 12. keypath 还原
+ * 13. 对象属性传递到组件
  */

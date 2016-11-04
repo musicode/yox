@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "10c4845d565028d5bb73"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "290c64a07d63428c4d6f"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -845,9 +845,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	              return result;
 	            };
-	            // 当模板读取计算属性时，可通过 toString 求值
-	            // 省的写一堆乱七八糟的判断逻辑
-	            getter.toString = getter;
+	            getter.computed = true;
 	            $computedGetters[keypath] = getter;
 	          }
 
@@ -971,8 +969,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'fire',
-	    value: function fire(type, data) {
-	      this.$eventEmitter.fire(type, data, this);
+	    value: function fire(type, data, bubble) {
+	      if (arguments.length === 2 && data === true) {
+	        bubble = data;
+	        data = null;
+	      }
+	      var instance = this;
+	      var parent = instance.parent,
+	          $eventEmitter = instance.$eventEmitter;
+
+	      if (!$eventEmitter.fire(type, data, instance)) {
+	        var _parent = instance.parent;
+
+	        if (bubble && _parent) {
+	          _parent.fire(type, data, bubble);
+	        }
+	      }
 	    }
 	  }, {
 	    key: 'watch',
@@ -1121,6 +1133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 10. SEO友好
 	 * 11. 计算属性的观测用 Emitter 是否更好？
 	 * 12. keypath 还原
+	 * 13. 对象属性传递到组件
 	 */
 
 /***/ },
@@ -2392,13 +2405,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'execute',
 	    value: function execute(context) {
-	      var content = (0, _expression.execute)((0, _expression.compile)(this.expr), context.data, function (name) {
+	      // 这里可能是任何类型的结果
+	      return (0, _expression.execute)((0, _expression.compile)(this.expr), context.data, function (name) {
 	        return context.get(name);
 	      });
-	      if (content && content.toString) {
-	        content = content.toString();
-	      }
-	      return content;
 	    }
 	  }, {
 	    key: 'render',
@@ -3444,6 +3454,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _array = __webpack_require__(10);
 
+	var _is = __webpack_require__(9);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -3483,13 +3495,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        content = '';
 	      }
 
-	      if (this.safe || !pattern.tag.test(content)) {
-	        var node = new _Text2.default(content);
-	        node.render(parent, context, keys);
-	      } else {
+	      if ((0, _is.isFunction)(content) && content.computed) {
+	        content = content();
+	      }
+
+	      // 处理需要不转义的
+	      if (!this.safe && (0, _is.isString)(content) && pattern.tag.test(content)) {
 	        (0, _array.each)(parseTemplate(content), function (node) {
 	          node.render(parent, context, keys, parseTemplate);
 	        });
+	      } else {
+	        var node = new _Text2.default(content);
+	        node.render(parent, context, keys);
 	      }
 	    }
 	  }]);
@@ -3911,6 +3928,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	      var list = this.listeners[type];
+	      var isStoped = void 0;
+
 	      if ((0, _is.isArray)(list)) {
 	        (0, _array.each)(list, function (listener) {
 	          var result = void 0;
@@ -3937,10 +3956,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 
 	          if (result === false) {
+	            isStoped = true;
 	            return result;
 	          }
 	        });
 	      }
+
+	      return isStoped;
 	    }
 	  }, {
 	    key: 'has',

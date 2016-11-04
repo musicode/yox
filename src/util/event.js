@@ -98,6 +98,8 @@ export class Emitter {
   fire(type, data, context = null) {
 
     let list = this.listeners[type]
+    let isStoped
+
     if (isArray(list)) {
       each(list, function (listener) {
         let result
@@ -127,10 +129,13 @@ export class Emitter {
         }
 
         if (result === false) {
+          isStoped = true
           return result
         }
       })
     }
+
+    return isStoped
 
   }
 
