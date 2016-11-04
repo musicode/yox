@@ -96,7 +96,7 @@ export function on(element, type, listener) {
   if (!$emitter.has(type)) {
     let nativeListener = function (e) {
       let event = new Event(createEvent(e, element))
-      $emitter.fire(event.type, [event])
+      $emitter.fire(event.type, event)
     }
     $emitter[type] = nativeListener
     nativeAddEventListener(element, type, nativeListener)

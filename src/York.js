@@ -422,11 +422,7 @@ module.exports = class York {
   }
 
   fire(type, data) {
-    let args = [ ]
-    if (arguments.length === 2) {
-      args.push(data)
-    }
-    this.$eventEmitter.fire(type, args, this)
+    this.$eventEmitter.fire(type, data, this)
   }
 
   watch(keypath, watcher) {

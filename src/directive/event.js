@@ -6,6 +6,7 @@ import {
 
 import {
   each,
+  toArray,
 } from '../util/array'
 
 import {
@@ -54,6 +55,9 @@ module.exports = {
                   if (name === syntax.SPECIAL_EVENT) {
                     return e
                   }
+                  else if (name === syntax.SPECIAL_KEYPATH) {
+                    return node.keypath
+                  }
                 }
                 else if (type === MEMBER) {
                   name = stringify(item)
@@ -72,7 +76,8 @@ module.exports = {
     }
     else {
       listener = function () {
-        instance.fire(value)
+        let args = arguments
+        instance.fire(value, args.length ? toArray(args) : null)
       }
     }
 

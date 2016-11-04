@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "b1f9e8023e7c400c3304"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "59744845171d9dc07f40"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -967,11 +967,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'fire',
 	    value: function fire(type, data) {
-	      var args = [];
-	      if (arguments.length === 2) {
-	        args.push(data);
-	      }
-	      this.$eventEmitter.fire(type, args, this);
+	      this.$eventEmitter.fire(type, data, this);
 	    }
 	  }, {
 	    key: 'watch',
@@ -3912,8 +3908,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var list = this.listeners[type];
 	      if ((0, _is.isArray)(list)) {
 	        (0, _array.each)(list, function (listener) {
-	          var result = listener.apply(context, data);
-
+	          var result = void 0;
+	          if ((0, _is.isArray)(data)) {
+	            result = listener.apply(context, data);
+	          } else {
+	            result = data != null ? listener.call(context, data) : listener.call(context);
+	          }
 	          var $once = listener.$once;
 
 	          if ((0, _is.isFunction)($once)) {
@@ -3921,7 +3921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 
 	          // 如果没有返回 false，而是调用了 event.stop 也算是返回 false
-	          var event = data[0];
+	          var event = data && data[0];
 	          if (event && event instanceof Event) {
 	            if (result === false) {
 	              event.prevent();
@@ -4305,7 +4305,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (!$emitter.has(type)) {
 	    var nativeListener = function nativeListener(e) {
 	      var event = new _event.Event(createEvent(e, element));
-	      $emitter.fire(event.type, [event]);
+	      $emitter.fire(event.type, event);
 	    };
 	    $emitter[type] = nativeListener;
 	    nativeAddEventListener(element, type, nativeListener);
@@ -5383,6 +5383,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (type === _expression.IDENTIFIER) {
 	                  if (name === syntax.SPECIAL_EVENT) {
 	                    return e;
+	                  } else if (name === syntax.SPECIAL_KEYPATH) {
+	                    return node.keypath;
 	                  }
 	                } else if (type === _expression.MEMBER) {
 	                  name = (0, _keypath.stringify)(item);
@@ -5400,7 +5402,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      })();
 	    } else {
 	      listener = function listener() {
-	        instance.fire(value);
+	        var args = arguments;
+	        instance.fire(value, args.length ? (0, _array.toArray)(args) : null);
 	      };
 	    }
 

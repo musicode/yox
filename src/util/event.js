@@ -100,15 +100,22 @@ export class Emitter {
     let list = this.listeners[type]
     if (isArray(list)) {
       each(list, function (listener) {
-        let result = listener.apply(context, data)
-
+        let result
+        if (isArray(data)) {
+          result = listener.apply(context, data)
+        }
+        else {
+          result = data != null
+            ? listener.call(context, data)
+            : listener.call(context)
+        }
         let { $once } = listener
         if (isFunction($once)) {
           $once()
         }
 
         // 如果没有返回 false，而是调用了 event.stop 也算是返回 false
-        let event = data[0]
+        let event = data && data[0]
         if (event && event instanceof Event) {
           if (result === false) {
             event.prevent()
