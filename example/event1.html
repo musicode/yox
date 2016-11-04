@@ -55,6 +55,9 @@
             },
 
             onattach: function () {
+                this.on('submit-1', function () {
+                    console.log(this, arguments);
+                })
                 this.on('submit-4', function () {
                     console.log(this);
                 })

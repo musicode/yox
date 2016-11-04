@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "59744845171d9dc07f40"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "b2ce05dab6d12795ebbe"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -736,9 +736,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    data = (0, _is.isFunction)(data) ? data.call(instance) : data;
 	    if ((0, _is.isObject)(props)) {
+	      if (!(0, _is.isObject)(data)) {
+	        data = {};
+	      }
 	      (0, _object.extend)(data, props);
 	    }
-	    instance.$data = data;
+	    if (data) {
+	      instance.$data = data;
+	    }
 
 	    if ((0, _is.isObject)(components)) {
 	      instance.$components = components;

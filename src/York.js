@@ -177,9 +177,14 @@ module.exports = class York {
 
     data = isFunction(data) ? data.call(instance) : data
     if (isObject(props)) {
+      if (!isObject(data)) {
+        data = { }
+      }
       objectExtend(data, props)
     }
-    instance.$data = data
+    if (data) {
+      instance.$data = data
+    }
 
     if (isObject(components)) {
       instance.$components = components
