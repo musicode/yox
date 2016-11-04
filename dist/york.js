@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "bd6e59768cde0affac23"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "b1f9e8023e7c400c3304"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -967,7 +967,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'fire',
 	    value: function fire(type, data) {
-	      this.$eventEmitter.fire(type, [data], this);
+	      var args = [];
+	      if (arguments.length === 2) {
+	        args.push(data);
+	      }
+	      this.$eventEmitter.fire(type, args, this);
 	    }
 	  }, {
 	    key: 'watch',
