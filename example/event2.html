@@ -20,8 +20,10 @@
                     </button>
                 </div>
             `,
-            click2: function () {
-                this.fire('click2', { name: 'component' });
+            methods: {
+                click2: function () {
+                    this.fire('click2', { name: 'component' });
+                }
             }
         };
 

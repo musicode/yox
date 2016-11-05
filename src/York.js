@@ -110,6 +110,13 @@ module.exports = class York {
   static partial = componentMagic(globalPartials)
 
   /**
+   * 是否同步更新
+   *
+   * @type {boolean}
+   */
+  static sync = TRUE
+
+  /**
    * 配置项
    *
    * @constructor
@@ -130,6 +137,7 @@ module.exports = class York {
       directives,
       events,
       filters,
+      methods,
       partials,
     } = options
 
@@ -171,14 +179,14 @@ module.exports = class York {
       }
     )
 
-    objectEach(
-      options,
-      function (value, key) {
-        if (isFunction(value) && !hooks[key] && key !== 'data') {
+    if (isObject(methods)) {
+      objectEach(
+        methods,
+        function (value, key) {
           instance[key] = value
         }
-      }
-    )
+      )
+    }
 
     data = isFunction(data) ? data.call(instance) : data
     if (isObject(props)) {
@@ -332,8 +340,6 @@ module.exports = class York {
       }
     )
 
-    hooks = NULL
-
     instance.fire(lifecycle.INIT)
 
     if (isObject(events)) {
@@ -471,11 +477,10 @@ module.exports = class York {
       $computedSetters,
     } = instance
 
-    let hasComputed = isObject($computedWatchers)
-
-    let changes = [ ]
-    let setter
-    let oldValue
+    let hasComputed = isObject($computedWatchers),
+      changes = [ ],
+      setter,
+      oldValue
 
     objectEach(
       model,

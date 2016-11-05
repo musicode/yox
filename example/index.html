@@ -29,9 +29,11 @@
                     name: ''
                 };
             },
-            click: function (event) {
-                console.log(this, 'click', event);
-                this.fire('click', { name: 'component' });
+            methods: {
+                click: function (event) {
+                    console.log(this, 'click', event);
+                    this.fire('click', { name: 'component' });
+                }
             },
             oncreate: function (e) {
                 console.log('  ', this, 'create', e);
@@ -116,14 +118,16 @@
                     console.log(newValue, oldValue, name);
                 }
             },
-            add: function () {
-                this.set(
-                    'counter',
-                    this.get('counter') + 1
-                );
-            },
-            clickFromComponent: function (event) {
-                console.log('clickFromComponent', event);
+            methods: {
+                add: function () {
+                    this.set(
+                        'counter',
+                        this.get('counter') + 1
+                    );
+                },
+                clickFromComponent: function (event) {
+                    console.log('clickFromComponent', event);
+                }
             },
             oncreate: function (e) {
                 console.log(this, 'create', e);

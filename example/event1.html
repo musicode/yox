@@ -53,7 +53,14 @@
                     console.log(this, arguments);
                 }
             },
-
+            methods: {
+                submit2: function (event) {
+                    console.log(this, event);
+                },
+                submit3: function (name) {
+                    console.log(this, name);
+                }
+            },
             onattach: function () {
                 this.on('submit-1', function () {
                     console.log(this, arguments);
@@ -61,13 +68,6 @@
                 this.on('submit-4', function () {
                     console.log(this);
                 })
-            },
-
-            submit2: function (event) {
-                console.log(this, event);
-            },
-            submit3: function (name) {
-                console.log(this, name);
             }
         });
 
