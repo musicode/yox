@@ -61,12 +61,12 @@ import {
 
 import {
   find,
-} from './native/dom/helper'
+} from './platform/web/helper'
 
 import {
   patch,
   create,
-} from './native/dom/vdom'
+} from './platform/web/vdom'
 
 // 5 个内建指令，其他指令通过扩展实现
 import ref from './directive/ref'
@@ -429,8 +429,10 @@ module.exports = class York {
       if (switcher.sync) {
         instance.updateView()
       }
-      else {
-        York.nextTick(function () {
+      else if (!instance.$syncing) {
+        instance.$syncing = TRUE
+        addTask(function () {
+          delete instance.$syncing
           instance.updateView()
         })
       }

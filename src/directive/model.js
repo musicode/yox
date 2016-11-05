@@ -2,7 +2,7 @@
 import {
   on,
   off,
-} from '../native/dom/helper'
+} from '../platform/web/helper'
 
 import {
   NULL,
