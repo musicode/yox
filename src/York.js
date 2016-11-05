@@ -2,13 +2,9 @@
 import * as cache from './config/cache'
 import * as syntax from './config/syntax'
 import * as pattern from './config/pattern'
+import * as registry from './config/registry'
 import * as switcher from './config/switcher'
 import * as lifecycle from './config/lifecycle'
-
-import globalComponent from './config/component'
-import globalDirective from './config/directive'
-import globalFilter from './config/filter'
-import globalPartial from './config/partial'
 
 import {
   TRUE,
@@ -79,7 +75,7 @@ import event from './directive/event'
 import model from './directive/model'
 import component from './directive/component'
 
-globalDirective.set({
+registry.directive.set({
   ref, lazy, event, model, component
 })
 
@@ -107,19 +103,19 @@ module.exports = class York {
   static cache = cache
 
   static component = function (id, value) {
-    globalComponent.set(id, value)
+    registry.component.set(id, value)
   }
 
   static directive = function (id, value) {
-    globalDirective.set(id, value)
+    registry.directive.set(id, value)
   }
 
   static filter = function (id, value) {
-    globalFilter.set(id, value)
+    registry.filter.set(id, value)
   }
 
   static partial = function (id, value) {
-    globalPartial.set(id, value)
+    registry.partial.set(id, value)
   }
 
   static nextTick = function (fn) {
@@ -571,7 +567,7 @@ module.exports = class York {
     let context = { }
 
     each(
-      [ globalComponent.data, $filters ],
+      [ registry.component.data, $filters ],
       function (item) {
         if (isObject(item)) {
           objectExtend(

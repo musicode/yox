@@ -6,17 +6,7 @@ import {
   extend,
 } from './object'
 
-import component from '../config/component'
-import directive from '../config/directive'
-import filter from '../config/filter'
-import partial from '../config/partial'
-
-let map = {
-  component,
-  directive,
-  filter,
-  partial,
-}
+import * as registry from '../config/registry'
 
 export function bind(instance, functions) {
   let result = { }
@@ -60,7 +50,7 @@ export function get(instance, type, name) {
     return instance[prop][name]
   }
   else {
-    let value = map[type].get(name)
+    let value = registry[type].get(name)
     if (value) {
       return value
     }
