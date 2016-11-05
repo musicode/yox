@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "39ca6f015c59db96f8b5"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "536a0179708b02e6ac08"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 
@@ -670,14 +670,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	  /**
-	   * 全局过滤器
+	   * 全局模板片段
 	   *
 	   * @type {Object}
 	   */
 
 
 	  /**
-	   * 全局组件
+	   * 全局指令
 	   *
 	   * @type {Object}
 	   */
@@ -696,6 +696,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        directives = options.directives,
 	        events = options.events,
 	        filters = options.filters,
+	        methods = options.methods,
 	        partials = options.partials;
 
 	    // el 和 template 都可以传选择器
@@ -730,11 +731,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      hooks['on' + name] = name;
 	    });
 
-	    (0, _object.each)(options, function (value, key) {
-	      if ((0, _is.isFunction)(value) && !hooks[key] && key !== 'data') {
+	    if ((0, _is.isObject)(methods)) {
+	      (0, _object.each)(methods, function (value, key) {
 	        instance[key] = value;
-	      }
-	    });
+	      });
+	    }
 
 	    data = (0, _is.isFunction)(data) ? data.call(instance) : data;
 	    if ((0, _is.isObject)(props)) {
@@ -867,8 +868,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    });
 
-	    hooks = _env.NULL;
-
 	    instance.fire(lifecycle.INIT);
 
 	    if ((0, _is.isObject)(events)) {
@@ -904,14 +903,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  /**
-	   * 全局模板片段
+	   * 是否同步更新
+	   *
+	   * @type {boolean}
+	   */
+
+
+	  /**
+	   * 全局过滤器
 	   *
 	   * @type {Object}
 	   */
 
 
 	  /**
-	   * 全局指令
+	   * 全局组件
 	   *
 	   * @type {Object}
 	   */
@@ -1016,11 +1022,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	          $computedSetters = instance.$computedSetters;
 
 
-	      var hasComputed = (0, _is.isObject)($computedWatchers);
-
-	      var changes = [];
-	      var setter = void 0;
-	      var oldValue = void 0;
+	      var hasComputed = (0, _is.isObject)($computedWatchers),
+	          changes = [],
+	          setter = void 0,
+	          oldValue = void 0;
 
 	      (0, _object.each)(model, function (value, keypath) {
 	        oldValue = instance.get(keypath);
@@ -1119,7 +1124,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 
 	  return York;
-	}(), _class.components = globalComponents, _class.directives = globalDirectives, _class.filters = globalFilters, _class.partials = globalPartials, _class.component = (0, _component.magic)(globalComponents), _class.directive = (0, _component.magic)(globalDirectives), _class.filter = (0, _component.magic)(globalFilters), _class.partial = (0, _component.magic)(globalPartials), _temp);
+	}(), _class.components = globalComponents, _class.directives = globalDirectives, _class.filters = globalFilters, _class.partials = globalPartials, _class.component = (0, _component.magic)(globalComponents), _class.directive = (0, _component.magic)(globalDirectives), _class.filter = (0, _component.magic)(globalFilters), _class.partial = (0, _component.magic)(globalPartials), _class.sync = _env.TRUE, _temp);
 
 	/**
 	 * [TODO]
