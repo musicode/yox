@@ -1,6 +1,14 @@
 
+import * as cache from './config/cache'
+import * as syntax from './config/syntax'
 import * as pattern from './config/pattern'
+import * as switcher from './config/switcher'
 import * as lifecycle from './config/lifecycle'
+
+import globalComponent from './config/component'
+import globalDirective from './config/directive'
+import globalFilter from './config/filter'
+import globalPartial from './config/partial'
 
 import {
   TRUE,
@@ -18,7 +26,6 @@ import {
 
 import {
   add as addTask,
-  run as runTask,
 } from './util/nextTask'
 
 import {
@@ -54,7 +61,6 @@ import {
   get as componentGet,
   set as componentSet,
   bind as componentBind,
-  magic as componentMagic,
 } from './util/component'
 
 import {
@@ -73,53 +79,48 @@ import event from './directive/event'
 import model from './directive/model'
 import component from './directive/component'
 
-
-let globalComponents = { }
-let globalDirectives = { ref, lazy, event, model, component }
-let globalFilters = { }
-let globalPartials = { }
+globalDirective.set({
+  ref, lazy, event, model, component
+})
 
 module.exports = class York {
 
   /**
-   * 全局组件
+   * 配置
    *
    * @type {Object}
    */
-  static components = globalComponents
+  static config = switcher
 
   /**
-   * 全局指令
+   * 语法
    *
    * @type {Object}
    */
-  static directives = globalDirectives
+  static syntax = syntax
 
   /**
-   * 全局过滤器
+   * 语法
    *
    * @type {Object}
    */
-  static filters = globalFilters
+  static cache = cache
 
-  /**
-   * 全局模板片段
-   *
-   * @type {Object}
-   */
-  static partials = globalPartials
+  static component = function (id, value) {
+    globalComponent.set(id, value)
+  }
 
-  static component = componentMagic(globalComponents)
-  static directive = componentMagic(globalDirectives)
-  static filter = componentMagic(globalFilters)
-  static partial = componentMagic(globalPartials)
+  static directive = function (id, value) {
+    globalDirective.set(id, value)
+  }
 
-  /**
-   * 是否同步更新
-   *
-   * @type {boolean}
-   */
-  static sync = TRUE
+  static filter = function (id, value) {
+    globalFilter.set(id, value)
+  }
+
+  static partial = function (id, value) {
+    globalPartial.set(id, value)
+  }
 
   static nextTick = function (fn) {
     addTask(fn)
@@ -159,7 +160,7 @@ module.exports = class York {
       ? find(el)
       : el
 
-    if (__DEBUG__) {
+    if (switcher.debug) {
       if (!el || el.nodeType !== 1) {
         throw new Error('el must be a html element.')
       }
@@ -429,7 +430,7 @@ module.exports = class York {
     }
     let instance = this
     if (instance.updateModel(model)) {
-      if (York.sync) {
+      if (switcher.sync) {
         instance.updateView()
       }
       else {
@@ -570,7 +571,7 @@ module.exports = class York {
     let context = { }
 
     each(
-      [ globalFilters, $filters ],
+      [ globalComponent.data, $filters ],
       function (item) {
         if (isObject(item)) {
           objectExtend(

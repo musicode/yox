@@ -6,6 +6,18 @@ import {
   extend,
 } from './object'
 
+import component from '../config/component'
+import directive from '../config/directive'
+import filter from '../config/filter'
+import partial from '../config/partial'
+
+let map = {
+  component,
+  directive,
+  filter,
+  partial,
+}
+
 export function bind(instance, functions) {
   let result = { }
   each(
@@ -15,27 +27,6 @@ export function bind(instance, functions) {
     }
   )
   return result
-}
-
-export function magic(object, name, value) {
-  return function (name, value) {
-    if (value) {
-      object[name] = value
-    }
-    else {
-      if (isObject(name)) {
-        each(
-          name,
-          function (value, name) {
-            object[name] = value
-          }
-        )
-      }
-      else {
-        return object[name]
-      }
-    }
-  }
 }
 
 export function testKeypath(instance, keypath, name) {
@@ -64,15 +55,18 @@ export function testKeypath(instance, keypath, name) {
 }
 
 export function get(instance, type, name) {
-  let staticProp = `${type}s`, instanceProp = `$${staticProp}`
-  if (instance[instanceProp] && has(instance[instanceProp], name)) {
-    return instance[instanceProp][name]
-  }
-  else if (has(instance.constructor[staticProp], name)) {
-    return instance.constructor[staticProp][name]
+  let prop = `$${type}s`
+  if (instance[prop] && has(instance[prop], name)) {
+    return instance[prop][name]
   }
   else {
-    throw new Error(`${name} ${type} is not found.`)
+    let value = map[type].get(name)
+    if (value) {
+      return value
+    }
+    else {
+      throw new Error(`${name} ${type} is not found.`)
+    }
   }
 }
 

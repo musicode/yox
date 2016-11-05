@@ -5,10 +5,7 @@ import {
   NULL,
 } from '../config/env'
 
-import {
-  expressionParseCache,
-  expressionCompileCache,
-} from '../config/cache'
+import * as cache from '../config/cache'
 
 import {
   each,
@@ -586,13 +583,14 @@ export function parse(content) {
 
   }
 
-  if (!expressionParseCache[content]) {
+  let { expressionParse } = cache
+  if (!expressionParse[content]) {
     let node = parseExpression()
     node.$raw = content
-    expressionParseCache[content] = node
+    expressionParse[content] = node
   }
 
-  return expressionParseCache[content]
+  return expressionParse[content]
 
 }
 
@@ -614,7 +612,9 @@ export function compile(ast) {
     content = ast.$raw
   }
 
-  if (!expressionCompileCache[content]) {
+  let { expressionCompile } = cache
+
+  if (!expressionCompile[content]) {
     let args = [ ]
 
     traverse(
@@ -630,10 +630,10 @@ export function compile(ast) {
 
     let fn = new Function(args.join(', '), `return ${content}`)
     fn.$arguments = args
-    expressionCompileCache[content] = fn
+    expressionCompile[content] = fn
   }
 
-  return expressionCompileCache[content]
+  return expressionCompile[content]
 
 }
 

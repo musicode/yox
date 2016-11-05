@@ -208,10 +208,10 @@ export function render(ast, data) {
  */
 export function parse(template, getPartial, setPartial) {
 
-  let { templateParseCache } = cache
+  let { templateParse } = cache
 
-  if (templateParseCache[template]) {
-    return templateParseCache[template]
+  if (templateParse[template]) {
+    return templateParse[template]
   }
 
   let mainScanner = new Scanner(template),
@@ -487,7 +487,7 @@ export function parse(template, getPartial, setPartial) {
     return parseError(template, '节点没有正确的结束', errorIndex)
   }
 
-  templateParseCache[template] = rootNode
+  templateParse[template] = rootNode
 
   return rootNode
 
