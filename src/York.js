@@ -17,6 +17,11 @@ import {
 } from './util/event'
 
 import {
+  add as addTask,
+  run as runTask,
+} from './util/nextTask'
+
+import {
   getWildcardNames,
   getWildcardMatches,
 } from './util/keypath'
@@ -115,6 +120,10 @@ module.exports = class York {
    * @type {boolean}
    */
   static sync = TRUE
+
+  static nextTick = function (fn) {
+    addTask(fn)
+  }
 
   /**
    * 配置项
@@ -418,8 +427,16 @@ module.exports = class York {
       model = { }
       model[keypath] = value
     }
-    if (this.updateModel(model)) {
-      this.updateView()
+    let instance = this
+    if (instance.updateModel(model)) {
+      if (York.sync) {
+        instance.updateView()
+      }
+      else {
+        York.nextTick(function () {
+          instance.updateView()
+        })
+      }
     }
   }
 
@@ -478,7 +495,7 @@ module.exports = class York {
     } = instance
 
     let hasComputed = isObject($computedWatchers),
-      changes = [ ],
+      changes = { },
       setter,
       oldValue
 
@@ -488,10 +505,7 @@ module.exports = class York {
         oldValue = instance.get(keypath)
         if (value !== oldValue) {
 
-          changes.push({
-            keypath,
-            args: [ value, oldValue ]
-          })
+          changes[keypath] = [ value, oldValue ]
 
           if (hasComputed && isArray($computedWatchers[keypath])) {
             each(
@@ -519,11 +533,10 @@ module.exports = class York {
       }
     )
 
-    if (changes.length) {
-      each(
+    if (objectCount(changes)) {
+      objectEach(
         changes,
-        function (item) {
-          let { keypath, args } = item
+        function (args, keypath) {
           each(
             getWildcardMatches(keypath),
             function (wildcardKeypath) {
@@ -536,7 +549,8 @@ module.exports = class York {
           )
         }
       )
-      return TRUE
+
+      return changes
     }
 
   }

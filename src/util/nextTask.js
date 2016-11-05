@@ -5,7 +5,7 @@ import {
   each,
 } from './array'
 
-let nextTasks = []
+let nextTasks = [ ]
 
 /**
  * 添加异步任务
@@ -23,8 +23,11 @@ export function add(task) {
  * 立即执行已添加的任务
  */
 export function run() {
-  each(nextTasks, function (task) {
-    task()
-  })
+  each(
+    nextTasks,
+    function (task) {
+      task()
+    }
+  )
   nextTasks.length = 0
 }
