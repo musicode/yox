@@ -8,17 +8,6 @@ import {
 
 import * as registry from '../config/registry'
 
-export function bind(instance, functions) {
-  let result = { }
-  each(
-    functions,
-    function (fn, name) {
-      result[name] = fn.bind(instance)
-    }
-  )
-  return result
-}
-
 export function testKeypath(instance, keypath, name) {
 
   let terms = keypath ? keypath.split('.') : [ ]

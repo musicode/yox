@@ -554,17 +554,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var context = {};
 
-	      (0, _array.each)([registry.component.data, $filters], function (item) {
-	        if ((0, _is.isObject)(item)) {
-	          (0, _object.extend)(context, (0, _component.bind)(instance, item));
+	      // 在 data 中也能写函数
+	      (0, _object.extend)(context, registry.filter.data, $data, $filters);
+	      (0, _object.each)(context, function (value, key) {
+	        if ((0, _is.isFunction)(value)) {
+	          context[key] = value.bind(instance);
 	        }
 	      });
 
-	      (0, _array.each)([$data, $computedGetters], function (item) {
-	        if ((0, _is.isObject)(item)) {
-	          (0, _object.extend)(context, item);
-	        }
-	      });
+	      if ((0, _is.isObject)($computedGetters)) {
+	        (0, _object.extend)(context, $computedGetters);
+	      }
 
 	      var newNode = (0, _vdom.create)((0, _mustache.render)($template, context), instance);
 
@@ -619,7 +619,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 9. 报错信息完善
 	 * 10. SEO友好
 	 * 11. 计算属性的观测用 Emitter 是否更好？
-	 * 12. keypath 还原
 	 */
 
 /***/ },
@@ -774,6 +773,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var EACH = exports.EACH = '#each';
 	var PARTIAL = exports.PARTIAL = '#partial';
 	var IMPORT = exports.IMPORT = '>';
+	var COMMENT = exports.COMMENT = '!';
 
 	var DIRECTIVE_PREFIX = exports.DIRECTIVE_PREFIX = '@';
 	var DIRECTIVE_EVENT_PREFIX = exports.DIRECTIVE_EVENT_PREFIX = 'on-';
@@ -1032,9 +1032,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  keypath = (0, _toString2["default"])(keypath);
 	  if (keypath.indexOf('.') > 0) {
-	    var originalObject = object,
-	        list = keypath.split('.'),
-	        prop = list.pop();
+	    var originalObject = object;
+	    var list = keypath.split('.');
+	    var prop = list.pop();
 	    (0, _array.each)(list, function (item, index) {
 	      if (object[item]) {
 	        object = object[item];
@@ -1394,7 +1394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}, {
 	  test: function test(source) {
-	    return _env.TRUE;
+	    return !source.startsWith(syntax.COMMENT);
 	  },
 	  create: function create(source) {
 	    var safe = _env.TRUE;
@@ -4171,7 +4171,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.bind = bind;
 	exports.testKeypath = testKeypath;
 	exports.get = get;
 	exports.set = set;
@@ -4183,14 +4182,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var registry = _interopRequireWildcard(_registry);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
-
-	function bind(instance, functions) {
-	  var result = {};
-	  (0, _object.each)(functions, function (fn, name) {
-	    result[name] = fn.bind(instance);
-	  });
-	  return result;
-	}
 
 	function testKeypath(instance, keypath, name) {
 

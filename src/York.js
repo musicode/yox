@@ -566,26 +566,20 @@ module.exports = class York {
 
     let context = { }
 
-    each(
-      [ registry.component.data, $filters ],
-      function (item) {
-        if (isObject(item)) {
-          objectExtend(
-            context,
-            componentBind(instance, item)
-          )
+    // 在 data 中也能写函数
+    objectExtend(context, registry.filter.data, $data, $filters)
+    objectEach(
+      context,
+      function (value, key) {
+        if (isFunction(value)) {
+          context[key] = value.bind(instance)
         }
       }
     )
 
-    each(
-      [ $data, $computedGetters ],
-      function (item) {
-        if (isObject(item)) {
-          objectExtend(context, item)
-        }
-      }
-    )
+    if (isObject($computedGetters)) {
+      objectExtend(context, $computedGetters)
+    }
 
     let newNode = create(
       renderTemplate($template, context),
@@ -631,5 +625,4 @@ module.exports = class York {
  * 9. 报错信息完善
  * 10. SEO友好
  * 11. 计算属性的观测用 Emitter 是否更好？
- * 12. keypath 还原
  */

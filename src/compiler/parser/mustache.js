@@ -141,7 +141,7 @@ const parsers = [
   },
   {
     test: function (source) {
-      return TRUE
+      return !source.startsWith(syntax.COMMENT)
     },
     create: function (source) {
       let safe = TRUE

@@ -83,9 +83,9 @@ export function get(object, keypath) {
 export function set(object, keypath, value, autoFill = TRUE) {
   keypath = toString(keypath)
   if (keypath.indexOf('.') > 0) {
-    let originalObject = object,
-      list = keypath.split('.'),
-      prop = list.pop()
+    let originalObject = object
+    let list = keypath.split('.')
+    let prop = list.pop()
     arrayEach(
       list,
       function (item, index) {
