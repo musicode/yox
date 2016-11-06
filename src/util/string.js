@@ -3,7 +3,10 @@ import {
   NULL,
 } from '../config/env'
 
-import print from '../function/print'
+import {
+  error,
+} from '../config/logger'
+
 import getLocationByIndex from '../function/getLocationByIndex'
 
 const breaklinePrefixPattern = /^[ \t]*\n/
@@ -24,9 +27,8 @@ export function parseError(str, errorMsg, errorIndex) {
     errorMsg += '.'
   }
   else {
-    errorMsg += ', at line %d, col %d.'
     let { line, col } = getLocationByIndex(str, errorIndex)
-    errorMsg = print(errorMsg, line, col)
+    errorMsg += `, at line ${line}, col ${col}.`
   }
-  throw new Error(errorMsg)
+  error(errorMsg)
 }

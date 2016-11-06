@@ -6,6 +6,7 @@ import {
 } from '../config/env'
 
 import * as cache from '../config/cache'
+import * as logger from '../config/logger'
 
 import {
   each,
@@ -185,7 +186,7 @@ function matchBestToken(content, sortedTokens) {
  * @return {Error}
  */
 function throwError(expression) {
-  throw new Error(`Expression parse error: [${expression}]`)
+  logger.error(`Failed to parse expression: [${expression}].`)
 }
 
 /**
@@ -326,7 +327,7 @@ export function parse(content) {
       }
     }
     if (!closed) {
-      return throwError()
+      return throwError(content)
     }
   }
 
@@ -382,7 +383,7 @@ export function parse(content) {
       return createThis()
     }
 
-    return value ? createIdentifier(value) : throwError()
+    return value ? createIdentifier(value) : throwError(content)
 
   }
 
@@ -406,7 +407,7 @@ export function parse(content) {
       }
     }
 
-    return closed ? args : throwError()
+    return closed ? args : throwError(content)
 
   }
 
@@ -478,13 +479,13 @@ export function parse(content) {
       return parseVariable()
     }
     value = parseOperator(sortedUnaryOperatorList)
-    return value ? parseUnary(value) : throwError()
+    return value ? parseUnary(value) : throwError(content)
   }
 
   function parseUnary(operator) {
     value = parseToken()
     if (!value) {
-      return throwError()
+      return throwError(content)
     }
     return createUnary(operator, value)
   }
@@ -515,7 +516,7 @@ export function parse(content) {
 
       right = parseToken()
       if (!right) {
-        return throwError()
+        return throwError(content)
       }
       stack.push(operator, binaryOperatorMap[operator], right)
     }
@@ -546,7 +547,7 @@ export function parse(content) {
       return value
     }
     else {
-      return throwError()
+      return throwError(content)
     }
   }
 
@@ -575,7 +576,7 @@ export function parse(content) {
         return createConditional(test, consequent, alternate)
       }
       else {
-        return throwError()
+        return throwError(content)
       }
     }
 

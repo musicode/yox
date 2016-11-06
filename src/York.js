@@ -1,5 +1,6 @@
 
 import * as cache from './config/cache'
+import * as logger from './config/logger'
 import * as syntax from './config/syntax'
 import * as pattern from './config/pattern'
 import * as registry from './config/registry'
@@ -156,13 +157,11 @@ module.exports = class York {
       ? find(el)
       : el
 
-    if (switcher.debug) {
-      if (!el || el.nodeType !== 1) {
-        throw new Error('el must be a html element.')
-      }
-      if (props && isObject(data)) {
-        throw new Error('component data must be a function.')
-      }
+    if (!el || el.nodeType !== 1) {
+      logger.error('Passing a `el` option must be a html element.')
+    }
+    if (props && (isObject(data) || isArray(data))) {
+      logger.warn('Passing a `data` option with object and array to component is discouraged.')
     }
 
     if (!replace) {

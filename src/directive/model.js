@@ -9,6 +9,8 @@ import {
   FALSE,
 } from '../config/env'
 
+import * as logger from '../config/logger'
+
 import {
   testKeypath,
 } from '../util/component'
@@ -99,12 +101,13 @@ module.exports = {
 
     value = node.getValue()
 
-    let result = testKeypath(instance, node.keypath, value)
+    let { keypath } = node
+    let result = testKeypath(instance, keypath, value)
     if (!result) {
-      throw new Error(`不能双向绑定到 ${keypath}`)
+      logger.error(`The ${keypath} being used for two-way binding is ambiguous.`)
     }
 
-    let { keypath } = result
+    keypath = result.keypath
 
     let target = controlTypes[type] || controlTypes.normal
     let data = {

@@ -1,5 +1,6 @@
 
 import * as cache from '../../config/cache'
+import * as logger from '../../config/logger'
 import * as syntax from '../../config/syntax'
 import * as pattern from '../../config/pattern'
 
@@ -7,7 +8,6 @@ import {
   TRUE,
   FALSE,
 } from '../../config/env'
-
 
 import Context from '../helper/Context'
 import Scanner from '../helper/Scanner'
@@ -101,10 +101,9 @@ const parsers = [
     },
     create: function (source) {
       let name = source.substr(syntax.PARTIAL.length).trim()
-      if (name) {
-        return new Partial(name)
-      }
-      throw new Error('模板片段缺少名称')
+      return name
+        ? new Partial(name)
+        : 'Expected legal partial name'
     }
   },
   {
@@ -113,10 +112,9 @@ const parsers = [
     },
     create: function (source) {
       let expr = source.substr(syntax.IF.length).trim()
-      if (expr) {
-        return new If(parseExpression(expr))
-      }
-      throw new Error('if 缺少条件')
+      return expr
+        ? new If(parseExpression(expr))
+        : 'Expected expression'
     }
   },
   {
@@ -129,7 +127,7 @@ const parsers = [
         popStack()
         return new ElseIf(parseExpression(expr))
       }
-      throw new Error('else if 缺少条件')
+      return 'Expected expression'
     }
   },
   {
@@ -191,7 +189,7 @@ export function render(ast, data) {
 
   let { children } = rootElement
   if (children.length !== 1 || children[0].type !== ELEMENT) {
-    throw new Error('组件有且只能有一个根元素')
+    logger.error('Template must contains just one root element.')
   }
 
   return children[0]
@@ -402,6 +400,9 @@ export function parse(template, getPartial, setPartial) {
             function (parser) {
               if (parser.test(content)) {
                 node = parser.create(content, popStack)
+                if (isString(node)) {
+                  parseError(template, node, errorIndex)
+                }
                 if (isAttributesParsing
                   && node.type === EXPRESSION
                   && currentNode.type !== ATTRIBUTE
@@ -441,10 +442,10 @@ export function parse(template, getPartial, setPartial) {
       name = content.substr(2)
 
       if (mainScanner.charAt(0) !== '>') {
-        return parseError(template, '结束标签缺少 >', errorIndex)
+        return parseError(template, 'Illegal tag name', errorIndex)
       }
       else if (name !== currentNode.name) {
-        return parseError(template, '开始标签和结束标签匹配失败', errorIndex)
+        return parseError(template, 'Unexpected closing tag', errorIndex)
       }
 
       popStack()
@@ -474,7 +475,7 @@ export function parse(template, getPartial, setPartial) {
 
       content = mainScanner.nextAfter(elementEndPattern)
       if (!content) {
-        return parseError(template, '标签缺少 >', errorIndex)
+        return parseError(template, 'Illegal tag name', errorIndex)
       }
 
       if (isComponent || isSelfClosingTag) {
@@ -484,7 +485,7 @@ export function parse(template, getPartial, setPartial) {
   }
 
   if (nodeStack.length) {
-    return parseError(template, '节点没有正确的结束', errorIndex)
+    return parseError(template, `Missing end tag (</${nodeStack[0].name}>)`, errorIndex)
   }
 
   templateParse[template] = rootNode
