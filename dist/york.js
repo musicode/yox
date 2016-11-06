@@ -458,14 +458,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        data = _env.NULL;
 	      }
 	      var instance = this;
-	      var parent = instance.parent,
+	      var $parent = instance.$parent,
 	          $eventEmitter = instance.$eventEmitter;
 
 	      if (!$eventEmitter.fire(type, data, instance)) {
-	        var _parent = instance.parent;
-
-	        if (bubble && _parent) {
-	          _parent.fire(type, data, bubble);
+	        if (bubble && $parent) {
+	          $parent.fire(type, data, bubble);
 	        }
 	      }
 	    }
@@ -5318,7 +5316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 	// 支持 input 事件的控件
-	var supportInputTypes = ['text', 'number', 'url', 'email', 'search'];
+	var supportInputTypes = ['text', 'number', 'tel', 'url', 'email', 'search'];
 
 	// 特殊的双向绑定逻辑
 	var controlTypes = {

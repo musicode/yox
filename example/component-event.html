@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>demo</title>
+    <title>组件事件</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div id="app"></div>
@@ -18,11 +19,17 @@
                     <button on-click="click2()">
                         click2
                     </button>
+                    <button on-click="bubble()">
+                        bubble
+                    </button>
                 </div>
             `,
             methods: {
                 click2: function () {
                     this.fire('click2', { name: 'component' });
+                },
+                bubble: function (event) {
+                    this.fire('bubble', event, true);
                 }
             }
         };
@@ -30,9 +37,9 @@
         var instance = new York({
             el: '#app',
             template: `
-              <div id="root">
-                  <Custom on-click1="click1" on-click2="click2" />
-              </div>
+                <div id="root">
+                    <Custom on-click1="click1" on-click2="click2" />
+                </div>
             `,
             components: {
                 Custom: Custom
@@ -42,6 +49,9 @@
                     console.log(this, arguments);
                 },
                 click2: function () {
+                    console.log(this, arguments);
+                },
+                bubble: function () {
                     console.log(this, arguments);
                 }
             }

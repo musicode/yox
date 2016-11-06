@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>demo</title>
+    <title>事件</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div id="app"></div>
@@ -64,10 +65,10 @@
             onattach: function () {
                 this.on('submit-1', function () {
                     console.log(this, arguments);
-                })
+                });
                 this.on('submit-4', function () {
                     console.log(this);
-                })
+                });
             }
         });
 

@@ -457,11 +457,10 @@ module.exports = class York {
       data = NULL
     }
     let instance = this
-    let { parent, $eventEmitter } = instance
+    let { $parent, $eventEmitter } = instance
     if (!$eventEmitter.fire(type, data, instance)) {
-      let { parent } = instance
-      if (bubble && parent) {
-        parent.fire(type, data, bubble)
+      if (bubble && $parent) {
+        $parent.fire(type, data, bubble)
       }
     }
   }
