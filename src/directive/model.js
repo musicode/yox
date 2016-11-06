@@ -26,7 +26,7 @@ import {
 import debounce from '../function/debounce'
 
 // 支持 input 事件的控件
-const supportInputTypes = [ 'text', 'number', 'url', 'email', 'search' ]
+const supportInputTypes = [ 'text', 'number', 'tel', 'url', 'email', 'search' ]
 
 // 特殊的双向绑定逻辑
 const controlTypes = {

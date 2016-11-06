@@ -2,116 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>demo</title>
+    <title>双向绑定</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        #app {
+            padding: 20px;
+        }
+        .title {
+            font-size: 26px !important;
+            margin-top: 30px !important;
+            margin-bottom: 20px !important;
+        }
+    </style>
 </head>
 <body>
     <div id="app"></div>
     <script id="template" type="plain/text">
 
         <div>
-
-            <h1>
-                input
-            </h1>
-            <input type="text" @model="title">
-            <div>
-                title：{{title}}
-            </div>
-
-            <h1>
-                input 延时
-            </h1>
-            <input type="text" @model="title" @lazy="200">
-            <div>
-                title：{{title}}
-            </div>
-
-            <h1>
-                input lazy
-            </h1>
-            <input type="text" @model="title" @lazy>
-            <div>
-                title：{{title}}
-            </div>
+            <form class="ui form">
 
 
-            <h1>
-                textarea
-            </h1>
-            <textarea @model="title"></textarea>
-            <div>
-                title：{{title}}
-            </div>
 
-            <h1>
-                textarea 延时
-            </h1>
-            <textarea @model="title" @lazy="200"></textarea>
-            <div>
-                title：{{title}}
-            </div>
-
-            <h1>
-                textarea lazy
-            </h1>
-            <textarea @model="title" @lazy></textarea>
-            <div>
-                title：{{title}}
-            </div>
-
-            <h1>
-                多个 radio
-            </h1>
-            <ul>
-            {{#each users}}
-                <li>
-                    {{name}}:<input type="radio" @model="selectedUser" value="{{name}}">
-                </li>
-            {{/each}}
-            </ul>
-            <div>
-                选中的用户：{{selectedUser}}
-            </div>
+                <div class="field">
+                    <label class="title">
+                        input 实时同步
+                    </label>
+                </div>
+                <div class="field">
+                    <input type="text" @model="title">
+                </div>
+                <div class="ui message">
+                    {{title}}
+                </div>
 
 
-            <h1>
-                单个 checkbox
-            </h1>
-            <div>
-                <input type="checkbox" @model="checkboxSelected">
-            </div>
-            <div>
-                是否选中：{{checkboxSelected ? '是' : '否'}}
-            </div>
-
-            <h1>
-                多个 checkbox
-            </h1>
-            <ul>
-            {{#each users}}
-                <li>
-                    {{name}}:<input type="checkbox" @model="selectedNames" value="{{name}}">
-                </li>
-            {{/each}}
-            </ul>
-            <div>
-                选中的用户：{{formatSelectedNames(selectedNames)}}
-            </div>
 
 
-            <h1>
-                select
-            </h1>
-            <select @model="selectedUser">
-            {{#each users}}
-                <option>
-                    {{name}}
-                </option>
-            {{/each}}
-            </select>
-            <div>
-                选中的用户：{{selectedUser}}
-            </div>
+
+                <div class="field">
+                    <label class="title">
+                        input 延时同步
+                    </label>
+                </div>
+                <div class="field">
+                    <input type="text" @model="title" @lazy="500">
+                </div>
+                <div class="ui message">
+                    {{title}}
+                </div>
+
+
+
+
+
+                <div class="field">
+                    <label class="title">
+                        input change 同步
+                    </label>
+                </div>
+                <div class="field">
+                    <label>input change 同步</label>
+                    <input type="text" @model="title" @lazy>
+                </div>
+                <div class="ui message">
+                    {{title}}
+                </div>
+
+
+
+
+                <div class="field">
+                    <label class="title">
+                        textarea 实时同步
+                    </label>
+                </div>
+                <div class="field">
+                    <textarea @model="title"></textarea>
+                </div>
+                <div class="ui message">
+                    {{title}}
+                </div>
+
+
+
+
+                <div class="field">
+                    <label class="title">
+                        textarea 延时同步
+                    </label>
+                </div>
+                <div class="field">
+                    <textarea @model="title" @lazy="500"></textarea>
+                </div>
+                <div class="ui message">
+                    {{title}}
+                </div>
+
+
+
+
+                <div class="field">
+                    <label class="title">
+                        textarea change 同步
+                    </label>
+                </div>
+                <div class="field">
+                    <textarea @model="title" @lazy></textarea>
+                </div>
+                <div class="ui message">
+                    {{title}}
+                </div>
+
+
+
+                <div class="field">
+                    <label class="title">
+                        单选框
+                    </label>
+                </div>
+                <div class="grouped fields">
+                    {{#each users}}
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input type="radio" @model="selectedUser" value="{{name}}">
+                                <label>
+                                    {{name}}
+                                </label>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+                <div class="ui message">
+                    选中的用户：{{selectedUser}}
+                </div>
+
+
+
+                <div class="field">
+                    <label class="title">
+                        一个复选框
+                    </label>
+                </div>
+                <div class="grouped fields">
+                    <input type="checkbox" @model="checkboxSelected">
+                </div>
+                <div class="ui message">
+                    是否选中：{{checkboxSelected ? '是' : '否'}}
+                </div>
+
+
+
+
+
+                <div class="field">
+                    <label class="title">
+                        多个复选框
+                    </label>
+                </div>
+                <div class="grouped fields">
+                    {{#each users}}
+                        <div class="field">
+                            <div class="ui checkbox">
+                                <input type="checkbox" @model="selectedNames" value="{{name}}">
+                                <label>
+                                    {{name}}
+                                </label>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+                <div class="ui message">
+                    选中的用户：{{formatSelectedNames(selectedNames)}}
+                </div>
+
+
+
+
+
+                <div class="field">
+                    <label class="title">
+                        select
+                    </label>
+                </div>
+                <div class="field">
+                    <select class="ui" @model="selectedUser">
+                    {{#each users}}
+                        <option>
+                            {{name}}
+                        </option>
+                    {{/each}}
+                    </select>
+                </div>
+                <div class="ui message">
+                    选中的用户：{{selectedUser}}
+                </div>
+
+
+            </form>
+
+
         </div>
 
     </script>
@@ -141,7 +231,7 @@
             },
             filters: {
                 formatSelectedNames: function (selectedNames) {
-                    return selectedNames.join(',');
+                    return '[' + selectedNames.toString() + ']';
                 }
             }
 
