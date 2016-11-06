@@ -150,14 +150,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	  /**
-	   * 语法
+	   * 缓存
 	   *
 	   * @type {Object}
 	   */
 
 
 	  /**
-	   * 配置
+	   * 开关配置
 	   *
 	   * @type {Object}
 	   */
@@ -210,6 +210,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    (0, _object.each)(lifecycle, function (name) {
 	      hooks['on' + name] = name;
 	    });
+
+	    // 监听各种事件
+	    instance.$eventEmitter = new _event.Emitter();
+
+	    (0, _object.each)(hooks, function (value, key) {
+	      if ((0, _is.isFunction)(options[key])) {
+	        instance.on(value, options[key]);
+	      }
+	    });
+
+	    instance.fire(lifecycle.INIT);
 
 	    if ((0, _is.isObject)(methods)) {
 	      (0, _object.each)(methods, function (value, key) {
@@ -339,17 +350,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      })();
 	    }
 
-	    // 监听各种事件
-	    instance.$eventEmitter = new _event.Emitter();
-
-	    (0, _object.each)(hooks, function (value, key) {
-	      if ((0, _is.isFunction)(options[key])) {
-	        instance.on(value, options[key]);
-	      }
-	    });
-
-	    instance.fire(lifecycle.INIT);
-
 	    if ((0, _is.isObject)(events)) {
 	      (0, _object.each)(events, function (listener, type) {
 	        if ((0, _is.isFunction)(listener)) {
@@ -383,7 +383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  /**
-	   * 语法
+	   * 模板语法
 	   *
 	   * @type {Object}
 	   */
@@ -658,6 +658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var EACH = exports.EACH = '#each';
 	var PARTIAL = exports.PARTIAL = '#partial';
 	var IMPORT = exports.IMPORT = '>';
+
 	var DIRECTIVE_PREFIX = exports.DIRECTIVE_PREFIX = '@';
 	var DIRECTIVE_EVENT_PREFIX = exports.DIRECTIVE_EVENT_PREFIX = 'on-';
 
@@ -732,12 +733,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	module.exports = function () {
-	  function Store() {
-	    var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
+	  function Store(data) {
 	    _classCallCheck(this, Store);
 
-	    this.data = data;
+	    this.data = data || {};
 	  }
 
 	  _createClass(Store, [{
@@ -833,6 +832,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	/**
+	 * 为了压缩定义的三个常量
+	 *
+	 * @type {boolean}
+	 */
 	var TRUE = exports.TRUE = true;
 	var FALSE = exports.FALSE = false;
 	var NULL = exports.NULL = null;
@@ -980,16 +985,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _is = __webpack_require__(6);
 
-	module.exports = function toString(str) {
-	  var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-
+	module.exports = function (str, defaultValue) {
 	  if ((0, _is.isString)(str)) {
 	    return str;
 	  }
 	  if ((0, _is.isNumeric)(str)) {
 	    return '' + str;
 	  }
-	  return defaultValue;
+	  return arguments.length === 2 ? defaultValue : '';
 	};
 
 /***/ },
@@ -1135,29 +1138,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 	/**
-	 * 数据观测、事件和 watcher 都尚未初始化
+	 * 数据监听、事件监听尚未初始化
 	 *
 	 * @type {string}
 	 */
 	var INIT = exports.INIT = 'init';
 
 	/**
-	 * 已创建数据绑定，计算属性，方法，watcher/事件回调。
-	 * 但是还没有开始 DOM 编译，$el 还不存在。
+	 * 已创建计算属性，方法，数据监听，事件监听。
+	 * 但是还没有开始编译模板，$el 还不存在。
 	 *
 	 * @type {string}
 	 */
 	var CREATE = exports.CREATE = 'create';
 
 	/**
-	 * 在编译结束后调用。此时所有的指令已生效，因而数据的变化将触发 DOM 更新
+	 * 在模板编译结束后调用。
 	 *
 	 * @type {string}
 	 */
 	var COMPILE = exports.COMPILE = 'compile';
 
+	/**
+	 * 组件第一次加入 DOM 树调用。
+	 *
+	 * @type {string}
+	 */
 	var ATTACH = exports.ATTACH = 'attach';
+
+	/**
+	 * 数据更新时调用。
+	 *
+	 * @type {string}
+	 */
 	var UPDATE = exports.UPDATE = 'update';
+
+	/**
+	 * 组件从 DOM 树移除时调用。
+	 *
+	 * @type {string}
+	 */
 	var DETACH = exports.DETACH = 'detach';
 
 /***/ },
@@ -3415,7 +3435,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _env = __webpack_require__(7);
 
-	module.exports = function print(tpl) {
+	module.exports = function (tpl) {
 	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
 	    args[_key - 1] = arguments[_key];
 	  }
@@ -3440,7 +3460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _array = __webpack_require__(10);
 
-	module.exports = function getLocationByIndex(str, index) {
+	module.exports = function (str, index) {
 
 	  var line = 0,
 	      col = 0,
@@ -4332,7 +4352,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 
-	module.exports = function camelCase(name) {
+	module.exports = function (name) {
 	  return name.replace(/-([a-z])/gi, function ($0, $1) {
 	    return $1.toUpperCase();
 	  });
@@ -5116,8 +5136,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _component = __webpack_require__(39);
 
 	/**
-	 * 没有逻辑，ref 主要是配合 component 使用
-	 *
 	 * <Component @ref="component" />
 	 */
 
@@ -5126,8 +5144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  attach: function attach(_ref) {
 	    var el = _ref.el,
 	        node = _ref.node,
-	        instance = _ref.instance,
-	        directives = _ref.directives;
+	        instance = _ref.instance;
 
 
 	    var component = el['$component'];
@@ -5464,7 +5481,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param {boolean=} lazy 是否在最后调用
 	 * @return {Function}
 	 */
-	module.exports = function debounce(fn, delay, lazy) {
+	module.exports = function (fn, delay, lazy) {
 
 	  var prevTime = void 0,
 	      timer = void 0;

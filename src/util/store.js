@@ -9,8 +9,8 @@ import {
 
 module.exports = class Store {
 
-  constructor(data = { }) {
-    this.data = data
+  constructor(data) {
+    this.data = data || { }
   }
 
   get(key) {

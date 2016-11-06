@@ -1,4 +1,9 @@
 
+/**
+ * 为了压缩定义的三个常量
+ *
+ * @type {boolean}
+ */
 export const TRUE = true
 export const FALSE = false
 export const NULL = null

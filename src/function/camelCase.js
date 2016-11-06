@@ -1,5 +1,5 @@
 
-module.exports = function camelCase(name) {
+module.exports = function (name) {
   return name.replace(
     /-([a-z])/gi,
     function ($0, $1) {

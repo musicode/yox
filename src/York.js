@@ -82,21 +82,21 @@ registry.directive.set({
 module.exports = class York {
 
   /**
-   * 配置
+   * 开关配置
    *
    * @type {Object}
    */
   static config = switcher
 
   /**
-   * 语法
+   * 模板语法
    *
    * @type {Object}
    */
   static syntax = syntax
 
   /**
-   * 语法
+   * 缓存
    *
    * @type {Object}
    */
@@ -184,6 +184,20 @@ module.exports = class York {
         hooks[`on${name}`] = name
       }
     )
+
+    // 监听各种事件
+    instance.$eventEmitter = new Emitter()
+
+    objectEach(
+      hooks,
+      function (value, key) {
+        if (isFunction(options[key])) {
+          instance.on(value, options[key])
+        }
+      }
+    )
+
+    instance.fire(lifecycle.INIT)
 
     if (isObject(methods)) {
       objectEach(
@@ -333,20 +347,6 @@ module.exports = class York {
         }
       )
     }
-
-    // 监听各种事件
-    instance.$eventEmitter = new Emitter()
-
-    objectEach(
-      hooks,
-      function (value, key) {
-        if (isFunction(options[key])) {
-          instance.on(value, options[key])
-        }
-      }
-    )
-
-    instance.fire(lifecycle.INIT)
 
     if (isObject(events)) {
       objectEach(

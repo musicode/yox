@@ -2,9 +2,9 @@ import {
   isNumeric,
 } from '../util/is'
 
-module.exports = function toNumber(str, defaultValue = 0) {
+module.exports = function (str, defaultValue) {
   if (isNumeric(str)) {
     return +str
   }
-  return defaultValue
+  return arguments.length === 2 ? defaultValue : 0
 }

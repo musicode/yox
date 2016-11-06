@@ -1,7 +1,5 @@
 
 /**
- * 没有逻辑，ref 主要是配合 component 使用
- *
  * <Component @ref="component" />
  */
 
@@ -15,7 +13,7 @@ import {
 
 module.exports = {
 
-  attach: function ({ el, node, instance, directives }) {
+  attach: function ({ el, node, instance }) {
 
     let component = el[`$component`]
     let value = node.getValue()
