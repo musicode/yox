@@ -1,8 +1,8 @@
 {
-  "name": "cola",
+  "name": "york",
   "version": "0.0.1",
-  "description": "tool",
-  "main": "index.js",
+  "description": "a mvvm framework",
+  "main": "dist/york.min.js",
   "scripts": {
     "server": "webpack-dev-server --hot --inline",
     "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json",
@@ -21,7 +21,7 @@
     "snabbdom": "^0.5.4"
   },
   "author": "musicode",
-  "repository": "empty",
+  "repository": "https://github.com/musicode/york",
   "license": "MIT",
   "readme": "README.md",
   "devDependencies": {

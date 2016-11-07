@@ -189,7 +189,7 @@ export function render(ast, data) {
 
   let { children } = rootElement
   if (children.length !== 1 || children[0].type !== ELEMENT) {
-    logger.error('Template must contains just one root element.')
+    logger.error('Template must contains only one root element.')
   }
 
   return children[0]
