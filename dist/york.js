@@ -587,6 +587,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return new York(options);
 	    }
 	  }, {
+	    key: 'getComponent',
+	    value: function getComponent(name) {
+	      return (0, _component.get)(this, 'component', name);
+	    }
+	  }, {
 	    key: 'dispose',
 	    value: function dispose() {
 	      this.fire(lifecycle.DETACH);
@@ -953,6 +958,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.count = count;
 	exports.has = has;
 	exports.extend = extend;
+	exports.copy = copy;
 	exports.get = get;
 	exports.set = set;
 
@@ -995,6 +1001,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	        result[key] = value;
 	      });
 	    }
+	  }
+	  return result;
+	}
+
+	function copy(object, deep) {
+	  var result = object;
+	  if ((0, _is.isArray)(object)) {
+	    result = [];
+	    (0, _array.each)(object, function (item, index) {
+	      result[index] = depp ? copy(item) : item;
+	    });
+	  } else if ((0, _is.isObject)(object)) {
+	    result = {};
+	    each(object, function (value, key) {
+	      result[key] = deep ? copy(value) : value;
+	    });
 	  }
 	  return result;
 	}
@@ -1438,7 +1460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var children = rootElement.children;
 
 	  if (children.length !== 1 || children[0].type !== _nodeType.ELEMENT) {
-	    logger.error('Template must contains just one root element.');
+	    logger.error('Template must contains only one root element.');
 	  }
 
 	  return children[0];
@@ -4086,7 +4108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      result.push(name);
 	    }
 	  } while (node = node.object);
-	  return result.reverse().join('.');
+	  return result.length > 0 ? result.reverse().join('.') : '';
 	}
 
 	/**
@@ -5538,7 +5560,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _env = __webpack_require__(3);
 
-	var _component = __webpack_require__(39);
+	var _object = __webpack_require__(10);
 
 	module.exports = {
 
@@ -5547,9 +5569,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        node = _ref.node,
 	        instance = _ref.instance;
 
-	    el.$component = instance.create((0, _component.get)(instance, 'component', node.custom), {
+	    el.$component = instance.create(instance.getComponent(node.custom), {
 	      el: el,
-	      props: node.getAttributes(),
+	      props: (0, _object.copy)(node.getAttributes(), true),
 	      replace: _env.TRUE
 	    });
 	  },
@@ -5558,7 +5580,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var el = _ref2.el,
 	        node = _ref2.node;
 
-	    el.$component.set(node.getAttributes());
+	    el.$component.set((0, _object.copy)(node.getAttributes(), true));
 	  },
 
 	  detach: function detach(_ref3) {

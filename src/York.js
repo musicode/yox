@@ -606,6 +606,10 @@ module.exports = class York {
     return new York(options)
   }
 
+  getComponent(name) {
+    return componentGet(this, 'component', name)
+  }
+
   dispose() {
     this.fire(lifecycle.DETACH)
   }

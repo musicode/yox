@@ -49,7 +49,9 @@ export function stringify(node) {
     }
   }
   while (node = node.object)
-  return result.reverse().join('.')
+  return result.length > 0
+    ? result.reverse().join('.')
+    : ''
 }
 
 /**

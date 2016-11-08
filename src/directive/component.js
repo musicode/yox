@@ -5,24 +5,26 @@ import {
 } from '../config/env'
 
 import {
-  get,
-} from '../util/component'
+  copy,
+} from '../util/object'
 
 module.exports = {
 
   attach: function ({ el, node, instance }) {
     el.$component = instance.create(
-      get(instance, 'component', node.custom),
+      instance.getComponent(node.custom),
       {
         el,
-        props: node.getAttributes(),
+        props: copy(node.getAttributes(), true),
         replace: TRUE,
       }
     )
   },
 
   update: function ({ el, node }) {
-    el.$component.set(node.getAttributes())
+    el.$component.set(
+      copy(node.getAttributes(), true)
+    )
   },
 
   detach: function ({ el }) {

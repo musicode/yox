@@ -8,6 +8,7 @@ import {
 } from '../config/env'
 
 import {
+  isArray,
   isObject,
 } from './is'
 
@@ -47,6 +48,29 @@ export function extend() {
         }
       )
     }
+  }
+  return result
+}
+
+export function copy(object, deep) {
+  let result = object
+  if (isArray(object)) {
+    result = [ ]
+    arrayEach(
+      object,
+      function (item, index) {
+        result[index] = depp ? copy(item) : item
+      }
+    )
+  }
+  else if (isObject(object)) {
+    result = { }
+    each(
+      object,
+      function (value, key) {
+        result[key] = deep ? copy(value) : value
+      }
+    )
   }
   return result
 }
