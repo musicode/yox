@@ -26,10 +26,6 @@ import {
 } from '../../util/object'
 
 import {
-  get,
-} from '../../util/component'
-
-import {
   isArray,
   isFunction,
 } from '../../util/is'
@@ -100,7 +96,7 @@ export function create(node, instance) {
           directives.push({
             name: 'component',
             node,
-            directive: get(instance, 'directive', 'component'),
+            directive: instance.getDirective('component'),
           })
         }
         else {
@@ -135,7 +131,7 @@ export function create(node, instance) {
             directives.push({
               name,
               node,
-              directive: get(instance, 'directive', directiveName),
+              directive: instance.getDirective(directiveName),
             })
           }
         )

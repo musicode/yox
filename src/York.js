@@ -377,7 +377,7 @@ module.exports = class York {
     instance.$template = parseTemplate(
       template,
       function (name) {
-        return componentGet(instance, 'partial', name)
+        return instance.getPartial(name)
       },
       function (name, node) {
         componentSet(instance, 'partial', name, node)
@@ -608,6 +608,18 @@ module.exports = class York {
 
   getComponent(name) {
     return componentGet(this, 'component', name)
+  }
+
+  getFilter(name) {
+    return componentGet(this, 'filter', name)
+  }
+
+  getDirective(name) {
+    return componentGet(this, 'directive', name)
+  }
+
+  getPartial(name) {
+    return componentGet(this, 'partial', name)
   }
 
   dispose() {
