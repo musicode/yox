@@ -1,8 +1,8 @@
 {
   "name": "yox",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "a mvvm framework",
-  "main": "dist/york.min.js",
+  "main": "src/Yox.js",
   "scripts": {
     "server": "webpack-dev-server --hot --inline",
     "test": "jasmine JASMINE_CONFIG_PATH=test/jasmine.json",
