@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 var env = process.env.WEBPACK_ENV;
 
-var libraryName = 'York';
+var libraryName = 'Yox';
 
 var plugins = [ ];
 var outputFilename = '.js';

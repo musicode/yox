@@ -1,5 +1,5 @@
 {
-  "name": "york",
+  "name": "yox",
   "version": "0.0.1",
   "description": "a mvvm framework",
   "main": "dist/york.min.js",
@@ -21,7 +21,7 @@
     "snabbdom": "^0.5.4"
   },
   "author": "musicode",
-  "repository": "https://github.com/musicode/york",
+  "repository": "https://github.com/musicode/yox",
   "license": "MIT",
   "readme": "README.md",
   "devDependencies": {

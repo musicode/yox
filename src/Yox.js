@@ -80,7 +80,7 @@ registry.directive.set({
   ref, lazy, event, model, component
 })
 
-module.exports = class York {
+module.exports = class Yox {
 
   /**
    * 开关配置
@@ -603,7 +603,7 @@ module.exports = class York {
   create(options, extra) {
     options = objectExtend({ }, options, extra)
     options.parent = this
-    return new York(options)
+    return new Yox(options)
   }
 
   getComponent(name) {
