@@ -4,8 +4,16 @@
 
 ## 安装
 
+NPM
+
 ```
 npm install yox
+```
+
+CDN
+
+```
+<script src="https://unpkg.com/yox@latest"></script>
 ```
 
 ## 文档
