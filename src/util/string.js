@@ -3,9 +3,7 @@ import {
   NULL,
 } from '../config/env'
 
-import {
-  error,
-} from '../config/logger'
+import * as logger from '../config/logger'
 
 import getLocationByIndex from '../function/getLocationByIndex'
 
@@ -30,5 +28,5 @@ export function parseError(str, errorMsg, errorIndex) {
     let { line, col } = getLocationByIndex(str, errorIndex)
     errorMsg += `, at line ${line}, col ${col}.`
   }
-  error(errorMsg)
+  logger.error(errorMsg)
 }

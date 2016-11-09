@@ -87,17 +87,17 @@ module.exports = class Yox {
    *
    * @type {Object}
    */
-  static config = switcher
+  static switcher = switcher
 
   /**
-   * 模板语法
+   * 模板语法配置
    *
    * @type {Object}
    */
   static syntax = syntax
 
   /**
-   * 缓存
+   * 全局缓存，方便外部清缓存
    *
    * @type {Object}
    */
@@ -386,6 +386,7 @@ module.exports = class Yox {
 
     instance.fire(lifecycle.COMPILE)
 
+    // 第一次渲染组件
     instance.updateView(el)
 
   }
@@ -452,7 +453,7 @@ module.exports = class Yox {
 
   fire(type, data, bubble) {
     if (arguments.length === 2 && data === TRUE) {
-      bubble = data
+      bubble = TRUE
       data = NULL
     }
     let instance = this
@@ -640,5 +641,4 @@ module.exports = class Yox {
  * 8. 属性延展（用 #each 遍历数据）
  * 9. 报错信息完善
  * 10. SEO友好
- * 11. 计算属性的观测用 Emitter 是否更好？
  */

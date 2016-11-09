@@ -154,7 +154,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	  /**
-	   * 缓存
+	   * 全局缓存，方便外部清缓存
 	   *
 	   * @type {Object}
 	   */
@@ -381,11 +381,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    instance.fire(lifecycle.COMPILE);
 
+	    // 第一次渲染组件
 	    instance.updateView(el);
 	  }
 
 	  /**
-	   * 模板语法
+	   * 模板语法配置
 	   *
 	   * @type {Object}
 	   */
@@ -456,7 +457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'fire',
 	    value: function fire(type, data, bubble) {
 	      if (arguments.length === 2 && data === _env.TRUE) {
-	        bubble = data;
+	        bubble = _env.TRUE;
 	        data = _env.NULL;
 	      }
 	      var instance = this;
@@ -614,7 +615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 
 	  return Yox;
-	}(), _class.config = switcher, _class.syntax = syntax, _class.cache = cache, _class.component = function (id, value) {
+	}(), _class.switcher = switcher, _class.syntax = syntax, _class.cache = cache, _class.component = function (id, value) {
 	  registry.component.set(id, value);
 	}, _class.directive = function (id, value) {
 	  registry.directive.set(id, value);
@@ -638,7 +639,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 8. 属性延展（用 #each 遍历数据）
 	 * 9. 报错信息完善
 	 * 10. SEO友好
-	 * 11. 计算属性的观测用 Emitter 是否更好？
 	 */
 
 /***/ },
@@ -1222,7 +1222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 	/**
-	 * 数据监听、事件监听尚未初始化
+	 * 数据监听、事件监听尚未初始化。
 	 *
 	 * @type {string}
 	 */
@@ -3477,11 +3477,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _logger = __webpack_require__(2);
 
+	var logger = _interopRequireWildcard(_logger);
+
 	var _getLocationByIndex2 = __webpack_require__(32);
 
 	var _getLocationByIndex3 = _interopRequireDefault(_getLocationByIndex2);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
 
 	var breaklinePrefixPattern = /^[ \t]*\n/;
 	var breaklineSuffixPattern = /\n[ \t]*$/;
@@ -3504,7 +3508,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    errorMsg += ', at line ' + line + ', col ' + col + '.';
 	  }
-	  (0, _logger.error)(errorMsg);
+	  logger.error(errorMsg);
 	}
 
 /***/ },
