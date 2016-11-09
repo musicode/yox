@@ -683,22 +683,23 @@ export function traverse(ast, options = {}) {
       traverse(ast.property, options)
       break
 
-    case MEMBER:
-      traverse(ast.object, options)
-      traverse(ast.property, options)
-      break
-
     case CALL:
       traverse(ast.callee, options)
-      each(ast.arguments, function (arg) {
-        traverse(arg, options)
-      })
+      each(
+        ast.arguments,
+        function (arg) {
+          traverse(arg, options)
+        }
+      )
       break
 
     case ARRAY:
-      each(ast.elements, function (element) {
-        traverse(element, options)
-      })
+      each(
+        ast.elements,
+        function (element) {
+          traverse(element, options)
+        }
+      )
       break
 
   }
