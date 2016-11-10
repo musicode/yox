@@ -12,6 +12,7 @@
   },
   "author": "musicode",
   "repository": "https://github.com/musicode/yox",
+  "homepage": "https://github.com/musicode/yox#readme",
   "license": "MIT",
   "readme": "README.md",
   "devDependencies": {
